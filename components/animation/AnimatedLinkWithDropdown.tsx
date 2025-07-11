@@ -1,8 +1,9 @@
 "use client";
 
-import { Box, Flex, Link, Text, Portal } from "@chakra-ui/react";
+import { Box, Flex, Link, Portal } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
 import { useState, useRef } from "react";
+import { AnimatedLink } from "./AnimatedLink";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
@@ -39,13 +40,14 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
         href={item.href}
         px={2}
         py={2}
-        fontWeight="semibold"
+        fontWeight="bold"
         fontSize="sm"
-        color="black"
+        color="gray.600"
         textDecoration="none"
         _hover={{ textDecoration: "none" }}
         whileHover="hover"
         initial="initial"
+        animate={isOpen ? "hover" : "initial"}
         position="relative"
       >
         {item.name.toUpperCase()}
@@ -53,13 +55,13 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
         <MotionBox
           variants={underlineVariants}
           transition={{ duration: 0.3 }}
+          bg={"gray.600"}
           style={{
             position: "absolute",
             left: 0,
             bottom: 0,
             width: "100%",
             height: "2px",
-            backgroundColor: "black",
             transformOrigin: "left",
           }}
         />
@@ -101,29 +103,21 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                   return (
                     <Box key={col.id} minW="200px">
                       <Flex justify={columnCount > 1 ? "center" : "flex-start"}>
-                        <Text
-                          fontWeight="bold"
-                          mb={4}
-                          fontSize="sm"
-                          textTransform="uppercase"
-                          color="gray.600"
-                        >
-                          {col.name}
-                        </Text>
+                        <Box mb={4}>
+                          <AnimatedLink name={col.name} href="#" />
+                        </Box>
                       </Flex>
                       <Flex direction="row" gap={10} alignItems="flex-start">
                         <Flex direction="column" gap={2}>
                           {firstColumnItems.map(
                             (subItem: any, index: number) => (
-                              <Link
-                                key={`${subItem.id}-${index}`}
+                              <AnimatedLink
                                 href={subItem.href}
-                                fontSize="sm"
-                                color="gray.700"
-                                _hover={{ color: "black" }}
-                              >
-                                {subItem.name}
-                              </Link>
+                                key={`${subItem.id}-${index}`}
+                                name={subItem.name}
+                                fontWeight={"normal"}
+                                fontColor="gray"
+                              />
                             )
                           )}
                         </Flex>
@@ -131,31 +125,27 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                           <Flex direction="column" gap={2}>
                             {secondColumnItems.map(
                               (subItem: any, index: number) => (
-                                <Link
-                                  key={`${subItem.id}-b-${index}`}
+                                <AnimatedLink
                                   href={subItem.href}
-                                  fontSize="sm"
-                                  color="gray.700"
-                                  _hover={{ color: "black" }}
-                                >
-                                  {subItem.name}
-                                </Link>
+                                  key={`${subItem.id}-${index}`}
+                                  name={subItem.name}
+                                  fontWeight={"normal"}
+                                  fontColor="gray"
+                                />
                               )
                             )}
                           </Flex>
                         )}
                       </Flex>
                       {showViewAll && (
-                        <Flex mt={6} justify="center">
-                          <Link
-                            href="#"
-                            fontWeight="bold"
-                            fontSize="sm"
-                            color="black"
-                            textDecoration="underline"
-                          >
-                            View All
-                          </Link>
+                        <Flex mt={2} justify="center">
+                          <AnimatedLink
+                            href={col.href}
+                            key={`${col.id}-viewAll`}
+                            name={"View All"}
+                            fontWeight={"bold"}
+                            fontColor="gray.700"
+                          />
                         </Flex>
                       )}
                     </Box>

@@ -6,13 +6,39 @@ import { useLogoutMutation } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
 import { NavLink } from "@/components/common";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import { Box, Flex, Heading, Link, List, ListItem } from "@chakra-ui/react";
+import {
+  Box,
+  Drawer,
+  DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
+  Flex,
+  Heading,
+  IconButton,
+  Link,
+  List,
+  ListItem,
+  useDisclosure,
+  useMediaQuery,
+} from "@chakra-ui/react";
 import { AnimatedLink } from "../animation/AnimatedLink";
 import { AnimatedLinkWithDropdown } from "../animation/AnimatedLinkWithDropdown";
+import { SlUser } from "react-icons/sl";
+import { PiHeartLight } from "react-icons/pi";
+import { SlBag } from "react-icons/sl";
+import { CiSearch } from "react-icons/ci";
+import Image from "next/image";
+import saieLogo from "@/public/saie-logo.png";
+import { HamburgerMenu } from "./HamburgerMenu";
+import { HamburgerIcon } from "@chakra-ui/icons";
+import SearchBox from "./SearchBox";
 
 export default function Navbar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
 
   const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
   console.log(user);
@@ -197,63 +223,125 @@ Archived Styles*/
 
   const isSelected = (path: string) => (pathname === path ? true : false);
 
-  const authLinks = (isMobile: boolean) => (
-    <>
-      <NavLink
-        isSelected={isSelected("/dashboard")}
-        isMobile={isMobile}
-        href="/dashboard"
-      >
-        Dashboard
-      </NavLink>
-      <NavLink isMobile={isMobile} onClick={handleLogout}>
-        Logout
-      </NavLink>
-    </>
-  );
-
-  const guestLinks = (isMobile: boolean) => (
-    <>
-      <NavLink
-        isSelected={isSelected("/auth/login")}
-        isMobile={isMobile}
-        href="/auth/login"
-      >
-        Login
-      </NavLink>
-      <NavLink
-        isSelected={isSelected("/auth/register")}
-        isMobile={isMobile}
-        href="/auth/register"
-      >
-        Register
-      </NavLink>
-    </>
-  );
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isSearchOpen,
+    onOpen: onSearchOpen,
+    onClose: onSearchClose,
+  } = useDisclosure();
 
   return (
-    <Flex bgColor={"red"} w={"100%"} minH={"60px"} gap={4} pb={6}>
-      <Flex flex={1}></Flex>
+    <Flex
+      bgColor={"white"}
+      w={"100%"}
+      minH={"60px"}
+      gap={4}
+      pb={6}
+      pt={2}
+      px={isMobile ? 2 : "100px"}
+    >
+      <SearchBox isOpen={isSearchOpen} onClose={onSearchClose} />
+      <Flex flex={1} justifyContent={"flex-start"} alignItems={"center"}>
+        {!isMobile && (
+          <IconButton
+            aria-label="search"
+            icon={<CiSearch />}
+            fontSize={"1.7rem"}
+            variant={"link"}
+            borderRadius={"50%"}
+            _hover={{ color: "gray.300" }}
+            onClick={onSearchOpen}
+          />
+        )}
+        {isMobile && (
+          <>
+            <IconButton
+              icon={<HamburgerIcon />}
+              aria-label="Open menu"
+              onClick={onOpen}
+              variant="variant"
+              fontSize={"xl"}
+              _hover={{ color: "gray.300" }}
+            />
+            <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+              <DrawerOverlay />
+              <DrawerContent maxW="320px" pt={6}>
+                <DrawerCloseButton top={4} right={4} />
+                <DrawerBody px={4}>
+                  <HamburgerMenu menu={menu} />
+                </DrawerBody>
+              </DrawerContent>
+            </Drawer>
+          </>
+        )}
+      </Flex>
       <Flex
         flex={2}
         flexDir={"column"}
         justifyContent={"center"}
         alignItems={"center"}
       >
-        <Heading as={"h3"} mb={4}>
-          SAIE
-        </Heading>
-        <Flex flexDirection={"row"}>
-          {menu.map((item) =>
-            item.children ? (
-              <AnimatedLinkWithDropdown key={item.id} item={item} />
-            ) : (
-              <AnimatedLink key={item.id} name={item.name} href={item.href} />
-            )
-          )}
+        <Box mt={3}></Box>
+        <Image src={saieLogo} alt="SAIE" width={128} height={49} />
+        <Flex flexDirection={"row"} mt={3}>
+          {!isMobile &&
+            menu.map((item) =>
+              item.children ? (
+                <AnimatedLinkWithDropdown key={item.id} item={item} />
+              ) : (
+                <AnimatedLink
+                  fontColor={"gray.600"}
+                  key={item.id}
+                  name={item.name}
+                  href={item.href}
+                />
+              )
+            )}
         </Flex>
       </Flex>
-      <Flex flex={1}></Flex>
+      <Flex flex={1} justifyContent={"flex-end"} alignItems={"center"} gap={1}>
+        {isMobile && (
+          <IconButton
+            aria-label="search"
+            icon={<CiSearch />}
+            fontSize={"1.5rem"}
+            p={2}
+            border={"none"}
+            variant={"outlineYellow"}
+            onClick={onSearchOpen}
+            borderRadius={"50%"}
+          />
+        )}
+        {!isMobile && (
+          <IconButton
+            aria-label="user-profile"
+            icon={<SlUser />}
+            fontSize={"1.3rem"}
+            p={2}
+            border={"none"}
+            variant={"outlineYellow"}
+            borderRadius={"50%"}
+          />
+        )}
+        <IconButton
+          aria-label="wishlist"
+          icon={<PiHeartLight />}
+          fontSize={"1.5rem"}
+          p={2}
+          border={"none"}
+          variant={"outlinePink"}
+          borderRadius={"50%"}
+        />
+        <IconButton
+          aria-label="cart"
+          icon={<SlBag />}
+          fontSize={"1.3rem"}
+          p={2}
+          border={"none"}
+          variant={"outlineBlue"}
+          borderRadius={"50%"}
+        />
+      </Flex>
     </Flex>
   );
 }

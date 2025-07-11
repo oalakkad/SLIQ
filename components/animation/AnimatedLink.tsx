@@ -1,6 +1,5 @@
 import { Link, Box } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
-import type { ComponentProps } from "react";
 
 // Create motion components
 const MotionLink = motion(Link);
@@ -16,9 +15,18 @@ const underlineVariants: Variants = {
 interface AnimatedLinkProps {
   name: string;
   href: string;
+  marginBottom?: number;
+  fontWeight?: string | number;
+  fontColor?: string;
 }
 
-export function AnimatedLink({ name, href }: AnimatedLinkProps) {
+export function AnimatedLink({
+  name,
+  href,
+  marginBottom,
+  fontWeight,
+  fontColor,
+}: AnimatedLinkProps) {
   return (
     <Box position="relative">
       <MotionLink
@@ -27,10 +35,11 @@ export function AnimatedLink({ name, href }: AnimatedLinkProps) {
         textDecoration="none"
         px={2}
         py={2}
-        color="black"
+        color={fontColor ?? "black"}
+        mb={marginBottom ?? 0}
         _hover={{ textDecoration: "none" }}
         whileHover="hover"
-        fontWeight="bold"
+        fontWeight={fontWeight ?? "bold"}
         initial="initial"
         fontSize="sm"
         mr={4}
@@ -39,13 +48,13 @@ export function AnimatedLink({ name, href }: AnimatedLinkProps) {
         <MotionBox
           variants={underlineVariants}
           transition={{ duration: 0.3 }}
+          bg={fontColor ?? "black"}
           style={{
             position: "absolute",
             left: 0,
             bottom: 0,
             width: "100%",
             height: "2px",
-            backgroundColor: "black",
             transformOrigin: "left",
           }}
         />
