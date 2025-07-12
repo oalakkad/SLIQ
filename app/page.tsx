@@ -8,6 +8,7 @@ import FeaturedCard from "@/components/common/FeaturedCard";
 import FeaturedProductCarousel from "@/components/common/FeaturedCardCarousel";
 import HeroBanner from "@/components/common/HeroBanner";
 import ThreeImages, { ThreeImagesProps } from "@/components/common/ThreeImages";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
   Box,
   Button,
@@ -57,6 +58,9 @@ const categories: CategoryCardProps[] = [
 
 export default function Page() {
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
+  const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
+  console.log(user);
+
   return (
     <Box>
       <Box bg={"brand.announcement"} pt={20} pb={4} w={"100%"} px={5}>

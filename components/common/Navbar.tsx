@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { useLogoutMutation } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
-import { NavLink } from "@/components/common";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
   Box,
@@ -12,14 +11,9 @@ import {
   DrawerBody,
   DrawerCloseButton,
   DrawerContent,
-  DrawerHeader,
   DrawerOverlay,
   Flex,
-  Heading,
   IconButton,
-  Link,
-  List,
-  ListItem,
   useDisclosure,
   useMediaQuery,
 } from "@chakra-ui/react";
@@ -34,6 +28,7 @@ import saieLogo from "@/public/saie-logo.png";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import SearchBox from "./SearchBox";
+import Link from "next/link";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -41,7 +36,7 @@ export default function Navbar() {
   const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
 
   const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
-  console.log(user);
+  // console.log(user ?? "");
 
   const [logout] = useLogoutMutation();
 
@@ -54,12 +49,7 @@ export default function Navbar() {
         dispatch(setLogout());
       });
   };
-  /* Heavenly Hair Milk
-Sweet As Pie
-Big Effing Clips®
-Sweetheart Clips
-Super Bloom Clips
-Archived Styles*/
+
   const menu = [
     { id: "summer", href: "#", name: "Summer Sale", children: null },
     { id: "arrivals", href: "#", name: "New Arrivals", children: null },
@@ -313,15 +303,17 @@ Archived Styles*/
           />
         )}
         {!isMobile && (
-          <IconButton
-            aria-label="user-profile"
-            icon={<SlUser />}
-            fontSize={"1.3rem"}
-            p={2}
-            border={"none"}
-            variant={"outlineYellow"}
-            borderRadius={"50%"}
-          />
+          <Link href={isAuthenticated ? "/profile" : "/auth/login"}>
+            <IconButton
+              aria-label="user-profile"
+              icon={<SlUser />}
+              fontSize={"1.3rem"}
+              p={2}
+              border={"none"}
+              variant={"outlineYellow"}
+              borderRadius={"50%"}
+            />
+          </Link>
         )}
         <IconButton
           aria-label="wishlist"

@@ -10,6 +10,7 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { useAppSelector } from "@/redux/hooks";
 
 const RecursiveMenuItem = ({
   item,
@@ -20,7 +21,6 @@ const RecursiveMenuItem = ({
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-
   const isTopLevel = depth === 0;
 
   return (
@@ -78,6 +78,8 @@ const RecursiveMenuItem = ({
 };
 
 export const HamburgerMenu = ({ menu }: { menu: any[] }) => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   return (
     <VStack align="start" spacing={0} w="100%">
       {menu.map((item) => (
@@ -85,12 +87,12 @@ export const HamburgerMenu = ({ menu }: { menu: any[] }) => {
       ))}
       <Box px={2} py={4}>
         <Link
-          href="#"
+          href={isAuthenticated ? "/profile" : "/auth/login"}
           color="gray.600"
           fontSize="md"
           fontFamily={"'Work Sans', sans-serif"}
         >
-          Log in
+          {isAuthenticated ? "Account" : "Log In"}
         </Link>
       </Box>
     </VStack>
