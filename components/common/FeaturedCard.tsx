@@ -14,36 +14,16 @@ import { useState } from "react";
 import { FiHeart } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { Product } from "@/hooks/use-products";
 
-// Motion wrapper
 const MotionBox = motion(Box);
 
 export interface FeaturedCardProps {
-  badge?: string;
-  title: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  hoverImage: string;
+  product: Product;
+  height: number;
 }
 
-export default function FeaturedCard({
-  badge,
-  title,
-  price,
-  oldPrice,
-  image,
-  hoverImage,
-  height,
-}: {
-  badge?: string;
-  title: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  hoverImage: string;
-  height: number;
-}) {
+export default function FeaturedCard({ product, height }: FeaturedCardProps) {
   const [isImageHovered, setIsImageHovered] = useState(false);
 
   const { ref, inView } = useInView({
@@ -57,8 +37,17 @@ export default function FeaturedCard({
   const adjustedHeight = isMobile
     ? `${height}px`
     : isTablet
-    ? `${Number(height) * 1.2}px`
-    : `${Number(height) * 1.5}px`;
+    ? `${height * 1.2}px`
+    : `${height * 1.5}px`;
+
+  const hoverImage = product.images?.[1]?.image || product.image;
+
+  const badge =
+    product.is_new_arrival || product.is_best_seller
+      ? product.is_new_arrival
+        ? "New Arrival"
+        : "Best Seller"
+      : null;
 
   return (
     <MotionBox
@@ -77,22 +66,21 @@ export default function FeaturedCard({
     >
       <Flex
         position="absolute"
-        alignItems={"center"}
+        alignItems="center"
         justifyContent="space-between"
-        w={"100%"}
+        w="100%"
         top={0}
         p={2}
       >
-        {/* Badge */}
-        <Box h={"100%"}>
+        <Box h="100%">
           {badge && !isImageHovered && (
             <Text
               fontSize={isMobile ? "0.5rem" : "xs"}
               fontWeight="bold"
               color="gray.600"
               zIndex={2}
-              position={"absolute"}
-              pointerEvents={"none"}
+              position="absolute"
+              pointerEvents="none"
               ml={3}
             >
               {badge}
@@ -100,11 +88,10 @@ export default function FeaturedCard({
           )}
         </Box>
 
-        {/* Heart icon */}
         <IconButton
           aria-label="wishlist"
           icon={<FiHeart />}
-          size={"sm"}
+          size="sm"
           variant="ghost"
           zIndex={2}
           _hover={{ bg: "transparent", color: "gray.600" }}
@@ -119,10 +106,10 @@ export default function FeaturedCard({
         onMouseLeave={() => setIsImageHovered(false)}
       >
         <Image
-          src={image}
-          alt={title}
+          src={product.image}
+          alt={product.name}
           height={adjustedHeight}
-          w={"100%"}
+          w="100%"
           objectFit="cover"
           opacity={isImageHovered ? 0 : 1}
           transition="opacity 0.3s ease"
@@ -132,9 +119,9 @@ export default function FeaturedCard({
         />
         <Image
           src={hoverImage}
-          alt={`${title} Hover`}
+          alt={`${product.name} Hover`}
           height={adjustedHeight}
-          w={"100%"}
+          w="100%"
           objectFit="cover"
           opacity={isImageHovered ? 1 : 0}
           transition="opacity 0.3s ease"
@@ -150,32 +137,23 @@ export default function FeaturedCard({
           fontWeight="bold"
           fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
           color="gray.800"
-          h={"45px"}
+          h="45px"
         >
-          {title}
+          {product.name}
         </Text>
 
         <Stack direction="row" justify="center" align="center" mb={2}>
-          {oldPrice && (
-            <Text
-              fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
-              color="gray.400"
-              textDecor="line-through"
-            >
-              ${oldPrice}
-            </Text>
-          )}
           <Text
             fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
             color="pink.600"
           >
-            ${price}
+            {parseFloat(product.price).toFixed(3)} KWD
           </Text>
         </Stack>
 
         <Button
           variant="outline"
-          size={"sm"}
+          size="sm"
           borderRadius="none"
           fontWeight="medium"
           fontSize={isMobile ? "0.5rem" : "xs"}

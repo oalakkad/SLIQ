@@ -29,11 +29,20 @@ import { HamburgerMenu } from "./HamburgerMenu";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import SearchBox from "./SearchBox";
 import Link from "next/link";
+import { useCart } from "@/hooks/use-cart";
 
 export default function Navbar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
+
+  // const {
+  //   data: cart,
+  //   isLoading: isCartLoading,
+  //   isError: isCartError,
+  // } = useCart();
+
+  // console.log(cart);
 
   const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
   // console.log(user ?? "");

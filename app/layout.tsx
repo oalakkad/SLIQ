@@ -11,6 +11,7 @@ import "@fontsource/readex-pro/500.css"; // Medium
 import "@fontsource/readex-pro/600.css"; // SemiBold
 import "@fontsource/readex-pro/700.css"; // Bold
 import { Box } from "@chakra-ui/react";
+import QueryProvider from "@/components/utils/QueryProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -26,14 +27,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Provider>
-          <Setup />
-          <Providers>
-            <Navbar />
-            <Box>{children}</Box>
-            <Footer />
-          </Providers>
-        </Provider>
+        <QueryProvider>
+          <Provider>
+            <Setup />
+            <Providers>
+              <Navbar />
+              <Box>{children}</Box>
+              <Footer />
+            </Providers>
+          </Provider>
+        </QueryProvider>
       </body>
     </html>
   );

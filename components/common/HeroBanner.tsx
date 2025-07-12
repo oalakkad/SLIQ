@@ -86,24 +86,22 @@ const HeroBanner = ({
           {/* Button as a link */}
           <Flex justifyContent={"center"} w={"100%"}>
             <NextLink href={buttonLink} passHref>
-              <Link _hover={{ textDecoration: "none" }}>
-                <Button
-                  variant="outline"
-                  color="white"
-                  borderColor="white"
-                  borderWidth={1.5}
-                  borderRadius="none"
-                  px={6}
-                  py={5}
-                  fontSize="xs"
-                  fontWeight="bold"
-                  textTransform="uppercase"
-                  fontFamily={"'Readex Pro', sans-serif"}
-                  _hover={{ bg: "whiteAlpha.200" }}
-                >
-                  {buttonText}
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                color="white"
+                borderColor="white"
+                borderWidth={1.5}
+                borderRadius="none"
+                px={6}
+                py={5}
+                fontSize="xs"
+                fontWeight="bold"
+                textTransform="uppercase"
+                fontFamily={"'Readex Pro', sans-serif"}
+                _hover={{ bg: "whiteAlpha.200" }}
+              >
+                {buttonText}
+              </Button>
             </NextLink>
           </Flex>
         </MotionDiv>
