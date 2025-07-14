@@ -5,19 +5,21 @@ import {
   Text,
   Collapse,
   IconButton,
-  Link,
   useDisclosure,
   Divider,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { useAppSelector } from "@/redux/hooks";
+import Link from "next/link";
 
 const RecursiveMenuItem = ({
   item,
   depth = 0,
+  onClose,
 }: {
   item: any;
   depth?: number;
+  onClose: () => void;
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const hasChildren = Array.isArray(item.children) && item.children.length > 0;
@@ -35,18 +37,21 @@ const RecursiveMenuItem = ({
         cursor={hasChildren ? "pointer" : "default"}
         _hover={{ bg: hasChildren ? "gray.50" : "transparent" }}
       >
-        <Link
-          href={item.href}
-          fontWeight={isTopLevel ? "bold" : "normal"}
-          textTransform={isTopLevel ? "uppercase" : "capitalize"}
-          fontSize={isTopLevel ? "sm" : "md"}
-          fontFamily={
-            isTopLevel ? "'Readex Pro', sans-serif" : "'Work Sans', sans-serif"
-          }
-          _hover={{ textDecoration: "none" }}
-          color="gray.700"
-        >
-          {item.name}
+        <Link href={item.href} onClick={onClose}>
+          <Text
+            fontWeight={isTopLevel ? "bold" : "normal"}
+            textTransform={isTopLevel ? "uppercase" : "capitalize"}
+            fontSize={isTopLevel ? "sm" : "md"}
+            fontFamily={
+              isTopLevel
+                ? "'Readex Pro', sans-serif"
+                : "'Work Sans', sans-serif"
+            }
+            _hover={{ textDecoration: "none" }}
+            color="gray.700"
+          >
+            {item.name}
+          </Text>
         </Link>
         {hasChildren && (
           <IconButton
@@ -64,6 +69,7 @@ const RecursiveMenuItem = ({
           <VStack align="start" spacing={1} pl={4} py={2}>
             {item.children.map((child: any) => (
               <RecursiveMenuItem
+                onClose={onClose}
                 key={child.id}
                 item={child}
                 depth={depth + 1}
@@ -77,22 +83,29 @@ const RecursiveMenuItem = ({
   );
 };
 
-export const HamburgerMenu = ({ menu }: { menu: any[] }) => {
+export const HamburgerMenu = ({
+  menu,
+  onClose,
+}: {
+  menu: any[];
+  onClose: () => void;
+}) => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   return (
     <VStack align="start" spacing={0} w="100%">
       {menu.map((item) => (
-        <RecursiveMenuItem key={item.id} item={item} />
+        <RecursiveMenuItem key={item.id} item={item} onClose={onClose} />
       ))}
       <Box px={2} py={4}>
         <Link
           href={isAuthenticated ? "/profile" : "/auth/login"}
           color="gray.600"
-          fontSize="md"
-          fontFamily={"'Work Sans', sans-serif"}
+          onClick={onClose}
         >
-          {isAuthenticated ? "Account" : "Log In"}
+          <Text fontSize="md" fontFamily={"'Work Sans', sans-serif"}>
+            {isAuthenticated ? "Account" : "Log In"}
+          </Text>
         </Link>
       </Box>
     </VStack>

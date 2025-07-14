@@ -56,3 +56,16 @@ export const usePaginatedProducts = (
     },
     placeholderData: (prev) => prev,
   });
+
+// ✅ New hook to fetch a single product by ID
+export const useProduct = (slug: string) =>
+  useQuery<Product>({
+    queryKey: ['product', slug],
+    queryFn: async () => {
+      const response = await axios.get(`${API_URL}/products/${slug}/`, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    enabled: !!slug,
+  });

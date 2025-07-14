@@ -30,6 +30,9 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import SearchBox from "./SearchBox";
 import Link from "next/link";
 import { useCart } from "@/hooks/use-cart";
+import { useMenuCategories } from "@/hooks/use-menu-categories";
+import { buildDynamicMenu } from "./BuildDynamicMenu";
+import { useMemo } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -58,6 +61,39 @@ export default function Navbar() {
         dispatch(setLogout());
       });
   };
+  console.log(isAuthenticated);
+
+  const { data: categories } = useMenuCategories();
+
+  const baseMenu = [
+    { id: "summer", href: "#", name: "Summer Sale", children: null },
+    { id: "arrivals", href: "#", name: "New Arrivals", children: null },
+    { id: "best", href: "#", name: "Best Sellers", children: null },
+    {
+      id: "shop",
+      href: "/shop",
+      name: "Shop",
+      children: [], // will populate dynamically
+    },
+  ];
+
+  const dynamicMenu = useMemo(() => {
+    if (!categories) return baseMenu;
+
+    const { shopChildren } = buildDynamicMenu(categories);
+
+    const updatedMenu = baseMenu.map((item) => {
+      if (item.id === "shop") {
+        return {
+          ...item,
+          children: shopChildren,
+        };
+      }
+      return item;
+    });
+
+    return updatedMenu;
+  }, [categories]);
 
   const menu = [
     { id: "summer", href: "#", name: "Summer Sale", children: null },
@@ -267,7 +303,7 @@ export default function Navbar() {
               <DrawerContent maxW="320px" pt={6}>
                 <DrawerCloseButton top={4} right={4} />
                 <DrawerBody px={4}>
-                  <HamburgerMenu menu={menu} />
+                  <HamburgerMenu menu={dynamicMenu} onClose={onClose} />
                 </DrawerBody>
               </DrawerContent>
             </Drawer>
@@ -281,10 +317,12 @@ export default function Navbar() {
         alignItems={"center"}
       >
         <Box mt={3}></Box>
-        <Image src={saieLogo} alt="SAIE" width={128} height={49} />
+        <Link href={"/"}>
+          <Image src={saieLogo} alt="SAIE" width={128} height={49} />
+        </Link>
         <Flex flexDirection={"row"} mt={3}>
           {!isMobile &&
-            menu.map((item) =>
+            dynamicMenu.map((item) =>
               item.children ? (
                 <AnimatedLinkWithDropdown key={item.id} item={item} />
               ) : (
@@ -333,15 +371,17 @@ export default function Navbar() {
           variant={"outlinePink"}
           borderRadius={"50%"}
         />
-        <IconButton
-          aria-label="cart"
-          icon={<SlBag />}
-          fontSize={"1.3rem"}
-          p={2}
-          border={"none"}
-          variant={"outlineBlue"}
-          borderRadius={"50%"}
-        />
+        <Link href={isAuthenticated ? "/cart" : "/auth/login"}>
+          <IconButton
+            aria-label="cart"
+            icon={<SlBag />}
+            fontSize={"1.3rem"}
+            p={2}
+            border={"none"}
+            variant={"outlineBlue"}
+            borderRadius={"50%"}
+          />
+        </Link>
       </Flex>
     </Flex>
   );

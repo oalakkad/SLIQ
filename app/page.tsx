@@ -124,7 +124,7 @@ export default function Page() {
           </Button>
         </Box>
       </Box>
-      <FeaturedProductCarousel title="Summer Hair Essentials" />
+      {/* <FeaturedProductCarousel title="Summer Hair Essentials" /> */}
       <Box bg={"brand.blue"} pt={20} pb={4} w={"100%"} px={5}>
         <ThreeImages images={images} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>

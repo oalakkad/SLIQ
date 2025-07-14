@@ -3,6 +3,7 @@
 import FeaturedCard, {
   FeaturedCardProps,
 } from "@/components/common/FeaturedCard";
+import { useCart } from "@/hooks/use-cart";
 import { usePaginatedProducts } from "@/hooks/use-products";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import {
@@ -266,7 +267,7 @@ import { useState, useRef } from "react";
 //   },
 // ];
 
-export default function Shop() {
+export default function Page() {
   const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
 
   const [page, setPage] = useState(1);
@@ -402,19 +403,20 @@ export default function Shop() {
       </Flex>
       {isMobile && (
         <Flex wrap="wrap" gap={1} justify="center" w={"100%"} mt={4}>
-          {COLORS.map((color) => (
-            <Circle
-              key={color.name}
-              size="26px"
-              bg={color.value}
-              border="1px solid #ccc"
-              onClick={() => setColor(color.name)}
-              cursor="pointer"
-              onMouseEnter={() => setHoveredColor(color.name)}
-              onMouseLeave={() => setHoveredColor(null)}
-              _hover={{ transform: "scale(1.1)" }}
-            />
-          ))}
+          {isOpen &&
+            COLORS.map((color) => (
+              <Circle
+                key={color.name}
+                size="26px"
+                bg={color.value}
+                border="1px solid #ccc"
+                onClick={() => setColor(color.name)}
+                cursor="pointer"
+                onMouseEnter={() => setHoveredColor(color.name)}
+                onMouseLeave={() => setHoveredColor(null)}
+                _hover={{ transform: "scale(1.1)" }}
+              />
+            ))}
         </Flex>
       )}
       <SimpleGrid

@@ -28,7 +28,7 @@ export function AnimatedLink({
   fontColor,
 }: AnimatedLinkProps) {
   return (
-    <Box position="relative">
+    <Box position="relative" minW={"200px"}>
       <MotionLink
         href={href}
         position="relative"

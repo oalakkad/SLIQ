@@ -10,11 +10,13 @@ import {
   Flex,
   useMediaQuery,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FiHeart } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { Product } from "@/hooks/use-products";
+import { useCart } from "@/hooks/use-cart";
+import { useRouter } from "next/navigation";
 
 const MotionBox = motion(Box);
 
@@ -25,6 +27,14 @@ export interface FeaturedCardProps {
 
 export default function FeaturedCard({ product, height }: FeaturedCardProps) {
   const [isImageHovered, setIsImageHovered] = useState(false);
+
+  const { addToCart, data: cart } = useCart();
+
+  const router = useRouter();
+
+  const isInCart = useMemo(() => {
+    return cart?.items?.some((item) => item.product.id === product.id);
+  }, [cart, product.id]);
 
   const { ref, inView } = useInView({
     threshold: 0.2,
@@ -40,7 +50,9 @@ export default function FeaturedCard({ product, height }: FeaturedCardProps) {
     ? `${height * 1.2}px`
     : `${height * 1.5}px`;
 
-  const hoverImage = product.images?.[1]?.image || product.image;
+  const hoverImage = product.images?.[0]?.image || product.image;
+
+  const productLink = `/products/${product.slug}`;
 
   const badge =
     product.is_new_arrival || product.is_best_seller
@@ -104,11 +116,14 @@ export default function FeaturedCard({ product, height }: FeaturedCardProps) {
         h={adjustedHeight}
         onMouseEnter={() => setIsImageHovered(true)}
         onMouseLeave={() => setIsImageHovered(false)}
+        onClick={() => router.push(productLink)}
+        cursor={"pointer"}
       >
         <Image
           src={product.image}
           alt={product.name}
           height={adjustedHeight}
+          bgPosition={"bottom"}
           w="100%"
           objectFit="cover"
           opacity={isImageHovered ? 0 : 1}
@@ -138,6 +153,8 @@ export default function FeaturedCard({ product, height }: FeaturedCardProps) {
           fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
           color="gray.800"
           h="45px"
+          cursor={"pointer"}
+          onClick={() => router.push(productLink)}
         >
           {product.name}
         </Text>
@@ -159,9 +176,21 @@ export default function FeaturedCard({ product, height }: FeaturedCardProps) {
           fontSize={isMobile ? "0.5rem" : "xs"}
           w="100%"
           py={6}
+          bg={isInCart ? "brand.pink" : "transparent"}
           fontFamily={"'Work Sans', sans-serif"}
+          disabled={isInCart}
+          color={isInCart ? "black" : "gray.600"}
+          onClick={() =>
+            addToCart.mutate({ product_id: product.id, quantity: 1 })
+          }
+          _hover={
+            isInCart
+              ? { backgroundColor: "brand.pink" }
+              : { backgroundColor: "gray.500", color: "white" }
+          }
+          cursor={isInCart ? "not-allowed" : "pointer"}
         >
-          ADD TO BAG
+          {isInCart ? "IN CART" : "ADD TO BAG"}
         </Button>
       </Box>
     </MotionBox>

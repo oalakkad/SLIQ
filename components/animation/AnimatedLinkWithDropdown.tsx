@@ -72,7 +72,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
           <Box onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <MotionBox
               position="absolute"
-              top="100px"
+              top="115px"
               left={0}
               right={0}
               width="100%"
@@ -92,6 +92,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                 alignItems="flex-start"
                 maxW="1440px"
                 mx="auto"
+                flexWrap={"wrap"}
               >
                 {item.children.map((col: any) => {
                   const items = col.children || [];
@@ -104,7 +105,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                     <Box key={col.id} minW="200px">
                       <Flex justify={columnCount > 1 ? "center" : "flex-start"}>
                         <Box mb={4}>
-                          <AnimatedLink name={col.name} href="#" />
+                          <AnimatedLink name={col.name} href={col.href} />
                         </Box>
                       </Flex>
                       <Flex direction="row" gap={10} alignItems="flex-start">
