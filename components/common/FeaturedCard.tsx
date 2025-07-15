@@ -12,23 +12,34 @@ import {
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { FiHeart } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { Product } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { useRouter } from "next/navigation";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 const MotionBox = motion(Box);
 
 export interface FeaturedCardProps {
   product: Product;
   height: number;
+  isWishlist: boolean;
+  wishlistItemId: number;
 }
 
-export default function FeaturedCard({ product, height }: FeaturedCardProps) {
+export default function FeaturedCard({
+  product,
+  height,
+  isWishlist,
+  wishlistItemId,
+}: FeaturedCardProps) {
   const [isImageHovered, setIsImageHovered] = useState(false);
 
   const { addToCart, data: cart } = useCart();
+
+  const { addToWishlist, removeFromWishlist } = useWishlist();
 
   const router = useRouter();
 
@@ -102,9 +113,15 @@ export default function FeaturedCard({ product, height }: FeaturedCardProps) {
 
         <IconButton
           aria-label="wishlist"
-          icon={<FiHeart />}
+          icon={isWishlist ? <FaHeart /> : <FiHeart />}
           size="sm"
           variant="ghost"
+          onClick={
+            isWishlist
+              ? () => removeFromWishlist.mutate(wishlistItemId)
+              : () => addToWishlist.mutate({ product: product.id })
+          }
+          color={isWishlist ? "brand.pink" : "gray.300"}
           zIndex={2}
           _hover={{ bg: "transparent", color: "gray.600" }}
         />

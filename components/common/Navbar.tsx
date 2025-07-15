@@ -256,8 +256,6 @@ export default function Navbar() {
     },
   ];
 
-  const isSelected = (path: string) => (pathname === path ? true : false);
-
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isSearchOpen,
@@ -316,11 +314,11 @@ export default function Navbar() {
         justifyContent={"center"}
         alignItems={"center"}
       >
-        <Box mt={3}></Box>
+        <Box mt={4}></Box>
         <Link href={"/"}>
           <Image src={saieLogo} alt="SAIE" width={128} height={49} />
         </Link>
-        <Flex flexDirection={"row"} mt={3}>
+        <Flex flexDirection={"row"} mt={5}>
           {!isMobile &&
             dynamicMenu.map((item) =>
               item.children ? (
@@ -362,15 +360,17 @@ export default function Navbar() {
             />
           </Link>
         )}
-        <IconButton
-          aria-label="wishlist"
-          icon={<PiHeartLight />}
-          fontSize={"1.5rem"}
-          p={2}
-          border={"none"}
-          variant={"outlinePink"}
-          borderRadius={"50%"}
-        />
+        <Link href={isAuthenticated ? "/wishlist" : "/auth/login"}>
+          <IconButton
+            aria-label="wishlist"
+            icon={<PiHeartLight />}
+            fontSize={"1.5rem"}
+            p={2}
+            border={"none"}
+            variant={"outlinePink"}
+            borderRadius={"50%"}
+          />
+        </Link>
         <Link href={isAuthenticated ? "/cart" : "/auth/login"}>
           <IconButton
             aria-label="cart"

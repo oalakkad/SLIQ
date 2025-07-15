@@ -5,6 +5,7 @@ import FeaturedCard, {
 } from "@/components/common/FeaturedCard";
 import { useCart } from "@/hooks/use-cart";
 import { usePaginatedProducts } from "@/hooks/use-products";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -272,6 +273,12 @@ export default function Page() {
 
   const [page, setPage] = useState(1);
 
+  const { items: wishlist } = useWishlist();
+
+  const wishlistMap = new Map(
+    wishlist.map((item) => [item.product.id, item.id])
+  );
+
   const { data, isLoading, isError } = usePaginatedProducts(page);
 
   const totalPages = Math.ceil((data?.count || 0) / 12);
@@ -434,7 +441,12 @@ export default function Page() {
             minHeight="100%" // Ensure height fills cell
           >
             <Box width="100%" height="100%">
-              <FeaturedCard product={product} height={200} />
+              <FeaturedCard
+                product={product}
+                height={200}
+                isWishlist={wishlistMap.has(product.id)}
+                wishlistItemId={wishlistMap.get(product.id) ?? -1}
+              />
             </Box>
           </Flex>
         ))}

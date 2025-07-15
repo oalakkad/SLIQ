@@ -19,7 +19,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useMemo, useState } from "react";
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
-  const { data: product, isLoading } = useProduct(params.slug);
+  const { data: product, isLoading } = useProduct(params?.slug);
   const { addToCart, data: cart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isMobile] = useMediaQuery("(max-width: 768px)");

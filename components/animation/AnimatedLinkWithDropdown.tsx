@@ -69,10 +69,14 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
 
       {item.children && isOpen && (
         <Portal>
-          <Box onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          <Box
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            bg={"transparent"}
+          >
             <MotionBox
               position="absolute"
-              top="115px"
+              top="130px"
               left={0}
               right={0}
               width="100%"
