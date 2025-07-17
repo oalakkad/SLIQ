@@ -21,6 +21,7 @@ import {
   Button,
   Text,
   IconButton,
+  Spinner,
 } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
 import { useState, useRef } from "react";
@@ -320,57 +321,100 @@ export default function Page() {
       >
         SHOP ALL
       </Heading>
-      <Flex
-        px={isMobile ? 2 : "100px"}
-        justifyContent={"space-between"}
-        pt={10}
-      >
-        <Button
-          onClick={onToggle}
-          w={isMobile ? "150px" : "250px"}
-          h={"45px"}
-          fontWeight={600}
-          color={"gray.400"}
-          fontFamily={"'Work Sans', sans-serif"}
-          leftIcon={
-            <Circle
-              size="20px"
-              border={"1px solid #ccc"}
-              bg={
-                color === "all"
-                  ? undefined
-                  : COLORS.find((c) => c.name === color)?.value
+      {!isLoading ? (
+        <>
+          <Flex
+            px={isMobile ? 2 : "100px"}
+            justifyContent={"space-between"}
+            pt={10}
+          >
+            <Button
+              onClick={onToggle}
+              w={isMobile ? "150px" : "250px"}
+              h={"45px"}
+              fontWeight={600}
+              color={"gray.400"}
+              fontFamily={"'Work Sans', sans-serif"}
+              leftIcon={
+                <Circle
+                  size="20px"
+                  border={"1px solid #ccc"}
+                  bg={
+                    color === "all"
+                      ? undefined
+                      : COLORS.find((c) => c.name === color)?.value
+                  }
+                  bgGradient={
+                    color === "all"
+                      ? "linear(to-r, red, orange, yellow, green, blue, indigo, violet)"
+                      : undefined
+                  }
+                />
               }
-              bgGradient={
-                color === "all"
-                  ? "linear(to-r, red, orange, yellow, green, blue, indigo, violet)"
-                  : undefined
-              }
-            />
-          }
-        >
-          {color === "all"
-            ? "All Colors"
-            : color[0].toUpperCase() + color.slice(1)}
-        </Button>
-        {!isMobile && isOpen && (
-          <Center mt={6} flexDir="column">
-            {hoveredColor && (
-              <Text
-                mb={2}
-                fontSize="lg"
-                fontWeight="semibold"
-                position={"absolute"}
-                color={"gray.400"}
-                fontFamily={"'Work Sans', sans-serif"}
-                mt={"-115px"}
-              >
-                {hoveredColor.toUpperCase()}
-              </Text>
+            >
+              {color === "all"
+                ? "All Colors"
+                : color[0].toUpperCase() + color.slice(1)}
+            </Button>
+            {!isMobile && isOpen && (
+              <Center mt={6} flexDir="column">
+                {hoveredColor && (
+                  <Text
+                    mb={2}
+                    fontSize="lg"
+                    fontWeight="semibold"
+                    position={"absolute"}
+                    color={"gray.400"}
+                    fontFamily={"'Work Sans', sans-serif"}
+                    mt={"-115px"}
+                  >
+                    {hoveredColor.toUpperCase()}
+                  </Text>
+                )}
+                {
+                  <Flex wrap="wrap" gap={1} justify="center" maxW={"285px"}>
+                    {COLORS.map((color) => (
+                      <Circle
+                        key={color.name}
+                        size="26px"
+                        bg={color.value}
+                        border="1px solid #ccc"
+                        onClick={() => setColor(color.name)}
+                        cursor="pointer"
+                        onMouseEnter={() => setHoveredColor(color.name)}
+                        onMouseLeave={() => setHoveredColor(null)}
+                        _hover={{ transform: "scale(1.1)" }}
+                      />
+                    ))}
+                  </Flex>
+                }
+              </Center>
             )}
-            {
-              <Flex wrap="wrap" gap={1} justify="center" maxW={"285px"}>
-                {COLORS.map((color) => (
+            <Select
+              placeholder="SORT BY"
+              size="lg"
+              w={isMobile ? "150px" : "250px"}
+              borderRadius={0}
+              border={"none"}
+              color={"gray.400"}
+              fontWeight={600}
+              fontFamily={"'Work Sans', sans-serif"}
+              variant={"filled"}
+              h={"45px"}
+              bg="white"
+              value={sort}
+              style={{ paddingTop: "0" }}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="featured">Featured</option>
+              <option value="price-lth">Price, Low to High</option>
+              <option value="price-htl">Price, High to Low</option>
+            </Select>
+          </Flex>
+          {isMobile && (
+            <Flex wrap="wrap" gap={1} justify="center" w={"100%"} mt={4}>
+              {isOpen &&
+                COLORS.map((color) => (
                   <Circle
                     key={color.name}
                     size="26px"
@@ -383,74 +427,33 @@ export default function Page() {
                     _hover={{ transform: "scale(1.1)" }}
                   />
                 ))}
-              </Flex>
-            }
-          </Center>
-        )}
-        <Select
-          placeholder="SORT BY"
-          size="lg"
-          w={isMobile ? "150px" : "250px"}
-          borderRadius={0}
-          border={"none"}
-          color={"gray.400"}
-          fontWeight={600}
-          fontFamily={"'Work Sans', sans-serif"}
-          variant={"filled"}
-          h={"45px"}
-          bg="white"
-          value={sort}
-          style={{ paddingTop: "0" }}
-          onChange={(e) => setSort(e.target.value)}
-        >
-          <option value="featured">Featured</option>
-          <option value="price-lth">Price, Low to High</option>
-          <option value="price-htl">Price, High to Low</option>
-        </Select>
-      </Flex>
-      {isMobile && (
-        <Flex wrap="wrap" gap={1} justify="center" w={"100%"} mt={4}>
-          {isOpen &&
-            COLORS.map((color) => (
-              <Circle
-                key={color.name}
-                size="26px"
-                bg={color.value}
-                border="1px solid #ccc"
-                onClick={() => setColor(color.name)}
-                cursor="pointer"
-                onMouseEnter={() => setHoveredColor(color.name)}
-                onMouseLeave={() => setHoveredColor(null)}
-                _hover={{ transform: "scale(1.1)" }}
-              />
-            ))}
-        </Flex>
-      )}
-      <SimpleGrid
-        columns={{ base: 2, md: 4 }}
-        spacing={isMobile ? 2 : 6}
-        pt={5}
-        px={isMobile ? 2 : "100px"}
-      >
-        {data?.results.map((product, index) => (
-          <Flex
-            key={`${product.id}-${page}`}
-            direction="column"
-            justify="space-between"
-            height="100%" // Ensures content doesn't overflow
-            minHeight="100%" // Ensure height fills cell
+            </Flex>
+          )}
+          <SimpleGrid
+            columns={{ base: 2, md: 4 }}
+            spacing={isMobile ? 2 : 6}
+            pt={5}
+            px={isMobile ? 2 : "100px"}
           >
-            <Box width="100%" height="100%">
-              <FeaturedCard
-                product={product}
-                height={200}
-                isWishlist={wishlistMap.has(product.id)}
-                wishlistItemId={wishlistMap.get(product.id) ?? -1}
-              />
-            </Box>
-          </Flex>
-        ))}
-        {/* {products.map((product, index) => (
+            {data?.results.map((product, index) => (
+              <Flex
+                key={`${product.id}-${page}`}
+                direction="column"
+                justify="space-between"
+                height="100%" // Ensures content doesn't overflow
+                minHeight="100%" // Ensure height fills cell
+              >
+                <Box width="100%" height="100%">
+                  <FeaturedCard
+                    product={product}
+                    height={200}
+                    isWishlist={wishlistMap.has(product.id)}
+                    wishlistItemId={wishlistMap.get(product.id) ?? -1}
+                  />
+                </Box>
+              </Flex>
+            ))}
+            {/* {products.map((product, index) => (
           <Flex
             key={index}
             direction="column"
@@ -463,21 +466,28 @@ export default function Page() {
             </Box>
           </Flex>
         ))} */}
-      </SimpleGrid>
-      {/* Pagination Control */}
-      <Flex w={"100%"} justifyContent={"center"} mt={10}>
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <Button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            border={"none"}
-            color={page === i + 1 ? "white" : "black"}
-            variant={page === i + 1 ? "solidPink" : "outlinePink"}
-          >
-            {i + 1}
-          </Button>
-        ))}
-      </Flex>
+          </SimpleGrid>
+          {/* Pagination Control */}
+          <Flex w={"100%"} justifyContent={"center"} mt={10}>
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <Button
+                key={i}
+                onClick={() => setPage(i + 1)}
+                mr={1}
+                border={"none"}
+                color={page === i + 1 ? "white" : "black"}
+                variant={page === i + 1 ? "solidPink" : "outlinePink"}
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </Flex>
+        </>
+      ) : (
+        <Flex justify="center" align="center" h="50vh">
+          <Spinner size="xl" />
+        </Flex>
+      )}
     </Box>
   );
 }

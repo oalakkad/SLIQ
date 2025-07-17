@@ -1,23 +1,20 @@
 "use client";
-
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useActivationMutation } from "@/redux/features/authApiSlice";
 import { toast } from "react-toastify";
 
-interface Props {
-  params: {
-    uid: string;
-    token: string;
-  };
-}
-
-export default function Page({ params }: Props) {
+export default function Page() {
   const router = useRouter();
+  const params = useParams();
   const [activation] = useActivationMutation();
 
   useEffect(() => {
-    const { uid, token } = params;
+    // Extract uid and token from params
+    const uid = params?.uid as string;
+    const token = params?.token as string;
+
+    if (!uid || !token) return;
 
     activation({ uid, token })
       .unwrap()
@@ -30,7 +27,7 @@ export default function Page({ params }: Props) {
       .finally(() => {
         router.push("/auth/login");
       });
-  }, []);
+  }, [activation, params, router]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">

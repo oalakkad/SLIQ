@@ -22,6 +22,13 @@ const authApiSlice = apiSlice.injectEndpoints({
 		retrieveUser: builder.query<User, void>({
 			query: () => '/users/me/',
 		}),
+		updateUser: builder.mutation<User, Partial<User>>({
+			query: (body) => ({
+				url: '/users/me/',
+				method: 'PATCH',
+				body,
+			}),
+		}),
 		socialAuthenticate: builder.mutation<
 			CreateUserResponse,
 			SocialAuthArgs
@@ -95,6 +102,7 @@ const authApiSlice = apiSlice.injectEndpoints({
 
 export const {
 	useRetrieveUserQuery,
+	useUpdateUserMutation,
 	useSocialAuthenticateMutation,
 	useLoginMutation,
 	useRegisterMutation,
