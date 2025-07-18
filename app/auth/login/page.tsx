@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/forms";
 import { SocialButtons } from "@/components/common";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Full Auth | Login",
-  description: "Full Auth login page",
-};
 
 export default function Page() {
   return (

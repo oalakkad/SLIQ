@@ -1,5 +1,6 @@
 "use client";
 
+import AccountMenu from "@/components/common/AccountMenu";
 import AddAddressModal from "@/components/common/AddressModal";
 import EditProfileModal from "@/components/common/EditProfileModal";
 import { Address, useAddress } from "@/hooks/use-address"; // <- hook to fetch/manage addresses
@@ -50,12 +51,12 @@ export default function ProfilePage() {
   } = useAddress();
 
   return (
-    <Box bg="#FCF8F7" minH="100vh" py={10} px={[4, 8, 12]}>
+    <Box bg="#FCF8F7" minH="50vh" py={10} px={[4, 8, 12]}>
+      <AccountMenu />
       {/* PROFILE SECTION */}
       <VStack
         align="stretch"
         spacing={6}
-        maxW="1000px"
         mx="auto"
         bg="white"
         p={6}

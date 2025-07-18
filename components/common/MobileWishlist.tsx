@@ -19,7 +19,7 @@ export default function MobileWishlist() {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
+      <Flex justify="center" align="center" h="50vh">
         <Spinner size="xl" />
       </Flex>
     );

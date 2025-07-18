@@ -19,6 +19,7 @@ export interface Filters {
   is_new_arrival?: boolean;
   is_best_seller?: boolean;
   categories?: number[];
+  category_slug?: string; // 👈 Add this
   ordering?: string;
 }
 
@@ -36,6 +37,7 @@ const buildQueryParams = (filters: Filters, page: number) => {
   if (filters.is_new_arrival) params.append('is_new_arrival', 'true');
   if (filters.is_best_seller) params.append('is_best_seller', 'true');
   if (filters.ordering) params.append('ordering', filters.ordering);
+  if (filters.category_slug) params.append('category_slug', filters.category_slug);
   filters.categories?.forEach((id) => params.append('categories', String(id)));
 
   return params.toString();

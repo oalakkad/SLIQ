@@ -33,7 +33,7 @@ export default function DesktopCart() {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
+      <Flex justify="center" align="center" h="50vh">
         <Spinner size="xl" />
       </Flex>
     );
@@ -62,13 +62,17 @@ export default function DesktopCart() {
           {items.map((item) => (
             <Flex key={item.id} align="center" justify="space-between">
               <HStack spacing={6} flex={"2"}>
-                <Image
-                  boxSize="100px"
-                  src={item.product.image}
-                  alt={item.product.name}
-                />
+                <Link href={`/products/${item.product.slug}`}>
+                  <Image
+                    boxSize="100px"
+                    src={item.product.image}
+                    alt={item.product.name}
+                  />
+                </Link>
                 <Box>
-                  <Text fontWeight="medium">{item.product.name}</Text>
+                  <Link href={`/products/${item.product.slug}`}>
+                    <Text fontWeight="medium">{item.product.name}</Text>
+                  </Link>
                   <Button
                     size="xs"
                     variant="link"

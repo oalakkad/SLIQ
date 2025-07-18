@@ -35,7 +35,6 @@ import { buildDynamicMenu } from "./BuildDynamicMenu";
 import { useMemo } from "react";
 
 export default function Navbar() {
-  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
 

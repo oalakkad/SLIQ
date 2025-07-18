@@ -1,5 +1,6 @@
 import { Link, Box } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 // Create motion components
 const MotionLink = motion(Link);
@@ -27,6 +28,7 @@ export function AnimatedLink({
   fontWeight,
   fontColor,
 }: AnimatedLinkProps) {
+  const pathname = usePathname();
   return (
     <Box position="relative" minW={"200px"}>
       <MotionLink

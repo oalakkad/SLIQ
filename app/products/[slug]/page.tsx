@@ -16,13 +16,23 @@ import { FiHeart } from "react-icons/fi";
 import { useProduct } from "@/hooks/use-products";
 import { useParams } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const { data: product, isLoading } = useProduct(params?.slug);
+export default function ProductPage() {
+  const params = useParams();
+  const slug = params?.slug as string;
+
+  const { data: product, isLoading } = useProduct(slug);
   const { addToCart, data: cart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [image, setImage] = useState(product?.image ?? "");
   const [isMobile] = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    if (product?.image) {
+      setImage(product.image);
+    }
+  }, [product]);
 
   const isInCart = useMemo(() => {
     return cart?.items?.some((item) => item.product?.id === product?.id);
@@ -30,11 +40,12 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
+      <Flex justify="center" align="center" h="50vh">
         <Spinner size="xl" />
       </Flex>
     );
   }
+
   return (
     <Flex
       direction={isMobile ? "column" : "row"}
@@ -46,17 +57,36 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
       {/* Image Section */}
       <VStack flex={1} spacing={4} align="center">
         <Image
-          src={product?.image}
+          src={image}
           alt={product?.name}
           maxW={isMobile ? "100%" : "400px"}
           borderRadius="md"
         />
         <HStack spacing={2}>
+          <Image
+            border={
+              product?.image === image ? "2px solid pink" : "2px solid grey"
+            }
+            onClick={() => {
+              product && setImage(product.image);
+            }}
+            src={product?.image}
+            alt={product?.name}
+            _hover={{ filter: "brightness(1.05);" }}
+            cursor={"pointer"}
+            boxSize="60px"
+            borderRadius="md"
+            objectFit="cover"
+          />
           {product?.images?.map((img, index) => (
             <Image
               key={index}
+              border={img.image === image ? "2px solid pink" : "2px solid grey"}
+              onClick={() => setImage(img.image)}
               src={img.image}
               alt={`thumb-${index}`}
+              _hover={{ filter: "brightness(1.05);" }}
+              cursor={"pointer"}
               boxSize="60px"
               borderRadius="md"
               objectFit="cover"

@@ -24,7 +24,7 @@ const HeroBanner = ({
   const isInView = useInView(ref, { once: true });
 
   return (
-    <Box ref={ref} w="100%" h="100vh" position="relative" overflow="hidden">
+    <Box ref={ref} w="100%" h="50vh" position="relative" overflow="hidden">
       {/* Background image */}
       <Box
         position="absolute"

@@ -33,6 +33,98 @@ const images: ThreeImagesProps[] = [
   },
 ];
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
+const images1: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/1.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/2.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/3.svg`,
+    alt: "Image 3",
+  },
+];
+
+const images2: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/4.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/5.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/6.svg`,
+    alt: "Image 3",
+  },
+];
+
+const images3: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/7.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/8.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/9.svg`,
+    alt: "Image 3",
+  },
+];
+
+const images4: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/10.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/11.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/12.svg`,
+    alt: "Image 3",
+  },
+];
+
+const images5: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/13.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/14.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/15.svg`,
+    alt: "Image 3",
+  },
+];
+
+const images6: ThreeImagesProps[] = [
+  {
+    src: `${API_URL}/media/home/16.svg`,
+    alt: "Image 1",
+  },
+  {
+    src: `${API_URL}/media/home/17.svg`,
+    alt: "Image 2",
+  },
+  {
+    src: `${API_URL}/media/home/17.svg`,
+    alt: "Image 3",
+  },
+];
+
 const categories: CategoryCardProps[] = [
   {
     title: "HAIR BRUSHES",
@@ -64,7 +156,7 @@ export default function Page() {
   return (
     <Box>
       <Box bg={"brand.announcement"} pt={20} pb={4} w={"100%"} px={5}>
-        <ThreeImages images={images} />
+        <ThreeImages images={images1} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>
           <Heading size={"lg"} color={"gray.500"} my={2}>
             25% OFF SITEWIDE
@@ -79,7 +171,7 @@ export default function Page() {
         </Box>
       </Box>
       <Box bg={"brand.pink"} pt={20} pb={4} w={"100%"} px={5}>
-        <ThreeImages images={images} />
+        <ThreeImages images={images2} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>
           <Heading size={"lg"} color={"gray.500"} my={2}>
             {"Sweet Summer Hair".toUpperCase()}
@@ -94,7 +186,7 @@ export default function Page() {
         </Box>
       </Box>
       <Box bg={"brand.announcement"} pt={20} pb={4} w={"100%"} px={5}>
-        <ThreeImages images={images} />
+        <ThreeImages images={images3} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>
           <Heading size={"lg"} color={"gray.500"} my={2}>
             {"For Sun-drenched Days".toUpperCase()}
@@ -109,7 +201,7 @@ export default function Page() {
         </Box>
       </Box>
       <Box bg={"brand.border"} pt={20} pb={4} w={"100%"} px={5}>
-        <ThreeImages images={images} />
+        <ThreeImages images={images4} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>
           <Heading size={"lg"} color={"gray.500"} my={2}>
             {"Meet Heavenly Hair Milk".toUpperCase()}
@@ -126,7 +218,7 @@ export default function Page() {
       </Box>
       {/* <FeaturedProductCarousel title="Summer Hair Essentials" /> */}
       <Box bg={"brand.blue"} pt={20} pb={4} w={"100%"} px={5}>
-        <ThreeImages images={images} />
+        <ThreeImages images={images5} />
         <Box w={isMobile ? "90%" : "30%"} m={6}>
           <Heading size={"lg"} color={"gray.500"} my={2}>
             {"Meet Heavenly Hair Milk".toUpperCase()}
@@ -166,14 +258,14 @@ export default function Page() {
         description={`"Heavenly Hair Milk was formulated for soft, smooth and vanilla-scented hair. We wanted a styling product that not only preps and protects your hair, but aids in anti-frizz and detangling. Whether you're crafting a bouncy blowout, or just letting your hair air dry, you'll always be able to find a place for Heavenly Hair Milk in your routine."`}
         buttonText="Explore Heavenly Hair Milk"
         buttonLink="#"
-        imageSrc="https://www.emijay.com/cdn/shop/files/image7_490c246f-4d0b-47ab-9066-27b965ab3fd1.jpg?v=1745253531&width=2048"
+        imageSrc={`${API_URL}/media/home/banner.svg`}
       />
       <AboutSection
         title="ABOUT US"
         description="A brand founded on bold femininity, supported by high-quality products. Both effective and effortless, Emi Jay takes a rare approach to hair and beauty, offering reliable products and a strong community."
         buttonText="Our Story"
         buttonLink="/about"
-        imageSrc="https://www.emijay.com/cdn/shop/files/BTSJG3_crop.jpg?v=1697052724&width=1024" // Place this image in /public
+        imageSrc={`${API_URL}/media/home/banner2.svg`}
       />
     </Box>
   );

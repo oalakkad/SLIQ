@@ -27,7 +27,7 @@ export default function MobileCart() {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
+      <Flex justify="center" align="center" h="50vh">
         <Spinner size="xl" />
       </Flex>
     );
@@ -48,13 +48,17 @@ export default function MobileCart() {
         {items.map((item) => (
           <Box key={item.id}>
             <HStack align="start" spacing={4} w="full">
-              <Image
-                boxSize="100px"
-                src={item.product.image}
-                alt={item.product.name}
-              />
+              <Link href={`/products/${item.product.slug}`}>
+                <Image
+                  boxSize="100px"
+                  src={item.product.image}
+                  alt={item.product.name}
+                />
+              </Link>
               <Box flex="1">
-                <Text fontWeight="medium">{item.product.name}</Text>
+                <Link href={`/products/${item.product.slug}`}>
+                  <Text fontWeight="medium">{item.product.name}</Text>
+                </Link>
                 <HStack spacing={3} mt={2}>
                   <Button
                     size="sm"

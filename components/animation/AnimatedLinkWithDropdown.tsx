@@ -4,6 +4,7 @@ import { Box, Flex, Link, Portal } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
 import { useState, useRef } from "react";
 import { AnimatedLink } from "./AnimatedLink";
+import { usePathname } from "next/navigation";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
@@ -28,7 +29,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
       setIsOpen(false);
     }, 150);
   };
-
+  const pathname = usePathname();
   return (
     <Box
       onMouseEnter={handleMouseEnter}

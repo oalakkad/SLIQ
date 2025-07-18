@@ -76,7 +76,7 @@ export default function SearchPopup({
               top={0}
               left={0}
               w="100vw"
-              h="100vh"
+              h="50vh"
               bg="white"
               onClick={onClose}
               opacity={0.3}
