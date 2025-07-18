@@ -16,12 +16,14 @@ import {
   IconButton,
   useDisclosure,
   useMediaQuery,
+  Badge,
 } from "@chakra-ui/react";
 import { AnimatedLink } from "../animation/AnimatedLink";
 import { AnimatedLinkWithDropdown } from "../animation/AnimatedLinkWithDropdown";
-import { SlUser } from "react-icons/sl";
+import { SlUser, SlBag } from "react-icons/sl";
+import { BsBagFill } from "react-icons/bs";
 import { PiHeartLight } from "react-icons/pi";
-import { SlBag } from "react-icons/sl";
+import { PiHeartFill } from "react-icons/pi";
 import { CiSearch } from "react-icons/ci";
 import Image from "next/image";
 import saieLogo from "@/public/saie-logo.png";
@@ -30,6 +32,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import SearchBox from "./SearchBox";
 import Link from "next/link";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { useMenuCategories } from "@/hooks/use-menu-categories";
 import { buildDynamicMenu } from "./BuildDynamicMenu";
 import { useMemo } from "react";
@@ -37,21 +40,14 @@ import { useMemo } from "react";
 export default function Navbar() {
   const dispatch = useAppDispatch();
   const [isMobile] = useMediaQuery(["(max-width: 950px)"]);
-
-  // const {
-  //   data: cart,
-  //   isLoading: isCartLoading,
-  //   isError: isCartError,
-  // } = useCart();
-
-  // console.log(cart);
-
-  const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
-  // console.log(user ?? "");
-
+  const { data: user } = useRetrieveUserQuery();
   const [logout] = useLogoutMutation();
-
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const { data: cart } = useCart();
+  const { items: wishlistItems } = useWishlist();
+  const cartCount = cart?.items.length || 0;
+  const wishlistCount = wishlistItems?.length || 0;
 
   const handleLogout = () => {
     logout(undefined)
@@ -60,10 +56,8 @@ export default function Navbar() {
         dispatch(setLogout());
       });
   };
-  console.log(isAuthenticated);
 
   const { data: categories } = useMenuCategories();
-
   const baseMenu = [
     { id: "summer", href: "#", name: "Summer Sale", children: null },
     { id: "arrivals", href: "#", name: "New Arrivals", children: null },
@@ -72,26 +66,16 @@ export default function Navbar() {
       id: "shop",
       href: "/shop",
       name: "Shop",
-      children: [], // will populate dynamically
+      children: [],
     },
   ];
 
   const dynamicMenu = useMemo(() => {
     if (!categories) return baseMenu;
-
     const { shopChildren } = buildDynamicMenu(categories);
-
-    const updatedMenu = baseMenu.map((item) => {
-      if (item.id === "shop") {
-        return {
-          ...item,
-          children: shopChildren,
-        };
-      }
-      return item;
-    });
-
-    return updatedMenu;
+    return baseMenu.map((item) =>
+      item.id === "shop" ? { ...item, children: shopChildren } : item
+    );
   }, [categories]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -112,6 +96,7 @@ export default function Navbar() {
       px={isMobile ? 2 : "100px"}
     >
       <SearchBox isOpen={isSearchOpen} onClose={onSearchClose} />
+
       <Flex flex={1} justifyContent={"flex-start"} alignItems={"center"}>
         {!isMobile && (
           <IconButton
@@ -146,6 +131,7 @@ export default function Navbar() {
           </>
         )}
       </Flex>
+
       <Flex
         flex={2}
         flexDir={"column"}
@@ -172,6 +158,7 @@ export default function Navbar() {
             )}
         </Flex>
       </Flex>
+
       <Flex flex={1} justifyContent={"flex-end"} alignItems={"center"} gap={1}>
         {isMobile && (
           <IconButton
@@ -185,6 +172,7 @@ export default function Navbar() {
             borderRadius={"50%"}
           />
         )}
+
         {!isMobile && (
           <Link href={isAuthenticated ? "/profile" : "/auth/login"}>
             <IconButton
@@ -198,28 +186,74 @@ export default function Navbar() {
             />
           </Link>
         )}
-        <Link href={isAuthenticated ? "/wishlist" : "/auth/login"}>
-          <IconButton
-            aria-label="wishlist"
-            icon={<PiHeartLight />}
-            fontSize={"1.5rem"}
-            p={2}
-            border={"none"}
-            variant={"outlinePink"}
-            borderRadius={"50%"}
-          />
-        </Link>
-        <Link href={isAuthenticated ? "/cart" : "/auth/login"}>
-          <IconButton
-            aria-label="cart"
-            icon={<SlBag />}
-            fontSize={"1.3rem"}
-            p={2}
-            border={"none"}
-            variant={"outlineBlue"}
-            borderRadius={"50%"}
-          />
-        </Link>
+
+        <Box position="relative">
+          <Link href={isAuthenticated ? "/wishlist" : "/auth/login"}>
+            <IconButton
+              aria-label="wishlist"
+              icon={wishlistCount > 0 ? <PiHeartFill /> : <PiHeartLight />}
+              color={wishlistCount > 0 ? "#e6a1a8" : "gray.800"}
+              fontSize="1.5rem"
+              p={2}
+              border="none"
+              variant={"outlinePink"}
+              borderRadius="50%"
+            />
+          </Link>
+          {wishlistCount > 0 && (
+            <Badge
+              position="absolute"
+              top="-1"
+              right="-1"
+              bg="#e6a1a8"
+              color="white"
+              fontSize="0.7rem"
+              borderRadius="full"
+              w="18px"
+              h="18px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              zIndex="1"
+            >
+              {wishlistCount}
+            </Badge>
+          )}
+        </Box>
+
+        <Box position="relative">
+          <Link href={isAuthenticated ? "/cart" : "/auth/login"}>
+            <IconButton
+              aria-label="cart"
+              icon={cartCount > 0 ? <BsBagFill /> : <SlBag />}
+              fontSize={cartCount > 0 ? "1.2rem" : "1.3rem"}
+              color={cartCount > 0 ? "#7ea2ca" : "gray.800"}
+              p={2}
+              border="none"
+              variant={"outlineBlue"}
+              borderRadius="50%"
+            />
+          </Link>
+          {cartCount > 0 && (
+            <Badge
+              position="absolute"
+              top="-1"
+              right="-1"
+              bg="#7ea2ca"
+              color="white"
+              fontSize="0.7rem"
+              borderRadius="full"
+              w="18px"
+              h="18px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              zIndex="1"
+            >
+              {cartCount}
+            </Badge>
+          )}
+        </Box>
       </Flex>
     </Flex>
   );

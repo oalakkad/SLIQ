@@ -49,11 +49,26 @@ export default function DesktopCart() {
       gap={10}
     >
       <Box flex="3">
-        <Text fontSize="2xl" fontWeight="bold" mb={4}>
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          mb={4}
+          textAlign={items.length > 0 ? "left" : "center"}
+        >
           SHOPPING BAG
         </Text>
+        {!(items.length > 0) && (
+          <Text textAlign={"center"} my={2}>
+            Your bag is empty.
+          </Text>
+        )}
         <Link href={"/shop"}>
-          <Text fontSize="sm" mb={6} color="gray.500">
+          <Text
+            fontSize="sm"
+            mb={6}
+            color="gray.500"
+            textAlign={items.length > 0 ? "left" : "center"}
+          >
             <u>Continue shopping</u>
           </Text>
         </Link>
@@ -121,25 +136,27 @@ export default function DesktopCart() {
         </VStack>
       </Box>
 
-      <Box flex="2" p={6} border="1px solid #eee" borderRadius="md">
-        <Text fontWeight="medium" mb={2}>
-          ORDER NOTE
-        </Text>
-        <Textarea placeholder="Add a note..." mb={4} minH={"150px"} />
+      {items.length > 0 && (
+        <Box flex="2" p={6} border="1px solid #eee" borderRadius="md">
+          <Text fontWeight="medium" mb={2}>
+            ORDER NOTE
+          </Text>
+          <Textarea placeholder="Add a note..." mb={4} minH={"150px"} />
 
-        <Flex justify="space-between" fontWeight="medium" mb={2}>
-          <Text>Subtotal</Text>
-          <Text>{subtotal.toFixed(3)} KWD</Text>
-        </Flex>
+          <Flex justify="space-between" fontWeight="medium" mb={2}>
+            <Text>Subtotal</Text>
+            <Text>{subtotal.toFixed(3)} KWD</Text>
+          </Flex>
 
-        <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
-          CHECK OUT
-        </Button>
+          <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
+            CHECK OUT
+          </Button>
 
-        <Text fontSize="sm" mt={3} textAlign="center">
-          Sign up to earn rewards for every purchase ✨
-        </Text>
-      </Box>
+          <Text fontSize="sm" mt={3} textAlign="center">
+            Sign up to earn rewards for every purchase ✨
+          </Text>
+        </Box>
+      )}
     </Flex>
   );
 }

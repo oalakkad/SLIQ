@@ -35,11 +35,26 @@ export default function MobileCart() {
 
   return (
     <Box px={4} py={6}>
-      <Text fontSize="2xl" fontWeight="bold" mb={2}>
+      <Text
+        fontSize="2xl"
+        fontWeight="bold"
+        mb={2}
+        textAlign={items.length > 0 ? "left" : "center"}
+      >
         SHOPPING BAG
       </Text>
+      {!(items.length > 0) && (
+        <Text textAlign={"center"} my={2}>
+          Your bag is empty.
+        </Text>
+      )}
       <Link href={"/shop"}>
-        <Text fontSize="sm" mb={6} color="gray.500">
+        <Text
+          fontSize="sm"
+          mb={6}
+          color="gray.500"
+          textAlign={items.length > 0 ? "left" : "center"}
+        >
           <u>Continue shopping</u>
         </Text>
       </Link>
@@ -105,25 +120,27 @@ export default function MobileCart() {
         ))}
       </VStack>
 
-      <Box mt={6}>
-        <Text fontWeight="medium" mb={2}>
-          ORDER NOTE
-        </Text>
-        <Textarea placeholder="Add a note..." mb={4} minH="120px" />
+      {items.length > 0 && (
+        <Box mt={6}>
+          <Text fontWeight="medium" mb={2}>
+            ORDER NOTE
+          </Text>
+          <Textarea placeholder="Add a note..." mb={4} minH="120px" />
 
-        <HStack justify="space-between" mb={2}>
-          <Text fontWeight="medium">Subtotal</Text>
-          <Text fontWeight="medium">{subtotal.toFixed(3)} KWD</Text>
-        </HStack>
+          <HStack justify="space-between" mb={2}>
+            <Text fontWeight="medium">Subtotal</Text>
+            <Text fontWeight="medium">{subtotal.toFixed(3)} KWD</Text>
+          </HStack>
 
-        <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
-          CHECK OUT
-        </Button>
+          <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
+            CHECK OUT
+          </Button>
 
-        <Text fontSize="sm" mt={3} textAlign="center">
-          Sign up to earn rewards for every purchase ✨
-        </Text>
-      </Box>
+          <Text fontSize="sm" mt={3} textAlign="center">
+            Sign up to earn rewards for every purchase ✨
+          </Text>
+        </Box>
+      )}
     </Box>
   );
 }

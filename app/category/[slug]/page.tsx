@@ -86,7 +86,7 @@ export default function Page() {
             px={isMobile ? 2 : "100px"}
             color={"gray.600"}
           >
-            {data?.results[0].name}
+            {data?.results[0].categories[0].name}
           </Heading>
           <Flex
             px={isMobile ? 2 : "100px"}

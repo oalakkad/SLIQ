@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { ProductCategory } from './use-menu-categories';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -12,6 +13,7 @@ export interface Product {
   images: { image: string }[];
   is_new_arrival: boolean;
   is_best_seller: boolean;
+  categories: ProductCategory[];
 }
 
 export interface Filters {
