@@ -23,7 +23,7 @@ import {
   IconButton,
   Spinner,
 } from "@chakra-ui/react";
-import { motion, Variants } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
 
 // const products: FeaturedCardProps[] = [
@@ -429,44 +429,43 @@ export default function Page() {
                 ))}
             </Flex>
           )}
-          <SimpleGrid
-            columns={{ base: 2, md: 4 }}
-            spacing={isMobile ? 2 : 6}
-            pt={5}
-            px={isMobile ? 2 : "100px"}
-          >
-            {data?.results.map((product, index) => (
-              <Flex
-                key={`${product.id}-${page}`}
-                direction="column"
-                justify="space-between"
-                height="100%" // Ensures content doesn't overflow
-                minHeight="100%" // Ensure height fills cell
+          <AnimatePresence mode="wait">
+            {data && (
+              <motion.div
+                key={page} // Animate only when page changes
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
               >
-                <Box width="100%" height="100%">
-                  <FeaturedCard
-                    product={product}
-                    height={200}
-                    isWishlist={wishlistMap.has(product.id)}
-                    wishlistItemId={wishlistMap.get(product.id) ?? -1}
-                  />
-                </Box>
-              </Flex>
-            ))}
-            {/* {products.map((product, index) => (
-          <Flex
-            key={index}
-            direction="column"
-            justify="space-between"
-            height="100%" // Ensures content doesn't overflow
-            minHeight="100%" // Ensure height fills cell
-          >
-            <Box width="100%" height="100%">
-              <FeaturedCard {...product} height={200} />
-            </Box>
-          </Flex>
-        ))} */}
-          </SimpleGrid>
+                <SimpleGrid
+                  columns={{ base: 2, md: 4 }}
+                  spacing={isMobile ? 2 : 6}
+                  pt={5}
+                  px={isMobile ? 2 : "100px"}
+                >
+                  {data.results.map((product) => (
+                    <Flex
+                      key={`${product.id}-${page}`}
+                      direction="column"
+                      justify="space-between"
+                      height="100%"
+                      minHeight="100%"
+                    >
+                      <Box width="100%" height="100%">
+                        <FeaturedCard
+                          product={product}
+                          height={200}
+                          isWishlist={wishlistMap.has(product.id)}
+                          wishlistItemId={wishlistMap.get(product.id) ?? -1}
+                        />
+                      </Box>
+                    </Flex>
+                  ))}
+                </SimpleGrid>
+              </motion.div>
+            )}
+          </AnimatePresence>
           {/* Pagination Control */}
           <Flex w={"100%"} justifyContent={"center"} mt={10}>
             {Array.from({ length: totalPages }).map((_, i) => (
