@@ -17,6 +17,7 @@ import {
   Text,
   useMediaQuery,
 } from "@chakra-ui/react";
+import Link from "next/link";
 
 const images: ThreeImagesProps[] = [
   {
@@ -127,24 +128,24 @@ const images6: ThreeImagesProps[] = [
 
 const categories: CategoryCardProps[] = [
   {
+    title: "HAIR CLIPS",
+    imageUrl: `${API_URL}/media/product-images/cotton-candy-gallery.jpg`,
+    href: "/category/hair-clips",
+  },
+  {
     title: "HAIR BRUSHES",
-    imageUrl:
-      "https://www.emijay.com/cdn/shop/files/image1_4242b237-3646-4d06-881f-7f97aff371eb.jpg?v=1745253381&width=1024",
+    imageUrl: `${API_URL}/media/product-images/crushed-ice-brush-gallery.jpg`,
+    href: "/category/hair-brushes",
   },
   {
-    title: "HAIR CARE",
-    imageUrl:
-      "https://www.emijay.com/cdn/shop/files/image15_5d09447b-625a-4e85-a7e7-675557a0d55e.jpg?v=1745253409&width=1024",
+    title: "PRE-MADE CLIPS",
+    imageUrl: `${API_URL}/media/product-images/starfish-clip-gallery.jpg`,
+    href: "/category/pre-made-clips",
   },
   {
-    title: "MAKEUP CLIPS",
-    imageUrl:
-      "https://www.emijay.com/cdn/shop/files/image8_9d4ec8a4-5049-4a97-a444-4dbcc45a4c0f.jpg?v=1745253449&width=1024",
-  },
-  {
-    title: "TRAVEL POUCHES",
-    imageUrl:
-      "https://www.emijay.com/cdn/shop/files/image9_396707ab-08bc-4eef-8ab7-49557b6596e4.jpg?v=1745352482&width=1024",
+    title: "MAKEUP POUCHES",
+    imageUrl: `${API_URL}/media/product-images/makeup-bags-gallery.jpg`,
+    href: "/category/makeup-pouches",
   },
 ];
 
@@ -165,9 +166,11 @@ export default function Page() {
             Our Summer sale has arrived, take 25% off effortless hair essentials
             through July 6th. Exclusions apply.
           </Text>
-          <Button my={4} variant={"outline"} fontSize={"sm"}>
-            SHOP NOW
-          </Button>
+          <Link href={"/shop"}>
+            <Button my={4} variant={"outline"} fontSize={"sm"}>
+              SHOP NOW
+            </Button>
+          </Link>
         </Box>
       </Box>
       <Box bg={"brand.pink"} pt={20} pb={4} w={"100%"} px={5}>
@@ -180,9 +183,11 @@ export default function Page() {
             Slow down and refresh your summer hair wardrobe with sweet seasonal
             accessories and heaven-sent hair care.
           </Text>
-          <Button my={4} variant={"outline"} fontSize={"sm"}>
-            SHOP NOW
-          </Button>
+          <Link href={"/shop"}>
+            <Button my={4} variant={"outline"} fontSize={"sm"}>
+              SHOP NOW
+            </Button>
+          </Link>
         </Box>
       </Box>
       <Box bg={"brand.announcement"} pt={20} pb={4} w={"100%"} px={5}>
@@ -195,9 +200,11 @@ export default function Page() {
             Take your hair from early morning to golden hour with Aura Hair
             Mist, gingham-printed headbands and airy bow barrettes.
           </Text>
-          <Button my={4} variant={"outline"} fontSize={"sm"}>
-            SHOP NOW
-          </Button>
+          <Link href={"/shop"}>
+            <Button my={4} variant={"outline"} fontSize={"sm"}>
+              SHOP NOW
+            </Button>
+          </Link>
         </Box>
       </Box>
       <Box bg={"brand.border"} pt={20} pb={4} w={"100%"} px={5}>
@@ -211,9 +218,11 @@ export default function Page() {
             against heat, while reducing frizz and drying time for deliciously
             silky hair.
           </Text>
-          <Button my={4} variant={"outline"} fontSize={"sm"}>
-            SHOP NOW
-          </Button>
+          <Link href={"/shop"}>
+            <Button my={4} variant={"outline"} fontSize={"sm"}>
+              SHOP NOW
+            </Button>
+          </Link>
         </Box>
       </Box>
       {/* <FeaturedProductCarousel title="Summer Hair Essentials" /> */}
@@ -227,9 +236,11 @@ export default function Page() {
             Discover hair care, accessories and brushes for flawless hair all
             vacation-season long.
           </Text>
-          <Button my={4} variant={"outline"} fontSize={"sm"}>
-            SHOP NOW
-          </Button>
+          <Link href={"/shop"}>
+            <Button my={4} variant={"outline"} fontSize={"sm"}>
+              SHOP NOW
+            </Button>
+          </Link>
         </Box>
       </Box>
       <Box px={{ base: 4, md: 16 }} py={10}>
@@ -249,6 +260,7 @@ export default function Page() {
               key={cat.title}
               title={cat.title}
               imageUrl={cat.imageUrl}
+              href={cat.href}
             />
           ))}
         </SimpleGrid>

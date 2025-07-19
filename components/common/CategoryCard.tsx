@@ -1,9 +1,11 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
+import Link from "next/link";
 
 export interface CategoryCardProps {
   title: string;
   imageUrl: string;
+  href: string;
 }
 
 // Define Framer Motion variants
@@ -19,7 +21,7 @@ const cardVariants: Variants = {
 // Cast Chakra Box to a motion-enabled component
 const MotionBox = motion(Box);
 
-const CategoryCard = ({ title, imageUrl }: CategoryCardProps) => {
+const CategoryCard = ({ title, imageUrl, href }: CategoryCardProps) => {
   return (
     <MotionBox
       variants={cardVariants}
@@ -45,20 +47,27 @@ const CategoryCard = ({ title, imageUrl }: CategoryCardProps) => {
       />
 
       {/* Button-like text box */}
-      <Flex w="100%" position="absolute" bottom="16px" justifyContent="center">
-        <Box bg="white" w="85%" px={2} py={2} boxShadow="md">
-          <Text
-            fontWeight="semibold"
-            letterSpacing="wide"
-            fontSize="sm"
-            color="gray.700"
-            _groupHover={{ color: "black" }}
-            textAlign="center"
-          >
-            {title}
-          </Text>
-        </Box>
-      </Flex>
+      <Link href={href}>
+        <Flex
+          w="100%"
+          position="absolute"
+          bottom="16px"
+          justifyContent="center"
+        >
+          <Box bg="white" w="85%" px={2} py={2} boxShadow="md">
+            <Text
+              fontWeight="semibold"
+              letterSpacing="wide"
+              fontSize="sm"
+              color="gray.700"
+              _groupHover={{ color: "black" }}
+              textAlign="center"
+            >
+              {title}
+            </Text>
+          </Box>
+        </Flex>
+      </Link>
     </MotionBox>
   );
 };

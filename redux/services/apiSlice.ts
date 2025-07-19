@@ -32,13 +32,14 @@ const baseQueryWithReauth: BaseQueryFn<
 					api,
 					extraOptions
 				);
-				if (refreshResult.data) {
-					api.dispatch(setAuth());
-
-					result = await baseQuery(args, api, extraOptions);
-				} else {
-					api.dispatch(logout());
+				if (refreshResult?.error) {
+				api.dispatch(logout());
+				return result; // Do not retry, just return original 401
 				}
+
+				// Refresh succeeded
+				api.dispatch(setAuth());
+				result = await baseQuery(args, api, extraOptions);
 			} finally {
 				release();
 			}
