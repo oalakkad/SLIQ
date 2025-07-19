@@ -132,9 +132,11 @@ export default function MobileCart() {
             <Text fontWeight="medium">{subtotal.toFixed(3)} KWD</Text>
           </HStack>
 
-          <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
-            CHECK OUT
-          </Button>
+          <Link href={"/checkout"}>
+            <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
+              CHECK OUT
+            </Button>
+          </Link>
 
           <Text fontSize="sm" mt={3} textAlign="center">
             Sign up to earn rewards for every purchase ✨
