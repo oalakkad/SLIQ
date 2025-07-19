@@ -66,7 +66,7 @@ export default function Navbar() {
 
   const { data: categories } = useMenuCategories();
   const baseMenu = [
-    { id: "summer", href: "#", name: "Summer Sale", children: null },
+    { id: "home", href: "/", name: "Home", children: null },
     { id: "arrivals", href: "#", name: "New Arrivals", children: null },
     { id: "best", href: "#", name: "Best Sellers", children: null },
     {
