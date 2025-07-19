@@ -41,7 +41,7 @@ export default function ProductPage() {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" h="50vh">
-        <Spinner size="xl" />
+        <Spinner color="brand.pink" size="xl" />
       </Flex>
     );
   }

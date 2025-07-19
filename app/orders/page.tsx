@@ -27,7 +27,7 @@ export default function OrdersPage() {
   if (isLoading) {
     return (
       <Box py={20} textAlign="center">
-        <Spinner size="xl" />
+        <Spinner color="brand.pink" size="xl" />
       </Box>
     );
   }

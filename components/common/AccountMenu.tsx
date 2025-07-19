@@ -1,6 +1,10 @@
+import { useLogoutMutation } from "@/redux/features/authApiSlice";
+import { useAppDispatch } from "@/redux/hooks";
 import { HStack, Text } from "@chakra-ui/react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logout as setLogout } from "@/redux/features/authSlice";
 
 const linkStyle = {
   _hover: { color: "gray.700" },
@@ -20,6 +24,21 @@ const accountMenuText = [
 
 const AccountMenu = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [logout] = useLogoutMutation();
+  const dispatch = useAppDispatch();
+
+  const handleLogout = () => {
+    logout(undefined)
+      .unwrap()
+      .then(() => {
+        dispatch(setLogout());
+        queryClient.removeQueries({ queryKey: ["cart"] });
+        queryClient.removeQueries({ queryKey: ["wishlist"] });
+        router.push("/");
+      });
+  };
   return (
     <HStack w={"100%"} justify={"center"} gap={5} fontSize={"lg"} mb={5}>
       {accountMenuText.map((menuText, index) => (
@@ -32,6 +51,14 @@ const AccountMenu = () => {
           </Text>
         </Link>
       ))}
+      <Text
+        {...linkStyle}
+        color={"gray.300"}
+        onClick={handleLogout}
+        cursor={"pointer"}
+      >
+        Logout
+      </Text>
     </HStack>
   );
 };

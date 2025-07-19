@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
-import { Spinner } from "@/components/common";
+import { Spinner } from "@chakra-ui/react";
 
 interface Props {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export default function RequireAuth({ children }: Props) {
   if (isLoading) {
     return (
       <div className="flex justify-center my-8">
-        <Spinner lg />
+        <Spinner color="brand.pink" size="xl" />
       </div>
     );
   }

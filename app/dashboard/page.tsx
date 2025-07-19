@@ -1,8 +1,8 @@
 "use client";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import { List, Spinner } from "@/components/common";
-import { Button } from "@chakra-ui/react";
+import { List } from "@/components/common";
+import { Button, Spinner } from "@chakra-ui/react";
 
 export default function Page() {
   const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
@@ -25,7 +25,7 @@ export default function Page() {
   if (isLoading || isFetching) {
     return (
       <div className="flex justify-center my-8">
-        <Spinner lg />
+        <Spinner color="brand.pink" size="xl" />
       </div>
     );
   }

@@ -243,7 +243,7 @@ export default function ProfilePage() {
           </>
         ) : (
           <Flex justify="center" align="center" h="50vh">
-            <Spinner size="xl" />
+            <Spinner color="brand.pink" size="xl" />
           </Flex>
         )}
       </VStack>

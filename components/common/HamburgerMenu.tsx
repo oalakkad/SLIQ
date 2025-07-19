@@ -91,22 +91,69 @@ export const HamburgerMenu = ({
   onClose: () => void;
 }) => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isOpen: isAccountOpen, onToggle: onAccountToggle } = useDisclosure();
 
   return (
     <VStack align="start" spacing={0} w="100%">
       {menu.map((item) => (
         <RecursiveMenuItem key={item.id} item={item} onClose={onClose} />
       ))}
-      <Box px={2} py={4}>
-        <Link
-          href={isAuthenticated ? "/profile" : "/auth/login"}
-          color="gray.600"
-          onClick={onClose}
+      <Box w="100%">
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          py={2}
+          pr={1}
+          onClick={onAccountToggle}
+          cursor={"pointer"}
+          _hover={{ bg: "gray.50" }}
         >
-          <Text fontSize="md" fontFamily={"'Work Sans', sans-serif"}>
-            {isAuthenticated ? "Account" : "Log In"}
-          </Text>
-        </Link>
+          <Link
+            href={isAuthenticated ? "/profile" : "/auth/login"}
+            onClick={onClose}
+          >
+            <Text
+              fontWeight={"bold"}
+              textTransform={"capitalize"}
+              fontSize={"sm"}
+              fontFamily={"'Readex Pro', sans-serif"}
+              _hover={{ textDecoration: "none" }}
+              color="gray.700"
+            >
+              {isAuthenticated ? "Account" : "Login"}
+            </Text>
+          </Link>
+          {isAuthenticated && (
+            <IconButton
+              size="sm"
+              aria-label="Toggle submenu"
+              icon={isAccountOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
+              variant="ghost"
+              color="gray.500"
+              _hover={{ bg: "transparent" }}
+            />
+          )}
+        </Box>
+        {isAuthenticated && (
+          <>
+            <Collapse in={isAccountOpen} animateOpacity>
+              <VStack align="start" spacing={1} pl={4} py={2}>
+                <RecursiveMenuItem
+                  onClose={onClose}
+                  item={{ href: "/orders", name: "Orders" }}
+                  depth={1}
+                />
+                <RecursiveMenuItem
+                  onClose={onClose}
+                  item={{ href: "/profile", name: "Profile" }}
+                  depth={1}
+                />
+              </VStack>
+            </Collapse>
+            <Divider borderColor="gray.200" />
+          </>
+        )}
       </Box>
     </VStack>
   );

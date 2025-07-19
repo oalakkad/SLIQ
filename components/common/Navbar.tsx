@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { useLogoutMutation } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
@@ -36,6 +36,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useMenuCategories } from "@/hooks/use-menu-categories";
 import { buildDynamicMenu } from "./BuildDynamicMenu";
 import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -49,11 +50,17 @@ export default function Navbar() {
   const cartCount = cart?.items.length || 0;
   const wishlistCount = wishlistItems?.length || 0;
 
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const handleLogout = () => {
     logout(undefined)
       .unwrap()
       .then(() => {
         dispatch(setLogout());
+        queryClient.removeQueries({ queryKey: ["cart"] });
+        queryClient.removeQueries({ queryKey: ["wishlist"] });
+        router.push("/");
       });
   };
 

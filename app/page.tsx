@@ -12,12 +12,15 @@ import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
   Box,
   Button,
+  Flex,
   Heading,
   SimpleGrid,
+  Spinner,
   Text,
   useMediaQuery,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const images: ThreeImagesProps[] = [
   {
@@ -151,8 +154,43 @@ const categories: CategoryCardProps[] = [
 
 export default function Page() {
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
-  const { data: user, isLoading, isFetching } = useRetrieveUserQuery();
-  console.log(user);
+  const { data: user } = useRetrieveUserQuery();
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Wait until all images are loaded
+    const handlePageLoad = () => setLoading(false);
+
+    // If all resources are already loaded
+    if (document.readyState === "complete") {
+      handlePageLoad();
+    } else {
+      window.addEventListener("load", handlePageLoad);
+    }
+
+    return () => {
+      window.removeEventListener("load", handlePageLoad);
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <Flex
+        w="100vw"
+        h="100vh"
+        align="center"
+        justify="center"
+        bg="white"
+        position="fixed"
+        top={0}
+        left={0}
+        zIndex={9999}
+      >
+        <Spinner color="brand.pink" size="xl" thickness="4px" />
+      </Flex>
+    );
+  }
 
   return (
     <Box>

@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent } from "react";
 import { Input } from "@/components/forms";
-import { Spinner } from "@/components/common";
+import { Button, Spinner } from "@chakra-ui/react";
 
 interface Config {
   labelText: string;
@@ -46,13 +46,16 @@ export default function Form({
       ))}
 
       <div>
-        <button
+        <Button
+          variant={"solidPink"}
+          fontFamily={'"Readex Pro", sans-serif'}
+          py={7}
           type="submit"
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           disabled={isLoading}
         >
-          {isLoading ? <Spinner sm /> : `${btnText}`}
-        </button>
+          {isLoading ? <Spinner color="brand.pink" size="xl" /> : `${btnText}`}
+        </Button>
       </div>
     </form>
   );

@@ -67,7 +67,7 @@ export default function SearchPopup({
     >
       {isLoading ? (
         <Flex justify="center" py={4}>
-          <Spinner />
+          <Spinner color="brand.pink" />
         </Flex>
       ) : data?.results?.length ? (
         <VStack spacing={3} align="stretch" py={2}>

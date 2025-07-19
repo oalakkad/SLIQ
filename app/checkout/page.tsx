@@ -113,7 +113,7 @@ export default function CheckoutPage() {
           </Flex>
           <AddAddressModal isOpen={isOpen} onClose={onClose} />
           {isAddressLoading ? (
-            <Spinner />
+            <Spinner color="brand.pink" />
           ) : addresses?.results?.length ? (
             <VStack spacing={4} align="stretch">
               {addresses.results.map((address) => (

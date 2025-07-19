@@ -1,35 +1,68 @@
-import Link from "next/link";
-import { LoginForm } from "@/components/forms";
-import { SocialButtons } from "@/components/common";
+"use client";
 
-export default function Page() {
+import { useAppSelector } from "@/redux/hooks";
+import { Box, Flex, Heading, Text, useMediaQuery } from "@chakra-ui/react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import saieLogo from "@/public/saie-logo.png";
+import LoginForm from "@/components/forms/LoginForm"; // ✅ Import your LoginForm here
+
+export default function LoginPage() {
+  const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+
+  if (isAuthenticated) {
+    router.push("/");
+  }
+
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <img
-          className="mx-auto h-10 w-auto"
-          src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-          alt="Full Auth"
-        />
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-          Sign in to your account
-        </h2>
-      </div>
+    <Box
+      bg="brand.pink"
+      minH="80vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      px={4}
+    >
+      <Box
+        bg="white"
+        p={8}
+        rounded="xl"
+        boxShadow="lg"
+        width="100%"
+        maxW="md"
+        textAlign="center"
+      >
+        {/* Logo */}
+        <Flex w={"100%"} justifyContent={"center"}>
+          <Image src={saieLogo} alt="SAIE" width={128} height={49} />
+        </Flex>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <LoginForm />
-        <SocialButtons />
-
-        <p className="mt-10 text-center text-sm text-gray-500">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/auth/register"
-            className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+        {/* Login Form */}
+        <Box mt={6}>
+          <Heading
+            size="sm"
+            textAlign="center"
+            mb={2}
+            fontWeight="semibold"
+            color="gray.700"
           >
-            Register here
-          </Link>
-        </p>
-      </div>
-    </div>
+            Sign in
+          </Heading>
+          <LoginForm />
+        </Box>
+
+        {/* Footer */}
+        <Box mt={4} fontSize="xs" color="gray.500">
+          <Text as="span" cursor="pointer" mr={3}>
+            Privacy
+          </Text>
+          <Text as="span" cursor="pointer">
+            Terms
+          </Text>
+        </Box>
+      </Box>
+    </Box>
   );
 }
