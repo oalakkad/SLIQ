@@ -97,7 +97,7 @@ export default function SearchPopup({
                     {product.name}
                   </Text>
                   <Text fontSize="xs" color="gray.500">
-                    ${product.price}
+                    {Number(product.price).toFixed(3)} KWD
                   </Text>
                 </Box>
               </Flex>
