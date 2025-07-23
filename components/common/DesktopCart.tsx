@@ -1,32 +1,52 @@
 "use client";
 
 import { useCart } from "@/hooks/use-cart";
+import { useAppSelector } from "@/redux/hooks";
 import {
   Box,
   Flex,
   Image,
   Text,
   Button,
-  Input,
   VStack,
   HStack,
   Spinner,
   Textarea,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function DesktopCart() {
-  const {
-    data: cart,
-    isLoading,
-    addToCart,
-    updateCartItem,
-    removeCartItem,
-  } = useCart();
+  const { data: cart, isLoading, updateCartItem, removeCartItem } = useCart();
 
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
   const items = cart?.items ?? [];
 
-  const subtotal = items.reduce(
+  // Store initial item ID order
+  const [itemOrder, setItemOrder] = useState<string[]>([]);
+
+  // On first load, lock in the original order
+  useEffect(() => {
+    if (items.length && itemOrder.length === 0) {
+      setItemOrder(items.map((item) => item.id.toString()));
+    }
+  }, [items]);
+
+  // Sort items according to the initial order
+  const sortedItems = itemOrder.length
+    ? itemOrder
+        .map((id) => items.find((item) => item.id === Number(id)))
+        .filter((item): item is NonNullable<typeof item> => !!item)
+    : items;
+
+  const subtotal = sortedItems.reduce(
     (acc, item) => acc + parseFloat(item?.product?.price) * item?.quantity,
     0
   );
@@ -44,49 +64,66 @@ export default function DesktopCart() {
       w="full"
       px={10}
       py={10}
+      direction={isArabic ? "row-reverse" : "row"}
       justify="space-between"
       align="start"
       gap={10}
+      fontFamily={bodyFont}
     >
-      <Box flex="3">
+      {/* Cart Items */}
+      <Box flex="3" dir={isArabic ? "rtl" : "ltr"}>
         <Text
           fontSize="2xl"
           fontWeight="bold"
           mb={4}
-          textAlign={items.length > 0 ? "left" : "center"}
+          textAlign={isArabic ? "right" : "left"}
+          fontFamily={headingFont}
         >
-          SHOPPING BAG
+          {isArabic ? "سلة التسوق" : "SHOPPING BAG"}
         </Text>
-        {!(items.length > 0) && (
-          <Text textAlign={"center"} my={2}>
-            Your bag is empty.
+
+        {!sortedItems.length && (
+          <Text textAlign="center" my={2}>
+            {isArabic ? "سلتك فارغة" : "Your bag is empty."}
           </Text>
         )}
-        <Link href={"/shop"}>
+
+        <Link href="/shop">
           <Text
             fontSize="sm"
             mb={6}
             color="gray.500"
-            textAlign={items.length > 0 ? "left" : "center"}
+            textAlign={isArabic ? "right" : "left"}
           >
-            <u>Continue shopping</u>
+            <u>{isArabic ? "متابعة التسوق" : "Continue shopping"}</u>
           </Text>
         </Link>
 
         <VStack spacing={8} align="stretch">
-          {items.map((item) => (
-            <Flex key={item.id} align="center" justify="space-between">
-              <HStack spacing={6} flex={"2"}>
+          {sortedItems.map((item) => (
+            <Flex
+              key={item.id}
+              align="center"
+              justify="space-between"
+              dir={isArabic ? "rtl" : "ltr"}
+            >
+              <HStack
+                spacing={6}
+                flex="2"
+                direction={isArabic ? "row-reverse" : "row"}
+              >
                 <Link href={`/products/${item.product.slug}`}>
                   <Image
                     boxSize="100px"
                     src={item.product.image}
-                    alt={item.product.name}
+                    alt={isArabic ? item.product.name_ar : item.product.name}
                   />
                 </Link>
-                <Box>
+                <Box textAlign={isArabic ? "right" : "left"}>
                   <Link href={`/products/${item.product.slug}`}>
-                    <Text fontWeight="medium">{item.product.name}</Text>
+                    <Text fontWeight="medium">
+                      {isArabic ? item.product.name_ar : item.product.name}
+                    </Text>
                   </Link>
                   <Button
                     size="xs"
@@ -94,20 +131,28 @@ export default function DesktopCart() {
                     mt={2}
                     onClick={() => removeCartItem.mutate(item.id)}
                   >
-                    Remove
+                    {isArabic ? "إزالة" : "Remove"}
                   </Button>
                 </Box>
               </HStack>
 
-              <HStack spacing={4} flex={"1"}>
+              <HStack
+                spacing={4}
+                flex="1"
+                direction={isArabic ? "row-reverse" : "row"}
+              >
                 <Button
                   size="sm"
-                  onClick={() =>
-                    updateCartItem.mutate({
-                      id: item.id,
-                      quantity: item.quantity - 1,
-                    })
-                  }
+                  onClick={() => {
+                    if (item.quantity === 1) {
+                      removeCartItem.mutate(item.id);
+                    } else {
+                      updateCartItem.mutate({
+                        id: item.id,
+                        quantity: item.quantity - 1,
+                      });
+                    }
+                  }}
                 >
                   -
                 </Button>
@@ -125,37 +170,70 @@ export default function DesktopCart() {
                 </Button>
               </HStack>
 
-              <Box textAlign="right">
+              <Flex textAlign={isArabic ? "left" : "right"} flex={"1"}>
                 <Text>
                   {(parseFloat(item.product.price) * item.quantity).toFixed(3)}{" "}
-                  KWD
+                  {isArabic ? "دينار كويتي" : "KWD"}
                 </Text>
-              </Box>
+              </Flex>
             </Flex>
           ))}
         </VStack>
       </Box>
 
-      {items.length > 0 && (
-        <Box flex="2" p={6} border="1px solid #eee" borderRadius="md">
-          <Text fontWeight="medium" mb={2}>
-            ORDER NOTE
+      {/* Summary & Note */}
+      {sortedItems.length > 0 && (
+        <Box
+          flex="2"
+          p={6}
+          border="1px solid #eee"
+          borderRadius="md"
+          dir={isArabic ? "rtl" : "ltr"}
+          textAlign={isArabic ? "left" : "right"}
+        >
+          <Text
+            fontWeight="medium"
+            mb={2}
+            textAlign={isArabic ? "right" : "left"}
+            fontFamily={headingFont}
+          >
+            {isArabic ? "ملاحظة الطلب" : "ORDER NOTE"}
           </Text>
-          <Textarea placeholder="Add a note..." mb={4} minH={"150px"} />
+          <Textarea
+            placeholder={isArabic ? "أضف ملاحظة..." : "Add a note..."}
+            mb={4}
+            minH="150px"
+          />
 
-          <Flex justify="space-between" fontWeight="medium" mb={2}>
-            <Text>Subtotal</Text>
-            <Text>{subtotal.toFixed(3)} KWD</Text>
+          <Flex
+            justify="space-between"
+            fontWeight="medium"
+            mb={2}
+            dir={isArabic ? "rtl" : "ltr"}
+          >
+            <Text>{isArabic ? "المجموع الفرعي" : "Subtotal"}</Text>
+            <Text>
+              {subtotal.toFixed(3)} {isArabic ? "دينار كويتي" : "KWD"}
+            </Text>
           </Flex>
 
-          <Link href={"/checkout"}>
-            <Button mt={4} w="full" variant={"solidYellow"} px={10} py={6}>
-              CHECK OUT
+          <Link href="/checkout">
+            <Button
+              mt={4}
+              w="full"
+              variant="solidYellow"
+              px={10}
+              py={6}
+              fontFamily={headingFont}
+            >
+              {isArabic ? "الدفع" : "CHECK OUT"}
             </Button>
           </Link>
 
           <Text fontSize="sm" mt={3} textAlign="center">
-            Sign up to earn rewards for every purchase ✨
+            {isArabic
+              ? "اشترك لتحصل على نقاط مقابل كل عملية شراء ✨"
+              : "Sign up to earn rewards for every purchase ✨"}
           </Text>
         </Box>
       )}

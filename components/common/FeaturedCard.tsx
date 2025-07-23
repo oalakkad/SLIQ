@@ -19,6 +19,7 @@ import { Product } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { useRouter } from "next/navigation";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useAppSelector } from "@/redux/hooks";
 
 const MotionBox = motion(Box);
 
@@ -40,6 +41,15 @@ export default function FeaturedCard({
   const { addToCart, data: cart } = useCart();
 
   const { addToWishlist, removeFromWishlist } = useWishlist();
+
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   const router = useRouter();
 
@@ -68,7 +78,11 @@ export default function FeaturedCard({
   const badge =
     product.is_new_arrival || product.is_best_seller
       ? product.is_new_arrival
-        ? "New Arrival"
+        ? isArabic
+          ? "جديد"
+          : "New Arrival"
+        : isArabic
+        ? "أكثر مبيعتاً"
         : "Best Seller"
       : null;
 
@@ -104,6 +118,7 @@ export default function FeaturedCard({
               zIndex={2}
               position="absolute"
               pointerEvents="none"
+              fontFamily={headingFont}
               ml={3}
             >
               {badge}
@@ -172,14 +187,16 @@ export default function FeaturedCard({
           h="45px"
           cursor={"pointer"}
           onClick={() => router.push(productLink)}
+          fontFamily={headingFont}
         >
-          {product.name}
+          {isArabic ? product.name_ar : product.name}
         </Text>
 
         <Stack direction="row" justify="center" align="center" mb={2}>
           <Text
             fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
             color="pink.600"
+            fontFamily={bodyFont}
           >
             {parseFloat(product.price).toFixed(3)} KWD
           </Text>
@@ -194,7 +211,7 @@ export default function FeaturedCard({
           w="100%"
           py={6}
           bg={isInCart ? "brand.pink" : "transparent"}
-          fontFamily={"'Work Sans', sans-serif"}
+          fontFamily={headingFont}
           disabled={isInCart}
           color={isInCart ? "black" : "gray.600"}
           onClick={() =>
@@ -207,7 +224,13 @@ export default function FeaturedCard({
           }
           cursor={isInCart ? "not-allowed" : "pointer"}
         >
-          {isInCart ? "IN CART" : "ADD TO BAG"}
+          {isArabic
+            ? isInCart
+              ? "في السلة"
+              : "أضف إلى الحقيبة"
+            : isInCart
+            ? "IN CART"
+            : "ADD TO BAG"}
         </Button>
       </Box>
     </MotionBox>

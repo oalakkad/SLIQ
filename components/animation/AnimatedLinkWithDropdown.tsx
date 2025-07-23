@@ -14,10 +14,21 @@ const underlineVariants: Variants = {
   hover: { scaleX: 1 },
 };
 
-export function AnimatedLinkWithDropdown({ item }: { item: any }) {
+export function AnimatedLinkWithDropdown({
+  item,
+  isArabic,
+  headingFont,
+  bodyFont,
+}: {
+  item: any;
+  isArabic: boolean;
+  headingFont: string;
+  bodyFont: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pathname = usePathname();
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -29,13 +40,22 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
       setIsOpen(false);
     }, 150);
   };
-  const pathname = usePathname();
+
+  const dropdownMotion = {
+    initial: { opacity: 0, x: isArabic ? 10 : -10 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: isArabic ? 10 : -10 },
+  };
+
   return (
     <Box
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      w={"100%"}
       ref={triggerRef}
       position="relative"
+      dir={isArabic ? "rtl" : "ltr"}
+      minW={"150px"}
     >
       <MotionLink
         href={item.href}
@@ -50,9 +70,9 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
         initial="initial"
         animate={isOpen ? "hover" : "initial"}
         position="relative"
+        fontFamily={headingFont}
       >
         {item.name.toUpperCase()}
-
         <MotionBox
           variants={underlineVariants}
           transition={{ duration: 0.3 }}
@@ -77,7 +97,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
           >
             <MotionBox
               position="absolute"
-              top="130px"
+              top="170px"
               left={0}
               right={0}
               width="100%"
@@ -87,9 +107,7 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
               pb={4}
               px={10}
               zIndex={10}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              {...dropdownMotion}
             >
               <Flex
                 justify="center"
@@ -97,7 +115,9 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                 alignItems="flex-start"
                 maxW="1440px"
                 mx="auto"
-                flexWrap={"wrap"}
+                flexWrap="wrap"
+                flexDirection={isArabic ? "row-reverse" : "row"}
+                textAlign={isArabic ? "right" : "left"}
               >
                 {item.children.map((col: any) => {
                   const items = col.children || [];
@@ -108,12 +128,32 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
 
                   return (
                     <Box key={col.id} minW="200px">
-                      <Flex justify={columnCount > 1 ? "center" : "flex-start"}>
+                      <Flex
+                        justify={
+                          columnCount > 1
+                            ? "center"
+                            : isArabic
+                            ? "flex-end"
+                            : "flex-start"
+                        }
+                      >
                         <Box mb={4}>
-                          <AnimatedLink name={col.name} href={col.href} />
+                          <AnimatedLink
+                            name={col.name}
+                            href={col.href}
+                            headingFont={headingFont}
+                            bodyFont={bodyFont}
+                            isArabic={isArabic}
+                          />
                         </Box>
                       </Flex>
-                      <Flex direction="row" gap={10} alignItems="flex-start">
+
+                      <Flex
+                        direction="row"
+                        gap={10}
+                        alignItems="flex-start"
+                        flexDirection={isArabic ? "row-reverse" : "row"}
+                      >
                         <Flex direction="column" gap={2}>
                           {firstColumnItems.map(
                             (subItem: any, index: number) => (
@@ -121,8 +161,11 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                                 href={subItem.href}
                                 key={`${subItem.id}-${index}`}
                                 name={subItem.name}
-                                fontWeight={"normal"}
+                                fontWeight="normal"
                                 fontColor="gray"
+                                isArabic={isArabic}
+                                headingFont={headingFont}
+                                bodyFont={bodyFont}
                               />
                             )
                           )}
@@ -135,22 +178,29 @@ export function AnimatedLinkWithDropdown({ item }: { item: any }) {
                                   href={subItem.href}
                                   key={`${subItem.id}-${index}`}
                                   name={subItem.name}
-                                  fontWeight={"normal"}
+                                  fontWeight="normal"
                                   fontColor="gray"
+                                  isArabic={isArabic}
+                                  headingFont={headingFont}
+                                  bodyFont={bodyFont}
                                 />
                               )
                             )}
                           </Flex>
                         )}
                       </Flex>
+
                       {showViewAll && (
                         <Flex mt={2} justify="center">
                           <AnimatedLink
                             href={col.href}
                             key={`${col.id}-viewAll`}
-                            name={"View All"}
-                            fontWeight={"bold"}
+                            name={isArabic ? "عرض الكل" : "View All"}
+                            fontWeight="bold"
                             fontColor="gray.700"
+                            isArabic={isArabic}
+                            headingFont={headingFont}
+                            bodyFont={bodyFont}
                           />
                         </Flex>
                       )}

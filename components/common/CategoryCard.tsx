@@ -1,3 +1,4 @@
+import { useAppSelector } from "@/redux/hooks";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
@@ -22,6 +23,10 @@ const cardVariants: Variants = {
 const MotionBox = motion(Box);
 
 const CategoryCard = ({ title, imageUrl, href }: CategoryCardProps) => {
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
   return (
     <MotionBox
       variants={cardVariants}
@@ -59,6 +64,7 @@ const CategoryCard = ({ title, imageUrl, href }: CategoryCardProps) => {
               fontWeight="semibold"
               letterSpacing="wide"
               fontSize="sm"
+              fontFamily={headingFont}
               color="gray.700"
               _groupHover={{ color: "black" }}
               textAlign="center"

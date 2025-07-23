@@ -17,6 +17,7 @@ import { useProduct } from "@/hooks/use-products";
 import { useParams } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
 import { useEffect, useMemo, useState } from "react";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function ProductPage() {
   const params = useParams();
@@ -27,6 +28,15 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [image, setImage] = useState(product?.image ?? "");
   const [isMobile] = useMediaQuery("(max-width: 768px)");
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   useEffect(() => {
     if (product?.image) {
@@ -53,6 +63,8 @@ export default function ProductPage() {
       px={isMobile ? 4 : 20}
       py={10}
       alignItems={isMobile ? "center" : "start"}
+      fontFamily={bodyFont}
+      dir={isArabic ? "rtl" : "ltr"}
     >
       {/* Image Section */}
       <VStack flex={1} spacing={4} align="center">
@@ -62,22 +74,22 @@ export default function ProductPage() {
           maxW={isMobile ? "100%" : "400px"}
           borderRadius="md"
         />
-        <HStack spacing={2}>
-          <Image
-            border={
-              product?.image === image ? "2px solid pink" : "2px solid grey"
-            }
-            onClick={() => {
-              product && setImage(product.image);
-            }}
-            src={product?.image}
-            alt={product?.name}
-            _hover={{ filter: "brightness(1.05);" }}
-            cursor={"pointer"}
-            boxSize="60px"
-            borderRadius="md"
-            objectFit="cover"
-          />
+        <HStack spacing={2} justify="center" flexWrap="wrap">
+          {product?.image && (
+            <Image
+              border={
+                product?.image === image ? "2px solid pink" : "2px solid grey"
+              }
+              onClick={() => setImage(product.image)}
+              src={product.image}
+              alt={product.name}
+              _hover={{ filter: "brightness(1.05);" }}
+              cursor={"pointer"}
+              boxSize="60px"
+              borderRadius="md"
+              objectFit="cover"
+            />
+          )}
           {product?.images?.map((img, index) => (
             <Image
               key={index}
@@ -98,21 +110,26 @@ export default function ProductPage() {
       {/* Details Section */}
       <Box flex={1}>
         <Text fontSize="sm" color="gray.600" fontWeight="bold">
-          LIMITED EDITION
+          {isArabic ? "إصدار محدود" : "LIMITED EDITION"}
         </Text>
-        <Text fontSize="2xl" fontWeight="bold" mt={2}>
-          {product?.name}
+        <Text fontSize="2xl" fontWeight="bold" mt={2} fontFamily={headingFont}>
+          {isArabic ? product?.name_ar : product?.name}
         </Text>
         <HStack spacing={3} mt={1}>
           <Text fontSize="xl" fontWeight="semibold">
-            {Number(product?.price).toFixed(3)} KWD
+            {Number(product?.price).toFixed(3)}{" "}
+            {isArabic ? "دينار كويتي" : "KWD"}
           </Text>
         </HStack>
 
         <Text mt={6} fontWeight="medium">
-          QUANTITY
+          {isArabic ? "الكمية" : "QUANTITY"}
         </Text>
-        <HStack mt={2}>
+        <HStack
+          mt={2}
+          flexDir={isArabic ? "row-reverse" : "row"}
+          justifyContent={isArabic ? "right" : "left"}
+        >
           <Button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
             -
           </Button>
@@ -135,20 +152,27 @@ export default function ProductPage() {
           py={6}
           fontSize="sm"
         >
-          {isInCart ? "IN CART" : "ADD TO BAG"}
+          {isArabic
+            ? isInCart
+              ? "في السلة"
+              : "أضف إلى الحقيبة"
+            : isInCart
+            ? "IN CART"
+            : "ADD TO BAG"}
         </Button>
 
         <Button leftIcon={<FiHeart />} variant="ghost" mt={2}>
-          Add to Wishlist
+          {isArabic ? "أضف إلى المفضلة" : "Add to Wishlist"}
         </Button>
 
         <Text mt={6} fontSize="sm" color="gray.700">
-          Give the gift of heavenly hair. Elevate your on-the-go hairstyles with
-          our most effortless and desired pieces.
+          {isArabic
+            ? "امنح شعرك لمسة ساحرة. زيني تسريحاتك أثناء التنقل بأكثر القطع المطلوبة سهولة وجمالاً."
+            : "Give the gift of heavenly hair. Elevate your on-the-go hairstyles with our most effortless and desired pieces."}
         </Text>
 
         <VStack spacing={1} align="start" mt={4} fontSize="sm">
-          <Text>Description</Text>
+          <Text fontWeight="bold">{isArabic ? "الوصف" : "Description"}</Text>
         </VStack>
       </Box>
     </Flex>

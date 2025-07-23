@@ -3,9 +3,11 @@
 import FeaturedCard, {
   FeaturedCardProps,
 } from "@/components/common/FeaturedCard";
+import PaginationButtons from "@/components/common/PaginationButtons";
 import { useCart } from "@/hooks/use-cart";
 import { usePaginatedProducts } from "@/hooks/use-products";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useAppSelector } from "@/redux/hooks";
 import {
   Box,
   Flex,
@@ -40,8 +42,6 @@ export default function Page() {
     category_slug: slug,
   });
 
-  console.log(data);
-
   const { items: wishlist } = useWishlist();
 
   const wishlistMap = new Map(
@@ -50,10 +50,17 @@ export default function Page() {
 
   const totalPages = Math.ceil((data?.count || 0) / 12);
 
-  console.log("Data:", data);
-
   const [color, setColor] = useState<string>("all");
   const [sort, setSort] = useState<string>("none");
+
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   const COLORS = [
     {
@@ -61,17 +68,17 @@ export default function Page() {
       value:
         "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)",
     },
-    { name: "black", value: "#000" },
-    { name: "white", value: "#fff" },
-    { name: "brown", value: "#8B4513" },
-    { name: "beige", value: "#f5f5dc" },
-    { name: "gold", value: "#ffd700" },
-    { name: "gray", value: "#808080" },
-    { name: "pink", value: "#ffc0cb" },
-    { name: "silver", value: "#c0c0c0" },
-    { name: "lavender", value: "#e6e6fa" },
-    { name: "purple", value: "#800080" },
-    { name: "yellow", value: "#ffff00" },
+    { name: "black", value: "#000", name_ar: "أسود" },
+    { name: "white", value: "#fff", name_ar: "أبيض" },
+    { name: "brown", value: "#8B4513", name_ar: "بني" },
+    { name: "beige", value: "#f5f5dc", name_ar: "بيج" },
+    { name: "gold", value: "#ffd700", name_ar: "ذهبي" },
+    { name: "gray", value: "#808080", name_ar: "رمادي" },
+    { name: "pink", value: "#ffc0cb", name_ar: "وردي" },
+    { name: "silver", value: "#c0c0c0", name_ar: "فضي" },
+    { name: "lavender", value: "#e6e6fa", name_ar: "لافندر" },
+    { name: "purple", value: "#800080", name_ar: "أرجواني" },
+    { name: "yellow", value: "#ffff00", name_ar: "أصفر" },
   ];
 
   const { isOpen, onToggle } = useDisclosure();
@@ -87,7 +94,9 @@ export default function Page() {
             px={isMobile ? 2 : "100px"}
             color={"gray.600"}
           >
-            {data?.results[0].categories[0].name}
+            {isArabic
+              ? data?.results[0].categories[0].name_ar
+              : data?.results[0].categories[0].name}
           </Heading>
           <Flex
             px={isMobile ? 2 : "100px"}
@@ -100,7 +109,7 @@ export default function Page() {
               h={"45px"}
               fontWeight={600}
               color={"gray.400"}
-              fontFamily={"'Work Sans', sans-serif"}
+              fontFamily={headingFont}
               leftIcon={
                 <Circle
                   size="20px"
@@ -119,7 +128,9 @@ export default function Page() {
               }
             >
               {color === "all"
-                ? "All Colors"
+                ? isArabic
+                  ? "كل الألوان"
+                  : "All Colors"
                 : color[0].toUpperCase() + color.slice(1)}
             </Button>
             {!isMobile && isOpen && (
@@ -131,7 +142,7 @@ export default function Page() {
                     fontWeight="semibold"
                     position={"absolute"}
                     color={"gray.400"}
-                    fontFamily={"'Work Sans', sans-serif"}
+                    fontFamily={bodyFont}
                     mt={"-115px"}
                   >
                     {hoveredColor.toUpperCase()}
@@ -157,14 +168,14 @@ export default function Page() {
               </Center>
             )}
             <Select
-              placeholder="SORT BY"
+              placeholder={isArabic ? "فرز حسب" : "SORT BY"}
               size="lg"
               w={isMobile ? "150px" : "250px"}
               borderRadius={0}
               border={"none"}
               color={"gray.400"}
               fontWeight={600}
-              fontFamily={"'Work Sans', sans-serif"}
+              fontFamily={bodyFont}
               variant={"filled"}
               h={"45px"}
               bg="white"
@@ -172,9 +183,13 @@ export default function Page() {
               style={{ paddingTop: "0" }}
               onChange={(e) => setSort(e.target.value)}
             >
-              <option value="featured">Featured</option>
-              <option value="price-lth">Price, Low to High</option>
-              <option value="price-htl">Price, High to Low</option>
+              <option value="featured">{isArabic ? "مميز" : "Featured"}</option>
+              <option value="price-lth">
+                {isArabic ? "السعر من الأقل إلى الأعلى" : "Price, Low to High"}
+              </option>
+              <option value="price-htl">
+                {isArabic ? "السعر من الأعلى إلى الأقل" : "Price, High to Low"}
+              </option>
             </Select>
           </Flex>
           {isMobile && (
@@ -233,20 +248,11 @@ export default function Page() {
             )}
           </AnimatePresence>
           {/* Pagination Control */}
-          <Flex w={"100%"} justifyContent={"center"} mt={10}>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <Button
-                key={i}
-                onClick={() => setPage(i + 1)}
-                mr={1}
-                border={"none"}
-                color={page === i + 1 ? "white" : "black"}
-                variant={page === i + 1 ? "solidPink" : "outlinePink"}
-              >
-                {i + 1}
-              </Button>
-            ))}
-          </Flex>
+          <PaginationButtons
+            totalPages={totalPages}
+            page={page}
+            setPage={setPage}
+          />
         </>
       ) : (
         <Flex justify="center" align="center" h="50vh">

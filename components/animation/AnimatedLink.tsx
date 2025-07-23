@@ -1,4 +1,4 @@
-import { Link, Box } from "@chakra-ui/react";
+import { Link, Box, Flex } from "@chakra-ui/react";
 import { motion, Variants } from "framer-motion";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,9 @@ interface AnimatedLinkProps {
   marginBottom?: number;
   fontWeight?: string | number;
   fontColor?: string;
+  headingFont: string;
+  bodyFont: string;
+  isArabic: boolean;
 }
 
 export function AnimatedLink({
@@ -27,40 +30,47 @@ export function AnimatedLink({
   marginBottom,
   fontWeight,
   fontColor,
+  headingFont,
+  bodyFont,
+  isArabic,
 }: AnimatedLinkProps) {
   const pathname = usePathname();
   return (
-    <Box position="relative" minW={"200px"}>
-      <MotionLink
-        href={href}
-        position="relative"
-        textDecoration="none"
-        px={2}
-        py={2}
-        color={fontColor ?? "black"}
-        mb={marginBottom ?? 0}
-        _hover={{ textDecoration: "none" }}
-        whileHover="hover"
-        fontWeight={fontWeight ?? "bold"}
-        initial="initial"
-        fontSize="sm"
-        mr={4}
-      >
-        {name.toUpperCase()}
-        <MotionBox
-          variants={underlineVariants}
-          transition={{ duration: 0.3 }}
-          bg={fontColor ?? "black"}
-          style={{
-            position: "absolute",
-            left: 0,
-            bottom: 0,
-            width: "100%",
-            height: "2px",
-            transformOrigin: "left",
-          }}
-        />
-      </MotionLink>
-    </Box>
+    <Flex justifyContent={"center"} minW={"150px"}>
+      <Box position="relative">
+        <MotionLink
+          href={href}
+          position="relative"
+          textDecoration="none"
+          px={2}
+          py={2}
+          fontFamily={fontWeight === "bold" ? headingFont : bodyFont}
+          textAlign={"center"}
+          color={fontColor ?? "black"}
+          mb={marginBottom ?? 0}
+          _hover={{ textDecoration: "none" }}
+          whileHover="hover"
+          fontWeight={fontWeight ?? "bold"}
+          initial="initial"
+          fontSize="sm"
+          mr={4}
+        >
+          {name.toUpperCase()}
+          <MotionBox
+            variants={underlineVariants}
+            transition={{ duration: 0.3 }}
+            bg={fontColor ?? "black"}
+            style={{
+              position: "absolute",
+              left: 0,
+              bottom: 0,
+              width: "100%",
+              height: "2px",
+              transformOrigin: "left",
+            }}
+          />
+        </MotionLink>
+      </Box>
+    </Flex>
   );
 }

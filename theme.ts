@@ -117,8 +117,8 @@ const theme = extendTheme({
     },
   },
   fonts: {
-    heading: `'Readex Pro', sans-serif`,   // For headings (e.g. <Heading>)
-    body: `'Work Sans', sans-serif`,      // For text (e.g. <Text>)
+    heading: 'var(--font-readex-pro), sans-serif',
+    body: 'var(--font-work-sans), sans-serif',
   },
 });
 

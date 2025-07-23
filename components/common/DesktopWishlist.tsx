@@ -12,16 +12,27 @@ import {
 import { FiX } from "react-icons/fi";
 import { useWishlist } from "@/hooks/use-wishlist";
 import Link from "next/link";
+import { useSelector } from "react-redux";
 
 export default function DesktopWishlist() {
   const { items, isLoading, removeFromWishlist, clearWishlist } = useWishlist();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
+
+  const wishlistTitle = isArabic ? "قائمة الرغبات" : "WISHLIST";
+  const clearBtnLabel = isArabic ? "إفراغ القائمة" : "Clear wishlist";
+  const viewProductLabel = isArabic ? "عرض المنتج" : "VIEW PRODUCT";
+  const emptyText = isArabic
+    ? "قائمة الرغبات فارغة."
+    : "Your wishlist is empty.";
+  const discoverMoreText = isArabic ? "تصفح المزيد" : "Discover More";
 
   return (
-    <Box px={[4, 10]} py={10}>
+    <Box px={[4, 10]} py={10} dir={isArabic ? "rtl" : "ltr"}>
       <Flex justify="center" align="center" mb={8} flexDir="column">
         <Text fontSize="2xl" fontWeight="bold">
-          WISHLIST
+          {wishlistTitle}
         </Text>
+
         {items.length > 0 && (
           <Button
             size="sm"
@@ -32,7 +43,7 @@ export default function DesktopWishlist() {
             leftIcon={<FiX />}
             onClick={() => clearWishlist.mutate()}
           >
-            Clear wishlist
+            {clearBtnLabel}
           </Button>
         )}
       </Flex>
@@ -53,15 +64,15 @@ export default function DesktopWishlist() {
               size="sm"
               position="absolute"
               top="10px"
-              right="10px"
-              aria-label="Remove"
+              {...(isArabic ? { left: "10px" } : { right: "10px" })}
+              aria-label={isArabic ? "إزالة" : "Remove"}
               onClick={() => removeFromWishlist.mutate(item.id)}
               variant="ghost"
             />
 
             <Image
               src={item.product.image}
-              alt={item.product.name}
+              alt={isArabic ? item.product.name_ar : item.product.name}
               w="100%"
               h="250px"
               objectFit="contain"
@@ -78,20 +89,23 @@ export default function DesktopWishlist() {
                 py={6}
                 borderRadius="none"
               >
-                VIEW PRODUCT
+                {viewProductLabel}
               </Button>
             </Link>
           </Box>
         ))}
       </Grid>
-      <Flex flexDir={"column"} w={"100%"} alignItems={"center"} mt={10}>
-        <Text>Your wishlist is empty.</Text>
-        <Link href={"/shop"}>
-          <Button variant={"link"} my={3} fontFamily={"'Work Sans', serif"}>
-            Discover More
-          </Button>
-        </Link>
-      </Flex>
+
+      {items.length === 0 && (
+        <Flex flexDir="column" w="100%" alignItems="center" mt={10}>
+          <Text>{emptyText}</Text>
+          <Link href={"/shop"}>
+            <Button variant="link" my={3} fontFamily="'Work Sans', serif">
+              {discoverMoreText}
+            </Button>
+          </Link>
+        </Flex>
+      )}
     </Box>
   );
 }

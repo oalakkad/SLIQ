@@ -2,6 +2,7 @@ import { Box, Button, Flex, Image, Text } from "@chakra-ui/react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { useAppSelector } from "@/redux/hooks";
 
 const MotionDiv = motion.div;
 
@@ -22,6 +23,15 @@ const AboutSection = ({
 }: AboutSectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   return (
     <Flex
@@ -74,7 +84,7 @@ const AboutSection = ({
             fontWeight="bold"
             mb={4}
             color="gray.700"
-            fontFamily={"Readex Pro"}
+            fontFamily={headingFont}
           >
             {title}
           </Text>
@@ -83,7 +93,7 @@ const AboutSection = ({
             color="gray.700"
             maxW="480px"
             mb={8}
-            fontFamily={"Work Sans"}
+            fontFamily={bodyFont}
           >
             {description}
           </Text>
@@ -99,7 +109,7 @@ const AboutSection = ({
               fontWeight="bold"
               textTransform="uppercase"
               border="none"
-              fontFamily={"Readex Pro"}
+              fontFamily={headingFont}
               _hover={{ bg: "gray.100" }}
             >
               {buttonText}

@@ -2,6 +2,7 @@ import { Box, Button, Flex, Link, Text } from "@chakra-ui/react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import NextLink from "next/link";
+import { useAppSelector } from "@/redux/hooks";
 
 const MotionDiv = motion.div;
 
@@ -22,6 +23,15 @@ const HeroBanner = ({
 }: HeroBannerProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
+
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   return (
     <Box ref={ref} w="100%" h="50vh" position="relative" overflow="hidden">
@@ -69,7 +79,7 @@ const HeroBanner = ({
             fontSize="lg"
             mb={4}
             textAlign={"center"}
-            fontFamily={"'Readex Pro', sans-serif"}
+            fontFamily={headingFont}
           >
             {title}
           </Text>
@@ -78,7 +88,7 @@ const HeroBanner = ({
             lineHeight="1.8"
             mb={8}
             textAlign={"justify"}
-            fontFamily={"'Work Sans', sans-serif"}
+            fontFamily={bodyFont}
           >
             {description}
           </Text>
@@ -97,7 +107,7 @@ const HeroBanner = ({
                 fontSize="xs"
                 fontWeight="bold"
                 textTransform="uppercase"
-                fontFamily={"'Readex Pro', sans-serif"}
+                fontFamily={headingFont}
                 _hover={{ bg: "whiteAlpha.200" }}
               >
                 {buttonText}

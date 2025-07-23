@@ -5,21 +5,30 @@ import {
   Box,
   Text,
   VStack,
-  HStack,
   SimpleGrid,
   Accordion,
   AccordionItem,
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-  useBreakpointValue,
   Link,
+  useMediaQuery,
 } from "@chakra-ui/react";
+import { useAppSelector } from "@/redux/hooks";
 import NextLink from "next/link";
 
 const Footer = () => {
   const { data: categories = [] } = useMenuCategories();
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const [isMobile] = useMediaQuery("(max-width: 950px)");
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   const renderProductLinks = (category: any) => {
     const showProducts = category.products.slice(0, 5);
@@ -35,8 +44,9 @@ const Footer = () => {
             fontSize="sm"
             color="gray.600"
             _hover={{ textDecoration: "underline" }}
+            fontFamily={bodyFont}
           >
-            {product.name}
+            {isArabic ? product.name_ar : product.name}
           </Link>
         ))}
         {hasMore && (
@@ -46,8 +56,9 @@ const Footer = () => {
             fontSize="sm"
             color="#7ea2ca"
             fontWeight="medium"
+            fontFamily={bodyFont}
           >
-            View All
+            {isArabic ? "عرض الكل" : "View All"}
           </Link>
         )}
       </>
@@ -56,15 +67,23 @@ const Footer = () => {
 
   const renderCategorySection = (category: any) => (
     <VStack key={category.id} align="start" spacing={2}>
-      <Text fontWeight="bold" fontSize="md">
-        {category.name}
-      </Text>
+      <Link href={`/category/${category.slug}`}>
+        <Text fontWeight="bold" fontSize="md" fontFamily={headingFont}>
+          {isArabic ? category.name_ar : category.name}
+        </Text>
+      </Link>
       {renderProductLinks(category)}
     </VStack>
   );
 
   return (
-    <Box bg="gray.50" py={10} px={{ base: 0, md: "15rem" }}>
+    <Box
+      bg="gray.50"
+      py={10}
+      px={isMobile ? 4 : "15rem"}
+      dir={isArabic ? "rtl" : "ltr"}
+      textAlign={isArabic ? "right" : "left"}
+    >
       <VStack spacing={10} align="stretch">
         {isMobile ? (
           <Accordion allowToggle>
@@ -78,8 +97,12 @@ const Footer = () => {
                       px={4}
                       py={5}
                     >
-                      <Box flex="1" textAlign="left">
-                        {category.name}
+                      <Box
+                        flex="1"
+                        textAlign={isArabic ? "right" : "left"}
+                        fontFamily={bodyFont}
+                      >
+                        {isArabic ? category.name_ar : category.name}
                       </Box>
                       <AccordionIcon />
                     </AccordionButton>
@@ -105,7 +128,8 @@ const Footer = () => {
           fontSize="md"
           textAlign="center"
           color="gray.500"
-          fontFamily={"'Work Sans', serif"}
+          fontFamily={headingFont}
+          dir="ltr"
         >
           © 2025 SAIE
         </Text>

@@ -37,6 +37,7 @@ import { useMenuCategories } from "@/hooks/use-menu-categories";
 import { buildDynamicMenu } from "./BuildDynamicMenu";
 import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import LanguageSelector from "./LanguageSelector";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
@@ -65,25 +66,49 @@ export default function Navbar() {
   };
 
   const { data: categories } = useMenuCategories();
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
   const baseMenu = [
-    { id: "home", href: "/", name: "Home", children: null },
-    { id: "arrivals", href: "#", name: "New Arrivals", children: null },
-    { id: "best", href: "#", name: "Best Sellers", children: null },
+    {
+      id: "home",
+      href: "/",
+      name: isArabic ? "الصفحة الرئيسية" : "Home",
+      children: null,
+    },
+    {
+      id: "arrivals",
+      href: "#",
+      name: isArabic ? "جديد" : "New Arrivals",
+      children: null,
+    },
+    {
+      id: "best",
+      href: "#",
+      name: isArabic ? "الأكثر مبيعتاً" : "Best Sellers",
+      children: null,
+    },
     {
       id: "shop",
       href: "/shop",
-      name: "Shop",
+      name: isArabic ? "المتجر" : "Shop",
       children: [],
     },
   ];
 
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
+
   const dynamicMenu = useMemo(() => {
     if (!categories) return baseMenu;
-    const { shopChildren } = buildDynamicMenu(categories);
+    const { shopChildren } = buildDynamicMenu(categories, isArabic);
     return baseMenu.map((item) =>
       item.id === "shop" ? { ...item, children: shopChildren } : item
     );
-  }, [categories]);
+  }, [categories, isArabic]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -146,20 +171,30 @@ export default function Navbar() {
         alignItems={"center"}
       >
         <Box mt={4}></Box>
+        <LanguageSelector />
         <Link href={"/"}>
           <Image src={saieLogo} alt="SAIE" width={128} height={49} />
         </Link>
-        <Flex flexDirection={"row"} mt={5}>
+        <Flex flexDirection={"row"} mt={5} justifyContent={"space-evenly"}>
           {!isMobile &&
             dynamicMenu.map((item) =>
               item.children ? (
-                <AnimatedLinkWithDropdown key={item.id} item={item} />
+                <AnimatedLinkWithDropdown
+                  key={item.id}
+                  item={item}
+                  isArabic={isArabic}
+                  headingFont={headingFont}
+                  bodyFont={bodyFont}
+                />
               ) : (
                 <AnimatedLink
                   fontColor={"gray.600"}
                   key={item.id}
                   name={item.name}
+                  isArabic={isArabic}
                   href={item.href}
+                  headingFont={headingFont}
+                  bodyFont={bodyFont}
                 />
               )
             )}

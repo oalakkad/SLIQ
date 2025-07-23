@@ -1,5 +1,5 @@
 import "@/styles/globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Cairo, Work_Sans, Readex_Pro } from "next/font/google";
 import Provider from "@/redux/provider";
 import { Footer, Navbar } from "@/components/common";
 import { Setup } from "@/components/utils";
@@ -13,6 +13,27 @@ import { Box } from "@chakra-ui/react";
 import QueryProvider from "@/components/utils/QueryProvider";
 const inter = Inter({ subsets: ["latin"] });
 
+export const cairo = Cairo({
+  subsets: ["arabic"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  variable: "--font-cairo",
+  display: "swap",
+});
+
+export const workSans = Work_Sans({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  variable: "--font-work-sans",
+  display: "swap",
+});
+
+export const readexPro = Readex_Pro({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  variable: "--font-readex-pro",
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -20,7 +41,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body
+        className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}
+      >
         <QueryProvider>
           <Provider>
             <Setup />

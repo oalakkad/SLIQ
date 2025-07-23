@@ -7,6 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 export interface Product {
   id: number;
   name: string;
+  name_ar: string;
   slug: string;
   price: string;
   image: string;
