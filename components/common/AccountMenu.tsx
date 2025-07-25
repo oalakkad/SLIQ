@@ -1,3 +1,5 @@
+"use client";
+
 import { useLogoutMutation } from "@/redux/features/authApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { HStack, Text } from "@chakra-ui/react";
@@ -5,22 +7,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout as setLogout } from "@/redux/features/authSlice";
+import { useSelector } from "react-redux";
 
 const linkStyle = {
   _hover: { color: "gray.700" },
   transition: "0.4s all ease-in-out",
 };
-
-const accountMenuText = [
-  {
-    href: "/orders",
-    text: "Orders",
-  },
-  {
-    href: "/profile",
-    text: "Profile",
-  },
-];
 
 const AccountMenu = () => {
   const pathname = usePathname();
@@ -28,6 +20,7 @@ const AccountMenu = () => {
   const queryClient = useQueryClient();
   const [logout] = useLogoutMutation();
   const dispatch = useAppDispatch();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
 
   const handleLogout = () => {
     logout(undefined)
@@ -39,8 +32,27 @@ const AccountMenu = () => {
         router.push("/");
       });
   };
+
+  const accountMenuText = [
+    {
+      href: "/orders",
+      text: isArabic ? "الطلبات" : "Orders",
+    },
+    {
+      href: "/profile",
+      text: isArabic ? "الملف الشخصي" : "Profile",
+    },
+  ];
+
   return (
-    <HStack w={"100%"} justify={"center"} gap={5} fontSize={"lg"} mb={5}>
+    <HStack
+      w="100%"
+      justify="center"
+      gap={5}
+      fontSize="lg"
+      mb={5}
+      dir={isArabic ? "rtl" : "ltr"}
+    >
       {accountMenuText.map((menuText, index) => (
         <Link key={`account-menu-${index}`} href={menuText.href}>
           <Text
@@ -53,11 +65,11 @@ const AccountMenu = () => {
       ))}
       <Text
         {...linkStyle}
-        color={"gray.300"}
+        color="gray.300"
         onClick={handleLogout}
-        cursor={"pointer"}
+        cursor="pointer"
       >
-        Logout
+        {isArabic ? "تسجيل الخروج" : "Logout"}
       </Text>
     </HStack>
   );

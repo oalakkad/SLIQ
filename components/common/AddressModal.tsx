@@ -12,13 +12,13 @@ import {
   Input,
   FormControl,
   FormLabel,
-  useDisclosure,
-  VStack,
   useToast,
   Checkbox,
+  VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { useAddress } from "@/hooks/use-address"; // make sure path is correct
+import { useAddress } from "@/hooks/use-address";
+import { useSelector } from "react-redux";
 
 interface AddAddressModalProps {
   isOpen: boolean;
@@ -31,6 +31,7 @@ export default function AddAddressModal({
 }: AddAddressModalProps) {
   const toast = useToast();
   const { addAddress } = useAddress();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -54,7 +55,7 @@ export default function AddAddressModal({
     try {
       await addAddress.mutateAsync(form);
       toast({
-        title: "Address added.",
+        title: isArabic ? "تمت إضافة العنوان." : "Address added.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -71,8 +72,10 @@ export default function AddAddressModal({
       });
     } catch (err: any) {
       toast({
-        title: "Failed to add address.",
-        description: err?.response?.data?.detail || "Something went wrong.",
+        title: isArabic ? "فشل في إضافة العنوان." : "Failed to add address.",
+        description:
+          err?.response?.data?.detail ||
+          (isArabic ? "حدث خطأ ما." : "Something went wrong."),
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -81,86 +84,84 @@ export default function AddAddressModal({
   };
 
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={onClose} size={"md"} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add New Address</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Full Name</FormLabel>
-                <Input
-                  name="full_name"
-                  value={form.full_name}
-                  onChange={handleChange}
-                />
-              </FormControl>
+    <Modal isOpen={isOpen} onClose={onClose} size="md" isCentered>
+      <ModalOverlay />
+      <ModalContent dir={isArabic ? "rtl" : "ltr"}>
+        <ModalHeader textAlign={"center"}>
+          {isArabic ? "إضافة عنوان جديد" : "Add New Address"}
+        </ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4}>
+            <FormControl isRequired>
+              <FormLabel>{isArabic ? "الاسم الكامل" : "Full Name"}</FormLabel>
+              <Input
+                name="full_name"
+                value={form.full_name}
+                onChange={handleChange}
+              />
+            </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Address Line</FormLabel>
-                <Input
-                  name="address_line"
-                  value={form.address_line}
-                  onChange={handleChange}
-                />
-              </FormControl>
+            <FormControl isRequired>
+              <FormLabel>{isArabic ? "العنوان" : "Address Line"}</FormLabel>
+              <Input
+                name="address_line"
+                value={form.address_line}
+                onChange={handleChange}
+              />
+            </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>City</FormLabel>
-                <Input name="city" value={form.city} onChange={handleChange} />
-              </FormControl>
+            <FormControl isRequired>
+              <FormLabel>{isArabic ? "المدينة" : "City"}</FormLabel>
+              <Input name="city" value={form.city} onChange={handleChange} />
+            </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Postal Code</FormLabel>
-                <Input
-                  name="postal_code"
-                  value={form.postal_code}
-                  onChange={handleChange}
-                />
-              </FormControl>
+            <FormControl isRequired>
+              <FormLabel>
+                {isArabic ? "الرمز البريدي" : "Postal Code"}
+              </FormLabel>
+              <Input
+                name="postal_code"
+                value={form.postal_code}
+                onChange={handleChange}
+              />
+            </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Country</FormLabel>
-                <Input
-                  name="country"
-                  value={form.country}
-                  onChange={handleChange}
-                />
-              </FormControl>
+            <FormControl isRequired>
+              <FormLabel>{isArabic ? "الدولة" : "Country"}</FormLabel>
+              <Input
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+              />
+            </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Phone</FormLabel>
-                <Input
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                />
-              </FormControl>
+            <FormControl isRequired>
+              <FormLabel>{isArabic ? "رقم الهاتف" : "Phone"}</FormLabel>
+              <Input name="phone" value={form.phone} onChange={handleChange} />
+            </FormControl>
 
-              <FormControl>
-                <Checkbox
-                  name="is_default"
-                  isChecked={form.is_default}
-                  onChange={handleChange}
-                >
-                  Set as default address
-                </Checkbox>
-              </FormControl>
-            </VStack>
-          </ModalBody>
+            <FormControl>
+              <Checkbox
+                name="is_default"
+                isChecked={form.is_default}
+                onChange={handleChange}
+              >
+                {isArabic ? "تعيين كعنوان افتراضي" : "Set as default address"}
+              </Checkbox>
+            </FormControl>
+          </VStack>
+        </ModalBody>
 
-          <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="pink" onClick={handleSubmit} ml={3}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+        <ModalFooter>
+          <Button variant="ghost" onClick={onClose}>
+            {isArabic ? "إلغاء" : "Cancel"}
+          </Button>
+          <Button colorScheme="pink" onClick={handleSubmit} ml={3}>
+            {isArabic ? "حفظ" : "Save"}
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

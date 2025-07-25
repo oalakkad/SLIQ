@@ -20,9 +20,11 @@ import {
   Center,
   Badge,
 } from "@chakra-ui/react";
+import { useSelector } from "react-redux";
 
 export default function OrdersPage() {
   const { data: orders, isLoading } = useOrders();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
 
   if (isLoading) {
     return (
@@ -33,10 +35,21 @@ export default function OrdersPage() {
   }
 
   return (
-    <Box py={10} bg="#fdf8f7" minH="50vh" px={[4, 8, 12]}>
+    <Box
+      py={10}
+      bg="#fdf8f7"
+      minH="50vh"
+      px={[4, 8, 12]}
+      dir={isArabic ? "rtl" : "ltr"}
+    >
       <AccountMenu />
-      <Heading mb={8} fontSize="lg" color="gray.700">
-        ORDERS
+      <Heading
+        mb={8}
+        fontSize="lg"
+        color="gray.700"
+        textAlign={isArabic ? "right" : "left"}
+      >
+        {isArabic ? "الطلبات" : "ORDERS"}
       </Heading>
       <Box>
         {!orders || orders.length === 0 ? (
@@ -51,10 +64,12 @@ export default function OrdersPage() {
               boxShadow="sm"
             >
               <Text fontWeight="bold" fontSize="md" mb={2}>
-                NO ORDERS YET
+                {isArabic ? "لا توجد طلبات بعد" : "NO ORDERS YET"}
               </Text>
               <Text fontSize="sm" color="gray.600">
-                Go to store to place an order.
+                {isArabic
+                  ? "توجه إلى المتجر لإجراء عملية شراء."
+                  : "Go to store to place an order."}
               </Text>
             </Box>
           </Center>
@@ -74,6 +89,16 @@ export default function OrdersPage() {
                   ? "blue"
                   : "red";
 
+              const statusLabel = isArabic
+                ? order.status === "paid"
+                  ? "مدفوع"
+                  : order.status === "pending"
+                  ? "قيد المعالجة"
+                  : order.status === "shipped"
+                  ? "تم الشحن"
+                  : "ملغي"
+                : order.status.toUpperCase();
+
               return (
                 <AccordionItem
                   key={order.id}
@@ -89,19 +114,23 @@ export default function OrdersPage() {
                     _expanded={{ bg: "brand.blue" }}
                     justifyContent="space-between"
                   >
-                    <Box textAlign="left">
-                      <Text fontWeight="bold">Order #{order.id}</Text>
+                    <Box textAlign={isArabic ? "right" : "left"}>
+                      <Text fontWeight="bold">
+                        {isArabic
+                          ? `طلب رقم #${order.id}`
+                          : `Order #${order.id}`}
+                      </Text>
                       <Text fontSize="sm" color="gray.600">
                         {new Date(order.created_at).toLocaleDateString()} ·{" "}
-                        <Badge colorScheme={statusColor}>
-                          {order.status.toUpperCase()}
-                        </Badge>
+                        <Badge colorScheme={statusColor}>{statusLabel}</Badge>
                       </Text>
                     </Box>
                     <HStack spacing={4}>
-                      <Text fontWeight="medium">{order.total_price} KWD</Text>
+                      <Text fontWeight="medium">
+                        {order.total_price} {isArabic ? "دينار كويتي" : "KWD"}
+                      </Text>
                       <Button size="sm" variant="outline">
-                        Show Details
+                        {isArabic ? "عرض التفاصيل" : "Show Details"}
                       </Button>
                       <AccordionIcon />
                     </HStack>
@@ -109,42 +138,54 @@ export default function OrdersPage() {
 
                   <AccordionPanel px={6} pb={6}>
                     <VStack align="stretch" spacing={4}>
-                      {/* 🧾 Order Summary */}
+                      {/* Order Summary */}
                       <Box bg="brand.yellow" p={4} borderRadius="md">
                         <Text fontWeight="bold" mb={1}>
-                          Order Summary
+                          {isArabic ? "ملخص الطلب" : "Order Summary"}
                         </Text>
                         <Text fontSize="sm" color="gray.600">
-                          Order ID: {order.id}
+                          {isArabic ? "رقم الطلب" : "Order ID"}: {order.id}
                         </Text>
                         <Text fontSize="sm" color="gray.600">
-                          Created: {new Date(order.created_at).toLocaleString()}
+                          {isArabic ? "التاريخ" : "Created"}:{" "}
+                          {new Date(order.created_at).toLocaleString()}
                         </Text>
                         <Text fontSize="sm" color="gray.600">
-                          Items: {totalItems}
+                          {isArabic ? "عدد المنتجات" : "Items"}: {totalItems}
                         </Text>
                         <Text fontSize="sm" color="gray.600">
-                          Total: {order.total_price} KWD
+                          {isArabic ? "الإجمالي" : "Total"}: {order.total_price}{" "}
+                          {isArabic ? "دينار كويتي" : "KWD"}
                         </Text>
                       </Box>
 
                       <Divider />
 
-                      {/* 🛒 Items */}
+                      {/* Order Items */}
                       {order.items.map((item) => (
                         <HStack key={item.id} spacing={4} align="flex-start">
                           <Image
                             src={item.product.image}
-                            alt={item.product.name}
+                            alt={
+                              isArabic
+                                ? item.product.name_ar
+                                : item.product.name
+                            }
                             boxSize="60px"
                             borderRadius="md"
                             objectFit="cover"
                           />
-                          <Box>
-                            <Text fontWeight="medium">{item.product.name}</Text>
+                          <Box textAlign={isArabic ? "right" : "left"}>
+                            <Text fontWeight="medium">
+                              {isArabic
+                                ? item.product.name_ar
+                                : item.product.name}
+                            </Text>
                             <Text fontSize="sm" color="gray.600">
-                              Qty: {item.quantity} &middot; Price:{" "}
-                              {item.price_at_purchase} KWD
+                              {isArabic ? "الكمية" : "Qty"}: {item.quantity} ·{" "}
+                              {isArabic ? "السعر" : "Price"}:{" "}
+                              {item.price_at_purchase}{" "}
+                              {isArabic ? "دينار كويتي" : "KWD"}
                             </Text>
                           </Box>
                         </HStack>

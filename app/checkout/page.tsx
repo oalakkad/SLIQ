@@ -8,7 +8,6 @@ import {
   Flex,
   Heading,
   Input,
-  Select,
   Stack,
   Text,
   VStack,
@@ -23,11 +22,20 @@ import { useAddress } from "@/hooks/use-address";
 import AddAddressModal from "@/components/common/AddressModal";
 import { Cart, CartItem, useCart } from "@/hooks/use-cart";
 import { useOrders } from "@/hooks/use-orders";
+import { useSelector } from "react-redux";
 
-const OrderSummary = ({ cart, isLoading }: { cart: Cart; isLoading: any }) => (
+const OrderSummary = ({
+  cart,
+  isLoading,
+  isArabic,
+}: {
+  cart: Cart;
+  isLoading: any;
+  isArabic: boolean;
+}) => (
   <Box bg="brand.yellow" borderRadius="md" p={6} minW="300px">
-    <Heading size="md" mb={4}>
-      ORDER SUMMARY
+    <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
+      {isArabic ? "ملخص الطلب" : "ORDER SUMMARY"}
     </Heading>
     <Stack spacing={4}>
       {!isLoading && cart && cart?.items?.length > 0 ? (
@@ -37,26 +45,31 @@ const OrderSummary = ({ cart, isLoading }: { cart: Cart; isLoading: any }) => (
               <Box boxSize="50px" bg="gray.200" borderRadius="md">
                 <Image
                   src={item.product.image}
-                  alt={item.product.name}
+                  alt={isArabic ? item.product.name_ar : item.product.name}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </Box>
-              <Box>
-                <Text fontWeight="medium">{item.product.name}</Text>
+              <Box textAlign={isArabic ? "right" : "left"}>
+                <Text fontWeight="medium">
+                  {isArabic ? item.product.name_ar : item.product.name}
+                </Text>
                 <Text fontSize="sm">x{item.quantity}</Text>
               </Box>
             </Flex>
             <Text>
-              {(Number(item.product.price) * item.quantity).toFixed(2)} KWD
+              {(Number(item.product.price) * item.quantity).toFixed(2)}{" "}
+              {isArabic ? "دينار كويتي" : "KWD"}
             </Text>
           </Flex>
         ))
       ) : (
-        <Text>No items in cart.</Text>
+        <Text textAlign={isArabic ? "right" : "left"}>
+          {isArabic ? "لا توجد منتجات في السلة." : "No items in cart."}
+        </Text>
       )}
       <Divider />
       <Flex justify="space-between">
-        <Text fontWeight="bold">Total:</Text>
+        <Text fontWeight="bold">{isArabic ? "الإجمالي:" : "Total:"}</Text>
         <Text fontWeight="bold">
           {cart?.items
             ?.reduce(
@@ -64,7 +77,7 @@ const OrderSummary = ({ cart, isLoading }: { cart: Cart; isLoading: any }) => (
               0
             )
             .toFixed(3)}{" "}
-          KWD
+          {isArabic ? "دينار كويتي" : "KWD"}
         </Text>
       </Flex>
     </Stack>
@@ -76,9 +89,9 @@ export default function CheckoutPage() {
   const { data: addresses, isLoading: isAddressLoading } = useAddress();
   const { createOrder } = useOrders();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
 
   const [useShippingAsBilling, setUseShippingAsBilling] = useState(true);
-
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null
   );
@@ -91,24 +104,55 @@ export default function CheckoutPage() {
   }, [addresses, selectedAddressId]);
 
   return (
-    <Flex direction={{ base: "column", md: "row" }} px={4} py={6} gap={8}>
-      {/* LEFT: Checkout form */}
+    <Flex
+      direction={{ base: "column", md: isArabic ? "row-reverse" : "row" }}
+      px={4}
+      py={6}
+      gap={8}
+      dir={isArabic ? "rtl" : "ltr"}
+    >
+      {/* ORDER SUMMARY first if Arabic */}
+      {isArabic && (
+        <Box
+          flex={1}
+          display={{ base: "none", md: "block" }}
+          position="sticky"
+          top={4}
+          alignSelf="flex-start"
+        >
+          <OrderSummary
+            cart={cart ?? { id: -1, items: [] }}
+            isLoading={isLoading}
+            isArabic={isArabic}
+          />
+        </Box>
+      )}
+
+      {/* Checkout form */}
       <Box flex={1}>
-        <Heading size="md" mb={6}>
-          DELIVERY
+        <Heading size="md" mb={6} textAlign={isArabic ? "right" : "left"}>
+          {isArabic ? "التوصيل" : "DELIVERY"}
         </Heading>
+
         <Stack spacing={4}>
-          <Input placeholder="Email address" type="email" />
-          <Checkbox> Email me with news and offers </Checkbox>
+          <Input
+            placeholder={isArabic ? "البريد الإلكتروني" : "Email address"}
+            type="email"
+          />
+          <Checkbox>
+            {isArabic
+              ? "أرسل لي الأخبار والعروض"
+              : "Email me with news and offers"}
+          </Checkbox>
         </Stack>
 
         <Box mt={8}>
           <Flex justify="space-between" align="center" mb={4}>
             <Text fontSize="lg" fontWeight="bold">
-              SAVED ADDRESSES
+              {isArabic ? "العناوين المحفوظة" : "SAVED ADDRESSES"}
             </Text>
-            <Button size="sm" onClick={onOpen} variant={"link"}>
-              Add Address
+            <Button size="sm" onClick={onOpen} variant="link">
+              {isArabic ? "إضافة عنوان" : "Add Address"}
             </Button>
           </Flex>
           <AddAddressModal isOpen={isOpen} onClose={onClose} />
@@ -127,6 +171,7 @@ export default function CheckoutPage() {
                     address.id === selectedAddressId ? "brand.blue" : "gray.100"
                   }
                   borderRadius="md"
+                  textAlign={isArabic ? "right" : "left"}
                 >
                   <Text fontWeight="bold">{address.full_name}</Text>
                   <Text>{address.address_line}</Text>
@@ -138,56 +183,74 @@ export default function CheckoutPage() {
               ))}
             </VStack>
           ) : (
-            <Text>No addresses found.</Text>
+            <Text textAlign={isArabic ? "right" : "left"}>
+              {isArabic ? "لا توجد عناوين." : "No addresses found."}
+            </Text>
           )}
         </Box>
 
         <Divider my={8} />
-        <Heading size="md" mb={6}>
-          PAYMENT
+        <Heading size="md" mb={6} textAlign={isArabic ? "right" : "left"}>
+          {isArabic ? "الدفع" : "PAYMENT"}
         </Heading>
+
         <Stack spacing={4}>
           <Checkbox
             isChecked={useShippingAsBilling}
             onChange={(e) => setUseShippingAsBilling(e.target.checked)}
           >
-            Use shipping address as billing address
+            {isArabic
+              ? "استخدم عنوان الشحن كعنوان الفوترة"
+              : "Use shipping address as billing address"}
           </Checkbox>
-          <Input placeholder="Card number" />
-          <Flex gap={4}>
-            <Input placeholder="Expiration date (MM / YY)" />
-            <Input placeholder="Security code" />
+          <Input placeholder={isArabic ? "رقم البطاقة" : "Card number"} />
+          <Flex gap={4} direction={isArabic ? "row-reverse" : "row"}>
+            <Input
+              placeholder={
+                isArabic ? "تاريخ الانتهاء" : "Expiration date (MM / YY)"
+              }
+            />
+            <Input placeholder={isArabic ? "رمز الأمان" : "Security code"} />
           </Flex>
-          <Input placeholder="Name on card" />
+          <Input
+            placeholder={isArabic ? "الاسم على البطاقة" : "Name on card"}
+          />
         </Stack>
+
         {!useShippingAsBilling && (
           <Stack spacing={4} mt={4}>
-            <Input placeholder="Country" />
-            <Input placeholder="Address" />
-            <Flex gap={4}>
-              <Input placeholder="State" />
-              <Input placeholder="City" />
-              <Input placeholder="ZIP code" />
+            <Input placeholder={isArabic ? "البلد" : "Country"} />
+            <Input placeholder={isArabic ? "العنوان" : "Address"} />
+            <Flex gap={4} direction={isArabic ? "row-reverse" : "row"}>
+              <Input placeholder={isArabic ? "الولاية" : "State"} />
+              <Input placeholder={isArabic ? "المدينة" : "City"} />
+              <Input placeholder={isArabic ? "الرمز البريدي" : "ZIP code"} />
             </Flex>
           </Stack>
         )}
 
         <Divider my={8} />
-        <Heading size="md" mb={4}>
-          REMEMBER ME
+        <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
+          {isArabic ? "تذكرني" : "REMEMBER ME"}
         </Heading>
         <Checkbox defaultChecked>
-          Save my information for faster checkout
+          {isArabic
+            ? "احفظ معلوماتي لسهولة التسوق لاحقًا"
+            : "Save my information for faster checkout"}
         </Checkbox>
         <InputGroup>
-          <InputLeftAddon bg={"brand.blue"}>+965</InputLeftAddon>
-          <Input type="tel" placeholder="Mobile phone number" />
+          <InputLeftAddon bg="brand.blue">+965</InputLeftAddon>
+          <Input
+            type="tel"
+            placeholder={isArabic ? "رقم الهاتف" : "Mobile phone number"}
+          />
         </InputGroup>
 
         <Box display={{ base: "block", md: "none" }} mt={10}>
           <OrderSummary
             cart={cart ?? { id: -1, items: [] }}
             isLoading={isLoading}
+            isArabic={isArabic}
           />
         </Box>
 
@@ -198,23 +261,26 @@ export default function CheckoutPage() {
           py={7}
           onClick={() => createOrder.mutate()}
         >
-          PAY NOW
+          {isArabic ? "ادفع الآن" : "PAY NOW"}
         </Button>
       </Box>
 
-      {/* RIGHT: Order Summary */}
-      <Box
-        flex={1}
-        display={{ base: "none", md: "block" }}
-        position="sticky"
-        top={4}
-        alignSelf="flex-start"
-      >
-        <OrderSummary
-          cart={cart ?? { id: -1, items: [] }}
-          isLoading={isLoading}
-        />
-      </Box>
+      {/* Order summary last if English */}
+      {!isArabic && (
+        <Box
+          flex={1}
+          display={{ base: "none", md: "block" }}
+          position="sticky"
+          top={4}
+          alignSelf="flex-start"
+        >
+          <OrderSummary
+            cart={cart ?? { id: -1, items: [] }}
+            isLoading={isLoading}
+            isArabic={isArabic}
+          />
+        </Box>
+      )}
     </Flex>
   );
 }

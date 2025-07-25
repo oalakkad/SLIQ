@@ -171,7 +171,6 @@ export default function Navbar() {
         alignItems={"center"}
       >
         <Box mt={4}></Box>
-        <LanguageSelector />
         <Link href={"/"}>
           <Image src={saieLogo} alt="SAIE" width={128} height={49} />
         </Link>
@@ -216,17 +215,20 @@ export default function Navbar() {
         )}
 
         {!isMobile && (
-          <Link href={isAuthenticated ? "/profile" : "/auth/login"}>
-            <IconButton
-              aria-label="user-profile"
-              icon={<SlUser />}
-              fontSize={"1.3rem"}
-              p={2}
-              border={"none"}
-              variant={"outlineYellow"}
-              borderRadius={"50%"}
-            />
-          </Link>
+          <>
+            <LanguageSelector />
+            <Link href={isAuthenticated ? "/profile" : "/auth/login"}>
+              <IconButton
+                aria-label="user-profile"
+                icon={<SlUser />}
+                fontSize={"1.3rem"}
+                p={2}
+                border={"none"}
+                variant={"outlineYellow"}
+                borderRadius={"50%"}
+              />
+            </Link>
+          </>
         )}
 
         <Box position="relative">

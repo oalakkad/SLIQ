@@ -1,4 +1,4 @@
-"use client"; // Only for Next.js App Router
+"use client";
 
 import {
   Menu,
@@ -17,36 +17,28 @@ export default function LanguageSelector() {
   const dispatch = useAppDispatch();
   const isArabic = useAppSelector((state) => state.lang.isArabic);
 
-  const languages = [
-    {
-      code: "en",
-      label: "English",
-      onSelect: () => dispatch(setEnglish()),
-    },
-    {
-      code: "ar",
-      label: "Arabic",
-      onSelect: () => dispatch(setArabic()),
-    },
-  ];
-
-  const current = isArabic ? languages[1] : languages[0];
-
   return (
     <Menu>
       <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
         <HStack spacing={2}>
-          <Text>{current.label}</Text>
+          <Text fontSize="sm">{isArabic ? "العربية" : "English"}</Text>
         </HStack>
       </MenuButton>
       <MenuList>
-        {languages.map((lang) => (
-          <MenuItem key={lang.code} onClick={lang.onSelect}>
-            <HStack spacing={3}>
-              <Text>{lang.label}</Text>
-            </HStack>
-          </MenuItem>
-        ))}
+        <MenuItem
+          onClick={() => dispatch(setEnglish())}
+          fontWeight={!isArabic ? "bold" : "normal"}
+          bg={!isArabic ? "gray.100" : "transparent"}
+        >
+          <Text fontSize="sm">English</Text>
+        </MenuItem>
+        <MenuItem
+          onClick={() => dispatch(setArabic())}
+          fontWeight={isArabic ? "bold" : "normal"}
+          bg={isArabic ? "gray.100" : "transparent"}
+        >
+          <Text fontSize="sm">العربية</Text>
+        </MenuItem>
       </MenuList>
     </Menu>
   );

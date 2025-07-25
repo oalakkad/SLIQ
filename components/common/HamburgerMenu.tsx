@@ -9,21 +9,34 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { useAppSelector } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Link from "next/link";
+import { setArabic, setEnglish } from "@/redux/features/langSlice";
 
 const RecursiveMenuItem = ({
   item,
   depth = 0,
   onClose,
+  onClick,
+  fontStyle,
 }: {
   item: any;
   depth?: number;
   onClose: () => void;
+  onClick?: () => void;
+  fontStyle?: string;
 }) => {
   const { isOpen, onToggle } = useDisclosure();
   const hasChildren = Array.isArray(item.children) && item.children.length > 0;
   const isTopLevel = depth === 0;
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   return (
     <Box w="100%">
@@ -33,8 +46,17 @@ const RecursiveMenuItem = ({
         justifyContent="space-between"
         py={2}
         pr={1}
-        onClick={hasChildren ? onToggle : undefined}
-        cursor={hasChildren ? "pointer" : "default"}
+        onClick={
+          onClick !== undefined
+            ? () => {
+                onClick();
+                onClose();
+              }
+            : hasChildren
+            ? onToggle
+            : undefined
+        }
+        cursor={"pointer"}
         _hover={{ bg: hasChildren ? "gray.50" : "transparent" }}
       >
         <Link href={item.href} onClick={onClose}>
@@ -43,9 +65,11 @@ const RecursiveMenuItem = ({
             textTransform={isTopLevel ? "uppercase" : "capitalize"}
             fontSize={isTopLevel ? "sm" : "md"}
             fontFamily={
-              isTopLevel
-                ? "'Readex Pro', sans-serif"
-                : "'Work Sans', sans-serif"
+              fontStyle !== undefined
+                ? fontStyle
+                : isTopLevel
+                ? headingFont
+                : bodyFont
             }
             _hover={{ textDecoration: "none" }}
             color="gray.700"
@@ -92,6 +116,16 @@ export const HamburgerMenu = ({
 }) => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { isOpen: isAccountOpen, onToggle: onAccountToggle } = useDisclosure();
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const dispatch = useAppDispatch();
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   return (
     <VStack align="start" spacing={0} w="100%">
@@ -121,7 +155,13 @@ export const HamburgerMenu = ({
               _hover={{ textDecoration: "none" }}
               color="gray.700"
             >
-              {isAuthenticated ? "Account" : "Login"}
+              {isAuthenticated
+                ? isArabic
+                  ? "الحساب"
+                  : "Account"
+                : isArabic
+                ? "تسجيل الدخول"
+                : "Login"}
             </Text>
           </Link>
           {isAuthenticated && (
@@ -141,12 +181,15 @@ export const HamburgerMenu = ({
               <VStack align="start" spacing={1} pl={4} py={2}>
                 <RecursiveMenuItem
                   onClose={onClose}
-                  item={{ href: "/orders", name: "Orders" }}
+                  item={{
+                    href: "/orders",
+                    name: isArabic ? "الطلبات" : "Orders",
+                  }}
                   depth={1}
                 />
                 <RecursiveMenuItem
                   onClose={onClose}
-                  item={{ href: "/profile", name: "Profile" }}
+                  item={{ href: "/profile", name: "الحساب الشخصي" }}
                   depth={1}
                 />
               </VStack>
@@ -155,6 +198,22 @@ export const HamburgerMenu = ({
           </>
         )}
       </Box>
+      <RecursiveMenuItem
+        onClose={onClose}
+        fontStyle={
+          isArabic
+            ? "var(--font-readex-pro), sans-serif"
+            : "var(--font-cairo), sans-serif"
+        }
+        onClick={
+          isArabic ? () => dispatch(setEnglish()) : () => dispatch(setArabic())
+        }
+        item={{
+          href: "",
+          name: isArabic ? "English" : "العربية",
+        }}
+        depth={1}
+      />
     </VStack>
   );
 };

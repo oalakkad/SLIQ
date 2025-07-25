@@ -3,7 +3,7 @@
 import AccountMenu from "@/components/common/AccountMenu";
 import AddAddressModal from "@/components/common/AddressModal";
 import EditProfileModal from "@/components/common/EditProfileModal";
-import { Address, useAddress } from "@/hooks/use-address"; // <- hook to fetch/manage addresses
+import { Address, useAddress } from "@/hooks/use-address";
 import {
   useRetrieveUserQuery,
   useUpdateUserMutation,
@@ -18,13 +18,12 @@ import {
   Button,
   Icon,
   useDisclosure,
-  Badge,
   Spinner,
   HStack,
 } from "@chakra-ui/react";
 import { FiPlus, FiInfo } from "react-icons/fi";
-import { MdEdit } from "react-icons/md";
-import { MdDelete } from "react-icons/md";
+import { MdEdit, MdDelete } from "react-icons/md";
+import { useSelector } from "react-redux";
 
 export default function ProfilePage() {
   const {
@@ -33,8 +32,19 @@ export default function ProfilePage() {
     isLoading: isUserLoading,
     isFetching: isUserFetching,
   } = useRetrieveUserQuery();
+
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
+
   const [isLargerThan768] = useMediaQuery("(min-width: 768px)");
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
   const [updateUser, { isLoading: isUpdateUserLoading }] =
     useUpdateUserMutation();
   const {
@@ -51,9 +61,14 @@ export default function ProfilePage() {
   } = useAddress();
 
   return (
-    <Box bg="#FCF8F7" minH="50vh" py={10} px={[4, 8, 12]}>
+    <Box
+      bg="#FCF8F7"
+      minH="50vh"
+      py={10}
+      px={[4, 8, 12]}
+      dir={isArabic ? "rtl" : "ltr"}
+    >
       <AccountMenu />
-      {/* PROFILE SECTION */}
       <VStack
         align="stretch"
         spacing={6}
@@ -64,10 +79,17 @@ export default function ProfilePage() {
         boxShadow="sm"
       >
         <Flex justify="space-between" align="center" flexWrap="wrap">
-          <Text fontSize="xl" fontWeight="bold" color="gray.600">
-            PROFILE
+          <Text
+            fontSize="xl"
+            fontWeight="bold"
+            color="gray.600"
+            textAlign={isArabic ? "right" : "left"}
+            fontStyle={headingFont}
+          >
+            {isArabic ? "الملف الشخصي" : "PROFILE"}
           </Text>
         </Flex>
+
         {user ? (
           <>
             <Box
@@ -81,23 +103,25 @@ export default function ProfilePage() {
               <IconButton
                 icon={<MdEdit />}
                 size="lg"
-                aria-label="Edit"
+                aria-label={isArabic ? "تعديل" : "Edit"}
                 position="absolute"
                 top={4}
-                right={4}
+                right={isArabic ? undefined : 4}
+                left={isArabic ? 4 : undefined}
                 variant="outlineBlue"
-                _hover={{
-                  bg: "#c4d9f0",
-                  color: "gray.500",
-                }}
+                _hover={{ bg: "#c4d9f0", color: "gray.500" }}
                 border={"none"}
                 onClick={onEditOpen}
                 borderRadius={"50%"}
               />
-              <VStack spacing={3} align="start">
+              <VStack
+                spacing={3}
+                align="start"
+                textAlign={isArabic ? "right" : "left"}
+              >
                 <Box>
                   <Text fontWeight="medium" color="gray.500">
-                    Name
+                    {isArabic ? "الاسم" : "Name"}
                   </Text>
                   <Text fontWeight="semibold">
                     {user?.first_name} {user?.last_name}
@@ -105,7 +129,7 @@ export default function ProfilePage() {
                 </Box>
                 <Box>
                   <Text fontWeight="medium" color="gray.500">
-                    Email
+                    {isArabic ? "البريد الإلكتروني" : "Email"}
                   </Text>
                   <Text fontWeight="semibold">{user?.email}</Text>
                 </Box>
@@ -117,23 +141,22 @@ export default function ProfilePage() {
               onClose={onEditClose}
               user={user}
               onSave={(data) => {
-                updateUser(data).then(() => {
-                  refetch(); // if you use `useRetrieveUserQuery` to show updated info
-                });
+                updateUser(data).then(() => refetch());
               }}
             />
 
-            {/* ADDRESS SECTION */}
             <AddAddressModal isOpen={isOpen} onClose={onClose} />
             <Box bg="white" borderRadius="md" boxShadow="xs" p={6}>
               <Flex justify="space-between" align="center" mb={4}>
                 <Text
                   fontSize="lg"
-                  fontWeight="black"
+                  fontWeight="bold"
                   fontFamily="heading"
                   color="black"
+                  textAlign={isArabic ? "right" : "left"}
+                  fontStyle={headingFont}
                 >
-                  ADDRESSES
+                  {isArabic ? "العناوين" : "ADDRESSES"}
                 </Text>
                 <Button
                   size="sm"
@@ -143,7 +166,7 @@ export default function ProfilePage() {
                   color="gray.600"
                   onClick={onOpen}
                 >
-                  Add
+                  {isArabic ? "إضافة" : "Add"}
                 </Button>
               </Flex>
 
@@ -157,7 +180,11 @@ export default function ProfilePage() {
                   gap={2}
                 >
                   <Icon as={FiInfo} color="gray.500" />
-                  <Text color="gray.600">No addresses added</Text>
+                  <Text color="gray.600">
+                    {isArabic
+                      ? "لم يتم إضافة أي عنوان بعد"
+                      : "No addresses added"}
+                  </Text>
                 </Box>
               ) : (
                 <VStack spacing={4} align="stretch">
@@ -183,7 +210,11 @@ export default function ProfilePage() {
                           h={"100%"}
                           align={"flex-start"}
                         >
-                          <Box w={"100%"}>
+                          <Box
+                            w={"100%"}
+                            textAlign={isArabic ? "right" : "left"}
+                            fontFamily={bodyFont}
+                          >
                             <Text fontWeight="bold">{address.full_name}</Text>
                             <Text fontSize="sm" color="gray.600">
                               {address.address_line}
@@ -201,8 +232,11 @@ export default function ProfilePage() {
                                 fontWeight="bold"
                                 color="#6fa0d4ff"
                                 mt={2}
+                                fontStyle={headingFont}
                               >
-                                DEFAULT ADDRESS
+                                {isArabic
+                                  ? "العنوان الافتراضي"
+                                  : "DEFAULT ADDRESS"}
                               </Text>
                             )}
                           </Box>
@@ -211,8 +245,8 @@ export default function ProfilePage() {
                               <Button
                                 size="xs"
                                 colorScheme="green"
-                                borderRadius={"50px"}
-                                variant={"outlineBlue"}
+                                borderRadius="50px"
+                                variant="outlineBlue"
                                 _hover={{
                                   bg: "#c4d9f0",
                                   color: "gray.500",
@@ -220,16 +254,16 @@ export default function ProfilePage() {
                                 }}
                                 onClick={() => setDefault.mutate(address.id)}
                               >
-                                Set as Default
+                                {isArabic ? "تعيين كافتراضي" : "Set as Default"}
                               </Button>
                             )}
                             <IconButton
-                              aria-label="delete"
+                              aria-label={isArabic ? "حذف" : "Delete"}
                               icon={<MdDelete />}
-                              variant={"outlinePink"}
-                              border={"none"}
+                              variant="outlinePink"
+                              border="none"
                               _hover={{ color: "gray.500", bg: "#fbcfd4" }}
-                              borderRadius={"50%"}
+                              borderRadius="50%"
                               onClick={() => deleteAddress.mutate(address.id)}
                             />
                           </HStack>
