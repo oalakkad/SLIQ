@@ -98,9 +98,9 @@ export default function Page() {
               onClick={onToggle}
               w={isMobile ? "150px" : "250px"}
               h={"45px"}
-              fontWeight={600}
+              fontWeight={300}
               color={"gray.400"}
-              fontFamily={headingFont}
+              fontFamily={bodyFont}
               leftIcon={
                 <Circle
                   size="20px"
@@ -169,7 +169,8 @@ export default function Page() {
               borderRadius={0}
               border={"none"}
               color={"gray.400"}
-              fontWeight={600}
+              fontWeight={300}
+              cursor={"pointer"}
               fontFamily={bodyFont}
               variant={"filled"}
               h={"45px"}
