@@ -1,3 +1,5 @@
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import "@/styles/globals.css";
 import { Inter, Cairo, Work_Sans, Readex_Pro } from "next/font/google";
 import Provider from "@/redux/provider";

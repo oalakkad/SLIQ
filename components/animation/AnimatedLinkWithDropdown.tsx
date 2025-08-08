@@ -97,7 +97,7 @@ export function AnimatedLinkWithDropdown({
           >
             <MotionBox
               position="absolute"
-              top="170px"
+              top="140px"
               left={0}
               right={0}
               width="100%"

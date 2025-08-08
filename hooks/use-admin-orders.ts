@@ -1,0 +1,153 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios, { AxiosError, AxiosResponse } from "axios";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
+// --- Axios Instance with Interceptor ---
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+});
+
+// Refresh on 401
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      try {
+        // Attempt to refresh token/session
+        await axios.post(`${API_URL}/auth/refresh/`, {}, { withCredentials: true });
+        // Retry original request
+        return api(error.config!);
+      } catch (refreshError) {
+        console.error("Session expired. Redirecting to login...");
+        window.location.href = "/auth/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// --- Types ---
+export interface AdminOrderItem {
+  id: number;
+  quantity: number;
+  price_at_purchase: string;
+  product: {
+    id: number;
+    name: string;
+    name_ar?: string;
+  };
+}
+
+export interface AdminOrder {
+  id: number;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  total_price: string;
+  status: string;
+  created_at: string;
+  items: AdminOrderItem[];
+}
+
+interface AdminOrdersResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AdminOrder[];
+}
+
+// --- API Requests ---
+// ✅ Fetch ALL pages of orders
+const fetchAllAdminOrders = async (
+  params?: Record<string, string>
+): Promise<AdminOrder[]> => {
+  let allOrders: AdminOrder[] = [];
+  let nextPage: string | null = `${API_URL}/admin/orders/`;
+
+  // Build query string for search/filters
+  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+
+  while (nextPage) {
+    const res: AxiosResponse<AdminOrdersResponse> = await api.get(
+      nextPage + (nextPage.includes("?") ? "&" + query.slice(1) : query)
+    );
+    allOrders = [...allOrders, ...res.data.results];
+    nextPage = res.data.next;
+  }
+
+  return allOrders;
+};
+
+const updateOrderRequest = async ({
+  id,
+  data,
+}: {
+  id: number;
+  data: Partial<AdminOrder>;
+}) => {
+  const res: AxiosResponse<AdminOrder> = await api.patch(
+    `/admin/orders/${id}/`,
+    data
+  );
+  return res.data;
+};
+
+const deleteOrderRequest = async (id: number) => {
+  const res: AxiosResponse<void> = await api.delete(`/admin/orders/${id}/`);
+  return res.data;
+};
+
+// --- Hook ---
+export const useAdminOrders = (
+  search?: string,
+  filters?: Record<string, string>
+) => {
+  const queryClient = useQueryClient();
+
+  // Build query params
+  const queryParams: Record<string, string> = {};
+  if (search) queryParams.search = search;
+  if (filters) Object.assign(queryParams, filters);
+
+  // Fetch ALL Orders (no pagination on frontend)
+  const ordersQuery = useQuery<AdminOrder[], Error>({
+    queryKey: ["adminOrders", search, filters],
+    queryFn: () =>
+      fetchAllAdminOrders(
+        Object.keys(queryParams).length ? queryParams : undefined
+      ),
+    staleTime: 60_000,
+    refetchOnWindowFocus: true, // ✅ Auto refetch after idle
+    retry: 1, // Retry once after refresh
+  });
+
+  // Update order
+  const updateOrder = useMutation({
+    mutationFn: updateOrderRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminOrders"] });
+    },
+  });
+
+  // Delete order
+  const deleteOrder = useMutation({
+    mutationFn: deleteOrderRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminOrders"] });
+    },
+  });
+
+  return {
+    orders: ordersQuery.data ?? [],
+    isLoading: ordersQuery.isLoading,
+    isError: ordersQuery.isError,
+    refetch: ordersQuery.refetch,
+    updateOrder,
+    deleteOrder,
+  };
+};
