@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useMemo } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -16,12 +16,13 @@ import {
   Checkbox,
   VStack,
   HStack,
-  Select,
+  // ⛔ remove Chakra's Select import to avoid name clash
+  // Select,
 } from "@chakra-ui/react";
-import { Formik, Form, Field, FieldArray } from "formik";
+import { Formik, Form, FieldArray } from "formik";
 import * as Yup from "yup";
-import { AdminAddon } from "@/hooks/use-admin-addons";
 import { useAdminAddonCategories } from "@/hooks/use-admin-addon-categories";
+import ReactSelect, { MultiValue } from "react-select";
 
 // Validation Schema
 const AddonSchema = Yup.object().shape({
@@ -43,6 +44,8 @@ interface EditAddonModalProps {
   onSubmit: (data: any) => void;
 }
 
+type Option = { value: number; label: string };
+
 export const EditAddonModal: React.FC<EditAddonModalProps> = ({
   isOpen,
   onClose,
@@ -50,7 +53,7 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
   onSubmit,
 }) => {
   const { categories, isLoading } = useAdminAddonCategories();
-  console.log(addon);
+
   const initialValues = {
     name: addon?.name || "",
     name_ar: addon?.name_ar || "",
@@ -62,7 +65,15 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
     options: addon?.options || [],
   };
 
-  console.log(initialValues.category_ids);
+  // Build options once from categories
+  const categoryOptions: Option[] = useMemo(
+    () =>
+      (categories ?? []).map((cat: any) => ({
+        value: cat.id,
+        label: cat.name_ar ? `${cat.name} / ${cat.name_ar}` : cat.name,
+      })),
+    [categories]
+  );
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -80,150 +91,178 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
           }}
           enableReinitialize
         >
-          {({ values, errors, handleChange, handleBlur, setFieldValue }) => (
-            <Form>
-              <ModalBody>
-                <VStack spacing={4} align="stretch">
-                  {/* Name */}
-                  <FormControl isInvalid={!!errors.name}>
-                    <FormLabel>Name (EN)</FormLabel>
-                    <Input
-                      name="name"
-                      value={values.name}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                  </FormControl>
+          {({ values, errors, handleChange, handleBlur, setFieldValue }) => {
+            // Map current numeric ids -> react-select options
+            const selectedOptions: Option[] = categoryOptions.filter((opt) =>
+              values.category_ids.includes(opt.value)
+            );
 
-                  {/* Name AR */}
-                  <FormControl>
-                    <FormLabel>Name (AR)</FormLabel>
-                    <Input
-                      name="name_ar"
-                      value={values.name_ar}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                    />
-                  </FormControl>
+            return (
+              <Form>
+                <ModalBody>
+                  <VStack spacing={4} align="stretch">
+                    {/* Name */}
+                    <FormControl isInvalid={!!errors.name}>
+                      <FormLabel>Name (EN)</FormLabel>
+                      <Input
+                        name="name"
+                        value={values.name}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                      />
+                    </FormControl>
 
-                  {/* Price */}
-                  <FormControl>
-                    <FormLabel>Price</FormLabel>
-                    <NumberInput
-                      value={values.price}
-                      onChange={(_, val) => setFieldValue("price", val)}
-                      min={0}
-                    >
-                      <NumberInputField />
-                    </NumberInput>
-                  </FormControl>
+                    {/* Name AR */}
+                    <FormControl>
+                      <FormLabel>Name (AR)</FormLabel>
+                      <Input
+                        name="name_ar"
+                        value={values.name_ar}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                      />
+                    </FormControl>
 
-                  {/* Categories */}
-                  <FormControl isInvalid={!!errors.category_ids}>
-                    <FormLabel>Categories</FormLabel>
-                    <Select
-                      multiple
-                      value={values.category_ids.map(String)}
-                      onChange={(e) => {
-                        const selected = Array.from(
-                          e.target.selectedOptions,
-                          (opt) => Number(opt.value)
-                        );
-                        setFieldValue("category_ids", selected);
-                      }}
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormControl>
+                    {/* Price */}
+                    <FormControl>
+                      <FormLabel>Price</FormLabel>
+                      <NumberInput
+                        value={values.price}
+                        onChange={(_, val) => setFieldValue("price", val)}
+                        min={0}
+                      >
+                        <NumberInputField />
+                      </NumberInput>
+                    </FormControl>
 
-                  {/* Flags */}
-                  <HStack>
-                    <Checkbox
-                      isChecked={values.requires_custom_name}
-                      onChange={(e) =>
-                        setFieldValue("requires_custom_name", e.target.checked)
-                      }
-                    >
-                      Requires Custom Name
-                    </Checkbox>
-                    <Checkbox
-                      isChecked={values.allow_multiple_options}
-                      onChange={(e) =>
-                        setFieldValue(
-                          "allow_multiple_options",
-                          e.target.checked
-                        )
-                      }
-                    >
-                      Allow Multiple Options
-                    </Checkbox>
-                  </HStack>
+                    {/* Categories (react-select multi) */}
+                    <FormControl isInvalid={!!errors.category_ids}>
+                      <FormLabel>Categories</FormLabel>
+                      <ReactSelect
+                        classNamePrefix="rs"
+                        isMulti
+                        isSearchable
+                        isClearable
+                        closeMenuOnSelect={false}
+                        options={categoryOptions}
+                        value={selectedOptions}
+                        onChange={(opts: MultiValue<Option>) =>
+                          setFieldValue(
+                            "category_ids",
+                            (opts as Option[]).map((o) => o.value)
+                          )
+                        }
+                        placeholder="Select categories..."
+                        isLoading={isLoading}
+                        // Make sure the menu renders above Chakra Modal
+                        menuPortalTarget={
+                          typeof document !== "undefined"
+                            ? document.body
+                            : undefined
+                        }
+                        styles={{
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          control: (base) => ({
+                            ...base,
+                            minHeight: 42,
+                          }),
+                          valueContainer: (base) => ({
+                            ...base,
+                            paddingTop: 6,
+                            paddingBottom: 6,
+                          }),
+                        }}
+                      />
+                    </FormControl>
 
-                  {/* Options */}
-                  <FormControl>
-                    <FormLabel>Options</FormLabel>
-                    <FieldArray name="options">
-                      {({ push, remove }) => (
-                        <VStack spacing={3} align="stretch">
-                          {values.options.map((opt: any, i: number) => (
-                            <HStack key={i} spacing={2}>
-                              <Input
-                                placeholder="Name"
-                                name={`options.${i}.name`}
-                                value={opt.name}
-                                onChange={handleChange}
-                              />
-                              <Input
-                                placeholder="الاسم"
-                                name={`options.${i}.name_ar`}
-                                value={opt.name_ar}
-                                onChange={handleChange}
-                                dir="rtl"
-                              />
-                              <NumberInput
-                                value={opt.price}
-                                onChange={(_, val) =>
-                                  setFieldValue(`options.${i}.price`, val)
-                                }
-                                min={0}
-                              >
-                                <NumberInputField />
-                              </NumberInput>
-                              <Button
-                                size="sm"
-                                colorScheme="red"
-                                onClick={() => remove(i)}
-                              >
-                                Remove
-                              </Button>
-                            </HStack>
-                          ))}
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              push({ name: "", name_ar: "", price: 0 })
-                            }
-                          >
-                            + Add Option
-                          </Button>
-                        </VStack>
-                      )}
-                    </FieldArray>
-                  </FormControl>
-                </VStack>
-              </ModalBody>
+                    {/* Flags */}
+                    <HStack>
+                      <Checkbox
+                        isChecked={values.requires_custom_name}
+                        onChange={(e) =>
+                          setFieldValue(
+                            "requires_custom_name",
+                            e.target.checked
+                          )
+                        }
+                      >
+                        Requires Custom Name
+                      </Checkbox>
+                      <Checkbox
+                        isChecked={values.allow_multiple_options}
+                        onChange={(e) =>
+                          setFieldValue(
+                            "allow_multiple_options",
+                            e.target.checked
+                          )
+                        }
+                      >
+                        Allow Multiple Options
+                      </Checkbox>
+                    </HStack>
 
-              <ModalFooter>
-                <Button colorScheme="blue" type="submit">
-                  {addon ? "Save Changes" : "Create Addon"}
-                </Button>
-              </ModalFooter>
-            </Form>
-          )}
+                    {/* Options */}
+                    <FormControl>
+                      <FormLabel>Options</FormLabel>
+                      <FieldArray name="options">
+                        {({ push, remove }) => (
+                          <VStack spacing={3} align="stretch">
+                            {values.options.map((opt: any, i: number) => (
+                              <HStack key={i} spacing={2}>
+                                <Input
+                                  placeholder="Name"
+                                  name={`options.${i}.name`}
+                                  value={opt.name}
+                                  onChange={handleChange}
+                                />
+                                <Input
+                                  placeholder="الاسم"
+                                  name={`options.${i}.name_ar`}
+                                  value={opt.name_ar}
+                                  onChange={handleChange}
+                                  dir="rtl"
+                                />
+                                <NumberInput
+                                  value={opt.price}
+                                  onChange={(_, val) =>
+                                    setFieldValue(`options.${i}.price`, val)
+                                  }
+                                  min={0}
+                                >
+                                  <NumberInputField />
+                                </NumberInput>
+                                <Button
+                                  size="sm"
+                                  colorScheme="red"
+                                  onClick={() => remove(i)}
+                                >
+                                  Remove
+                                </Button>
+                              </HStack>
+                            ))}
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                push({ name: "", name_ar: "", price: 0 })
+                              }
+                            >
+                              + Add Option
+                            </Button>
+                          </VStack>
+                        )}
+                      </FieldArray>
+                    </FormControl>
+                  </VStack>
+                </ModalBody>
+
+                <ModalFooter>
+                  <Button colorScheme="blue" type="submit">
+                    {addon ? "Save Changes" : "Create Addon"}
+                  </Button>
+                </ModalFooter>
+              </Form>
+            );
+          }}
         </Formik>
       </ModalContent>
     </Modal>

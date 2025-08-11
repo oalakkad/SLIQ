@@ -17,11 +17,29 @@ export interface CartItem {
   id: number;
   quantity: number;
   product: CartProduct;
+  // Optional: server can start returning this later
+  // addons?: AddonSelection[];
+  // unit_extra_price?: string; // price impact per unit from addons
 }
 
 export interface Cart {
   id: number;
   items: CartItem[];
+}
+
+// ---- NEW: addon selection payload we’ll send when adding to cart ----
+export type AddonSelection = {
+  category_id: number;
+  addon_id: number;
+  option_ids: number[];
+  custom_name?: string | null;
+};
+
+// ---- NEW: add-to-cart payload shape (addons optional for backwards compat) ----
+export interface AddToCartPayload {
+  product_id: number;
+  quantity: number;
+  addons?: AddonSelection[];
 }
 
 // --- API Requests ---
@@ -30,7 +48,7 @@ const fetchCart = async (): Promise<Cart> => {
   return res.data;
 };
 
-const addToCartRequest = async (payload: { product_id: number; quantity: number }) => {
+const addToCartRequest = async (payload: AddToCartPayload) => {
   const res = await axios.post(`${API_URL}/cart/items/add/`, payload, {
     withCredentials: true,
   });
@@ -38,9 +56,11 @@ const addToCartRequest = async (payload: { product_id: number; quantity: number 
 };
 
 const updateCartItemRequest = async (payload: { id: number; quantity: number }) => {
-  const res = await axios.patch(`${API_URL}/cart/items/${payload.id}/update/`, { quantity: payload.quantity }, {
-    withCredentials: true,
-  });
+  const res = await axios.patch(
+    `${API_URL}/cart/items/${payload.id}/update/`,
+    { quantity: payload.quantity },
+    { withCredentials: true }
+  );
   return res.data;
 };
 

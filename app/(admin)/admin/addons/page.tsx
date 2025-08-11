@@ -92,7 +92,7 @@ export default function AddonsPage() {
         headerName: "Categories",
         valueGetter: (params) =>
           Array.isArray(params.data?.categories) &&
-          params.data.categories.length
+          params.data?.categories?.length
             ? params.data.categories.join(", ")
             : "—",
         flex: 2,

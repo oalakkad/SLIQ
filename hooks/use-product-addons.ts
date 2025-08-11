@@ -8,17 +8,17 @@ export interface AddonOption {
   id: number;
   name: string;
   name_ar?: string;
+  price: string; // coming from Decimal in DRF; keep as string to avoid float issues
 }
 
 export interface Addon {
   id: number;
   name: string;
   name_ar?: string;
-  price: string;
+  price: string; // base price of addon (can be "0.000")
   allow_multiple_options: boolean;
   requires_custom_name: boolean;
   options: AddonOption[];
-  category: number;
 }
 
 export interface AddonCategory {
@@ -29,20 +29,20 @@ export interface AddonCategory {
 }
 
 // --- API Request ---
-const fetchProductAddons = async (productId: number): Promise<AddonCategory[]> => {
+const fetchProductAddonsBySlug = async (slug: string): Promise<AddonCategory[]> => {
   const res: AxiosResponse<AddonCategory[]> = await axios.get(
-    `${API_URL}/products/${productId}/addons/`,
+    `${API_URL}/products/${slug}/addons/`,
     { withCredentials: true }
   );
   return res.data;
 };
 
 // --- Hook ---
-export const useProductAddons = (productId: number) => {
+export const useProductAddons = (slug?: string) => {
   return useQuery<AddonCategory[], Error>({
-    queryKey: ["productAddons", productId],
-    queryFn: () => fetchProductAddons(productId),
-    enabled: !!productId,
+    queryKey: ["productAddons", slug],
+    queryFn: () => fetchProductAddonsBySlug(slug as string),
+    enabled: !!slug,
     staleTime: 60_000,
     refetchOnWindowFocus: true,
   });

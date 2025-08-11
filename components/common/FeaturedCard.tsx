@@ -28,6 +28,7 @@ export interface FeaturedCardProps {
   height: number;
   isWishlist: boolean;
   wishlistItemId: number;
+  onCustomize?: () => void; // NEW
 }
 
 export default function FeaturedCard({
@@ -35,18 +36,17 @@ export default function FeaturedCard({
   height,
   isWishlist,
   wishlistItemId,
+  onCustomize,
 }: FeaturedCardProps) {
   const [isImageHovered, setIsImageHovered] = useState(false);
 
   const { addToCart, data: cart } = useCart();
-
   const { addToWishlist, removeFromWishlist } = useWishlist();
 
   const isArabic = useAppSelector((state) => state.lang.isArabic);
   const headingFont = isArabic
     ? "var(--font-cairo), sans-serif"
     : "var(--font-readex-pro), sans-serif";
-
   const bodyFont = isArabic
     ? "var(--font-cairo), serif"
     : "var(--font-work-sans), serif";
@@ -72,7 +72,6 @@ export default function FeaturedCard({
     : `${height * 1.5}px`;
 
   const hoverImage = product.images?.[0]?.image || product.image;
-
   const productLink = `/products/${product.slug}`;
 
   const badge =
@@ -214,9 +213,14 @@ export default function FeaturedCard({
           fontFamily={headingFont}
           disabled={isInCart}
           color={isInCart ? "black" : "gray.600"}
-          onClick={() =>
-            addToCart.mutate({ product_id: product.id, quantity: 1 })
-          }
+          // onClick={(e) => {
+          //   e.stopPropagation(); // don't trigger card navigation
+          //   addToCart.mutate({ product_id: product.id, quantity: 1 });
+          // }}
+          onClick={(e) => {
+            e.stopPropagation(); // don't trigger card navigation
+            onCustomize?.();
+          }}
           _hover={
             isInCart
               ? { backgroundColor: "brand.pink" }

@@ -1,5 +1,6 @@
 "use client";
 
+import AddonsModal from "@/components/common/AddonsModal";
 import FeaturedCard, {
   FeaturedCardProps,
 } from "@/components/common/FeaturedCard";
@@ -83,6 +84,24 @@ export default function Page() {
 
   const { isOpen, onToggle } = useDisclosure();
   const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+
+  const {
+    isOpen: isAddonOpen,
+    onOpen: onAddonOpen,
+    onClose: onAddonClose,
+  } = useDisclosure();
+
+  const [selectedProduct, setSelectedProduct] = useState<null | {
+    id: number;
+    slug: string;
+    name: string;
+  }>(null);
+  const openAddons = (p: { id: number; slug: string; name: string }) => {
+    setSelectedProduct(p);
+    onAddonOpen();
+  };
+
+  const { addToCart } = useCart();
 
   return (
     <Box bg={"#FAFAF9"} py={7}>
@@ -239,6 +258,13 @@ export default function Page() {
                           height={200}
                           isWishlist={wishlistMap.has(product.id)}
                           wishlistItemId={wishlistMap.get(product.id) ?? -1}
+                          onCustomize={() =>
+                            openAddons({
+                              id: product.id,
+                              slug: product.slug,
+                              name: product.name,
+                            })
+                          }
                         />
                       </Box>
                     </Flex>
@@ -259,6 +285,26 @@ export default function Page() {
           <Spinner color="brand.pink" size="xl" />
         </Flex>
       )}
+      <AddonsModal
+        isOpen={isAddonOpen}
+        onClose={onAddonClose}
+        productSlug={selectedProduct !== null ? selectedProduct.slug : ""}
+        onConfirm={(selection) => {
+          // shape 'selection' per your API (addonId, optionIds, customName, etc.)
+          addToCart.mutate({
+            product_id: selectedProduct !== null ? selectedProduct.id : -1,
+            quantity: 1,
+            addons: selection.map((s) => ({
+              category_id: s.categoryId,
+              addon_id: s.addonId!, // you’ll have ensured one is chosen
+              option_ids: s.optionIds,
+              custom_name: s.customName ?? null,
+            })),
+          });
+          onAddonClose();
+        }}
+        title={isArabic ? "تخصيص منتجكِ" : "Your Customizations"}
+      />
     </Box>
   );
 }

@@ -16,18 +16,22 @@ import {
 import { useProductAddons } from "@/hooks/use-product-addons";
 
 interface ProductAddonSelectorProps {
-  productId: number;
+  productSlug: string;
   isArabic?: boolean;
   onSelectionChange?: (selected: Record<number, number[]>) => void;
   // Shape: { [categoryId]: [selectedOptionIds] }
 }
 
 const ProductAddonSelector: React.FC<ProductAddonSelectorProps> = ({
-  productId,
+  productSlug,
   isArabic = false,
   onSelectionChange,
 }) => {
-  const { data: categories, isLoading, isError } = useProductAddons(productId);
+  const {
+    data: categories,
+    isLoading,
+    isError,
+  } = useProductAddons(productSlug);
 
   // Track selections: categoryId -> array of selected option IDs
   const [selectedOptions, setSelectedOptions] = useState<

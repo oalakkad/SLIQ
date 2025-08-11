@@ -11,6 +11,7 @@ import {
   IconButton,
   useMediaQuery,
   Spinner,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { FiHeart } from "react-icons/fi";
 import { useProduct } from "@/hooks/use-products";
@@ -18,6 +19,7 @@ import { useParams } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
 import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
+import AddonsModal from "@/components/common/AddonsModal";
 
 export default function ProductPage() {
   const params = useParams();
@@ -29,6 +31,22 @@ export default function ProductPage() {
   const [image, setImage] = useState(product?.image ?? "");
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const {
+    isOpen: isAddonOpen,
+    onOpen: onAddonOpen,
+    onClose: onAddonClose,
+  } = useDisclosure();
+
+  const [selectedProduct, setSelectedProduct] = useState<null | {
+    id: number;
+    slug: string;
+    name: string;
+  }>(null);
+  const openAddons = (p: { id: number; slug: string; name: string }) => {
+    setSelectedProduct(p);
+    onAddonOpen();
+  };
 
   const headingFont = isArabic
     ? "var(--font-cairo), sans-serif"
@@ -144,9 +162,11 @@ export default function ProductPage() {
           color="white"
           _hover={{ bg: isInCart ? "gray.400" : "gray.800" }}
           onClick={() =>
-            !isInCart &&
-            product &&
-            addToCart.mutate({ product_id: product?.id, quantity })
+            openAddons({
+              id: product?.id ?? -1,
+              slug: product?.slug ?? "",
+              name: product?.name ?? "",
+            })
           }
           disabled={isInCart}
           py={6}
@@ -161,7 +181,7 @@ export default function ProductPage() {
             : "ADD TO BAG"}
         </Button>
 
-        <Button leftIcon={<FiHeart />} variant="ghost" mt={2}>
+        <Button leftIcon={<FiHeart />} variant="ghost" mt={2} w={"full"}>
           {isArabic ? "أضف إلى المفضلة" : "Add to Wishlist"}
         </Button>
 
@@ -175,6 +195,26 @@ export default function ProductPage() {
           <Text fontWeight="bold">{isArabic ? "الوصف" : "Description"}</Text>
         </VStack>
       </Box>
+      <AddonsModal
+        isOpen={isAddonOpen}
+        onClose={onAddonClose}
+        productSlug={selectedProduct !== null ? selectedProduct.slug : ""}
+        onConfirm={(selection) => {
+          // shape 'selection' per your API (addonId, optionIds, customName, etc.)
+          addToCart.mutate({
+            product_id: selectedProduct !== null ? selectedProduct.id : -1,
+            quantity: 1,
+            addons: selection.map((s) => ({
+              category_id: s.categoryId,
+              addon_id: s.addonId!, // you’ll have ensured one is chosen
+              option_ids: s.optionIds,
+              custom_name: s.customName ?? null,
+            })),
+          });
+          onAddonClose();
+        }}
+        title={isArabic ? "خصّصي شباصتك" : "Customize your clip"}
+      />
     </Flex>
   );
 }
