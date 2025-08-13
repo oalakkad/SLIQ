@@ -37,6 +37,12 @@ export default function AddonsModal({
   title,
 }: AddonsPickerModalProps) {
   const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   const { data, isLoading, isError } = useProductAddons(productSlug);
   const [selection, setSelection] = useState<SelectedAddonForCategory[]>([]);
@@ -125,13 +131,19 @@ export default function AddonsModal({
             variant="ghost"
             mr={isArabic ? 0 : 3}
             ml={isArabic ? 3 : 0}
+            py={6}
             onClick={onClose}
           >
             {t.cancel}
           </Button>
           <Button
-            colorScheme="blue"
+            bg={"gray.600"}
+            color={"white"}
+            _hover={{ backgroundColor: "gray.500", color: "white" }}
             onClick={handleConfirm}
+            fontFamily={headingFont}
+            px={10}
+            py={6}
             isDisabled={isLoading || isError}
           >
             {t.confirm}

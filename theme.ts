@@ -30,6 +30,54 @@ const theme = extendTheme({
       800: "#2b2b2b",
       900: "#1c1c1c",
     },
+    brandYellow: {
+    50:  "#fffdf6",
+    100: "#fff9e8",
+    200: "#fff3d1",
+    300: "#ffeab0",
+    400: "#ffe18f",
+    500: "#feefc4", // base
+    600: "#e5d6ab",
+    700: "#b8aa85",
+    800: "#8a7f60",
+    900: "#5c543b",
+  },
+  brandPink: {
+    50:  "#fff7f8",
+    100: "#ffedef",
+    200: "#ffdadf",
+    300: "#ffc7cf",
+    400: "#ffb3bf",
+    500: "#fde4e6", // base
+    600: "#e4cbcd",
+    700: "#b5a0a1",
+    800: "#867575",
+    900: "#574b4a",
+  },
+  brandLightGrey: {
+    50:  "#ffffff",
+    100: "#fdfdfd",
+    200: "#f8f8f7",
+    300: "#f4f4f3",
+    400: "#f0f0ef",
+    500: "#fafaf9", // base
+    600: "#e1e1e0",
+    700: "#b3b3b3",
+    800: "#858585",
+    900: "#575757",
+  },
+  brandBlue: {
+    50:  "#f6f9fd",
+    100: "#edf3fa",
+    200: "#e3ecf7",
+    300: "#d9e5f3",
+    400: "#cfddf0",
+    500: "#d6e4f5", // base
+    600: "#bdcbdb",
+    700: "#97a2ac",
+    800: "#71797e",
+    900: "#4b5050",
+  },
   },
   components: {
     Button: {
@@ -93,6 +141,7 @@ const theme = extendTheme({
           _hover: {
             bg: "brand.yellow",
             color: "white",
+            border: "1px solid #feefc4",
           },
         },
         outlinePink: {
@@ -102,6 +151,7 @@ const theme = extendTheme({
           _hover: {
             bg: "brand.pink",
             color: "white",
+            border: "1px solid #fde4e6",
           },
         },
         outlineBlue: {
@@ -111,6 +161,7 @@ const theme = extendTheme({
           _hover: {
             bg: "brand.blue",
             color: "white",
+            border: "1px solid #d6e4f5",
           },
         },
       },
