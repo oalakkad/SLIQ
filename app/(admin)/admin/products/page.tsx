@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Box, Input, HStack, Text } from "@chakra-ui/react";
+import { Box, Input, HStack, Text, Spinner, Button } from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry } from "ag-grid-community";
 import { AllCommunityModule } from "ag-grid-community";
@@ -10,31 +10,47 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 import { useAdminProducts, AdminProduct } from "@/hooks/use-admin-products";
 import MyTable from "@/components/admin/MyTable";
 import EditProductModal from "@/components/admin/EditProductModal";
-import SearchFilters from "@/components/admin/SearchFilters";
+
+type ModalMode = "create" | "edit";
 
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(
     null
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState<ModalMode>("edit");
 
-  // 🔹 Fetch products
-  const { products, isLoading, deleteProduct } = useAdminProducts(
-    search || undefined
-  );
+  // Fetch products (no pagination)
+  const { products, isLoading, deleteProduct } = useAdminProducts(search);
 
-  // 🔹 Keep products in local state for table
+  // Keep products in local state for table
   const [rows, setRows] = useState<AdminProduct[]>([]);
   useEffect(() => {
     setRows(products || []);
   }, [products]);
 
-  // 🔹 Delete product
+  // Delete product
   const handleDelete = (id: number) => {
     deleteProduct.mutate(id);
   };
 
-  // 🔹 Define columns
+  // Open edit modal (row click)
+  const handleRowSelect = (prod: AdminProduct | null) => {
+    if (!prod) return;
+    setSelectedProduct(prod);
+    setMode("edit");
+    setIsModalOpen(true);
+  };
+
+  // Add new product
+  const handleAdd = () => {
+    setSelectedProduct(null);
+    setMode("create");
+    setIsModalOpen(true);
+  };
+
+  // Columns
   const columnDefs: ColDef<AdminProduct>[] = useMemo(
     () => [
       { headerName: "ID", field: "id", width: 80 },
@@ -83,46 +99,40 @@ export default function ProductsPage() {
     []
   );
 
-  // 🔹 Loading state
-  if (isLoading) {
-    return <Box p={6}>Loading products...</Box>;
-  }
-
-  // 🔹 No data fallback
-  if (!rows || rows.length === 0) {
-    return (
-      <Box p={6} bg="white" borderRadius="md" shadow="sm" minH="100vh" w="100%">
-        <HStack mb={4} spacing={4}>
-          <Input
-            placeholder="Search products"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </HStack>
-        <Text mt={10} textAlign="center" fontSize="lg" color="gray.500">
-          No products found
-        </Text>
-      </Box>
-    );
-  }
-
-  // 🔹 Table
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
-      <SearchFilters onSearch={(val) => setSearch(val)} />
+      <HStack mb={4} spacing={4}>
+        <Input
+          placeholder="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <Button onClick={handleAdd}>Add</Button>
+      </HStack>
 
-      <MyTable
-        rowData={rows}
-        columnDefs={columnDefs}
-        setSelected={setSelectedProduct} // ✅ FIXED
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <HStack justifyContent="center" alignItems="center" minH="30vh">
+          <Spinner color="brandPink.500" size="xl" />
+        </HStack>
+      ) : (
+        <MyTable
+          rowData={rows}
+          columnDefs={columnDefs}
+          setSelected={handleRowSelect}
+          onDelete={handleDelete}
+          type="products"
+        />
+      )}
 
-      {selectedProduct && (
+      {isModalOpen && (
         <EditProductModal
-          product={selectedProduct}
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
+          mode={mode}
+          product={selectedProduct || undefined}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedProduct(null);
+          }}
         />
       )}
     </Box>

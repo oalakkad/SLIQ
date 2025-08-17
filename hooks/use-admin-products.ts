@@ -45,7 +45,7 @@ export function useAdminProducts(search?: string) {
         params: { search },
         withCredentials: true,
       });
-      return res.data.results;
+      return res.data;
     },
   });
 

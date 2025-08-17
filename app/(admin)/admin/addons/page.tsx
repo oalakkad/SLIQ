@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Box, Input, HStack, Text, Button, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Input,
+  HStack,
+  Text,
+  Button,
+  useToast,
+  Spinner,
+} from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry } from "ag-grid-community";
 import { AllCommunityModule } from "ag-grid-community";
@@ -20,7 +28,7 @@ export default function AddonsPage() {
 
   // 🔹 Fetch addons
   const { addons, isLoading, deleteAddon, createAddon, updateAddon } =
-    useAdminAddons(search || undefined);
+    useAdminAddons(search);
 
   // 🔹 Delete addon
   const handleDelete = (id: number) => {
@@ -107,35 +115,31 @@ export default function AddonsPage() {
     []
   );
 
-  // 🔹 Loading state
-  if (isLoading) {
-    return <Box p={6}>Loading addons...</Box>;
-  }
-
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
       {/* Search + Add Button */}
       <HStack mb={4} spacing={4}>
         <Input
-          placeholder="Search addons"
+          placeholder="Search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button colorScheme="blue" onClick={() => setIsAddModalOpen(true)}>
-          + Add Addon
+        <Button colorScheme={"blue"} onClick={() => setIsAddModalOpen(true)}>
+          Add
         </Button>
       </HStack>
 
-      {addons.length === 0 ? (
-        <Text mt={10} textAlign="center" fontSize="lg" color="gray.500">
-          No addons found
-        </Text>
+      {isLoading ? (
+        <HStack justifyContent="center" alignItems="center" minH="30vh">
+          <Spinner color="brandPink.500" size="xl" />
+        </HStack>
       ) : (
         <MyTable
           rowData={addons}
           columnDefs={columnDefs}
           setSelected={setSelectedAddon}
           onDelete={handleDelete}
+          type="addons"
         />
       )}
 

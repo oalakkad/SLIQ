@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Box, Input, HStack, Text, Button } from "@chakra-ui/react";
+import { Box, Input, HStack, Text, Button, Spinner } from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -21,7 +21,7 @@ export default function AddonCategoriesPage() {
 
   // 🔹 Fetch addon categories
   const { categories, isLoading, deleteAddonCategory } =
-    useAdminAddonCategories(search || undefined);
+    useAdminAddonCategories(search);
 
   // 🔹 Table columns
   const columnDefs: ColDef<AdminAddonCategory>[] = useMemo(
@@ -44,35 +44,31 @@ export default function AddonCategoriesPage() {
     deleteAddonCategory.mutate(id);
   };
 
-  // 🔹 Loading state
-  if (isLoading) {
-    return <Box p={6}>Loading addon categories...</Box>;
-  }
-
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
       {/* Search + Add Button */}
       <HStack mb={4} spacing={4}>
         <Input
-          placeholder="Search addon categories"
+          placeholder="Search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button colorScheme="blue" onClick={() => setIsAddModalOpen(true)}>
-          + Add Addon Category
+        <Button colorScheme={"blue"} onClick={() => setIsAddModalOpen(true)}>
+          Add
         </Button>
       </HStack>
 
-      {categories.length === 0 ? (
-        <Text mt={10} textAlign="center" fontSize="lg" color="gray.500">
-          No addon categories found
-        </Text>
+      {isLoading ? (
+        <HStack justifyContent="center" alignItems="center" minH="30vh">
+          <Spinner color="brandPink.500" size="xl" />
+        </HStack>
       ) : (
         <MyTable
           rowData={categories}
           columnDefs={columnDefs}
           setSelected={setSelectedCategory}
           onDelete={handleDelete}
+          type="addon Categories"
         />
       )}
 

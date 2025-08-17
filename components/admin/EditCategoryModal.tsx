@@ -23,69 +23,86 @@ import {
   useAdminCategories,
 } from "@/hooks/use-admin-categories";
 
+type Mode = "create" | "edit";
+
 interface EditCategoryModalProps {
-  category: AdminCategory;
+  category?: AdminCategory; // undefined in create mode
+  mode?: Mode; // default derived from presence of category
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function EditCategoryModal({
   category,
+  mode: incomingMode,
   isOpen,
   onClose,
 }: EditCategoryModalProps) {
+  const mode: Mode = incomingMode ?? (category ? "edit" : "create");
   const toast = useToast();
-  const { updateCategory } = useAdminCategories();
+  const { createCategory, updateCategory } = useAdminCategories();
 
-  // 🔹 Local form state
-  const [name, setName] = useState(category.name);
-  const [nameAr, setNameAr] = useState(category.name_ar ?? "");
-  const [slug, setSlug] = useState(category.slug);
-  const [parent, setParent] = useState<number | null>(category.parent);
+  // Local form state
+  const [name, setName] = useState<string>(category?.name ?? "");
+  const [nameAr, setNameAr] = useState<string>(category?.name_ar ?? "");
+  const [slug, setSlug] = useState<string>(category?.slug ?? "");
+  const [parent, setParent] = useState<number | null>(category?.parent ?? null);
 
-  // Reset form when category changes
+  // Reset on open/category change
   useEffect(() => {
-    if (category) {
-      setName(category.name);
-      setNameAr(category.name_ar ?? "");
-      setSlug(category.slug);
-      setParent(category.parent);
-    }
-  }, [category]);
+    if (!isOpen) return;
+    setName(category?.name ?? "");
+    setNameAr(category?.name_ar ?? "");
+    setSlug(category?.slug ?? "");
+    setParent(category?.parent ?? null);
+  }, [category, isOpen]);
 
-  // 🔹 Handle Save
-  const handleSave = () => {
-    updateCategory.mutate(
-      {
-        id: category.id,
-        data: {
-          name,
-          name_ar: nameAr,
-          slug,
-          parent: parent,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Category updated successfully!", status: "success" });
-          onClose();
-        },
-        onError: () => {
-          toast({ title: "Failed to update category.", status: "error" });
-        },
+  const handleSave = async () => {
+    try {
+      if (mode === "edit" && category) {
+        await updateCategory.mutateAsync({
+          id: category.id,
+          data: { name, name_ar: nameAr, slug, parent },
+        });
+        toast({ title: "Category updated successfully!", status: "success" });
+        onClose();
+        return;
       }
-    );
+
+      // CREATE
+      await createCategory.mutateAsync({
+        name,
+        name_ar: nameAr,
+        slug,
+        parent,
+      });
+      toast({ title: "Category created successfully!", status: "success" });
+      onClose();
+    } catch {
+      toast({
+        title:
+          mode === "edit"
+            ? "Failed to update category."
+            : "Failed to create category.",
+        status: "error",
+      });
+    }
   };
+
+  const isSubmitting =
+    mode === "edit" ? updateCategory.isPending : createCategory.isPending;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Edit Category</ModalHeader>
+        <ModalHeader>
+          {mode === "edit" ? "Edit Category" : "Add Category"}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack spacing={4}>
-            <FormControl>
+          <VStack spacing={4} align="stretch">
+            <FormControl isRequired>
               <FormLabel>Category Name</FormLabel>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </FormControl>
@@ -98,7 +115,7 @@ export default function EditCategoryModal({
               />
             </FormControl>
 
-            <FormControl>
+            <FormControl isRequired>
               <FormLabel>Slug</FormLabel>
               <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
             </FormControl>
@@ -106,9 +123,11 @@ export default function EditCategoryModal({
             <FormControl>
               <FormLabel>Parent ID</FormLabel>
               <NumberInput
-                value={parent ?? ""}
-                onChange={(value) => setParent(value ? parseInt(value) : null)}
                 min={0}
+                value={parent ?? ""}
+                onChange={(_str, num) =>
+                  setParent(Number.isNaN(num) ? null : num)
+                }
               >
                 <NumberInputField />
               </NumberInput>
@@ -123,9 +142,9 @@ export default function EditCategoryModal({
           <Button
             colorScheme="blue"
             onClick={handleSave}
-            isLoading={updateCategory.isPending}
+            isLoading={isSubmitting}
           >
-            Save
+            {mode === "edit" ? "Save" : "Create"}
           </Button>
         </ModalFooter>
       </ModalContent>

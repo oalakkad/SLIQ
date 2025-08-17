@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Box, Input, Select, HStack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Input,
+  Select,
+  HStack,
+  Text,
+  Spinner,
+  Button,
+} from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry } from "ag-grid-community";
 import { AllCommunityModule } from "ag-grid-community";
@@ -15,13 +23,9 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
 
   // 🔹 Fetch orders
-  const { orders, isLoading, deleteOrder } = useAdminOrders(
-    search,
-    status ? { status } : undefined
-  );
+  const { orders, isLoading, deleteOrder } = useAdminOrders(search);
 
   // 🔹 Local rows for inline edits or optimistic UI
   const [rows, setRows] = useState<AdminOrder[]>([]);
@@ -69,65 +73,32 @@ export default function OrdersPage() {
     []
   );
 
-  // 🔹 Loading state
-  if (isLoading) {
-    return <Box p={6}>Loading orders...</Box>;
-  }
-
-  // 🔹 No data fallback
-  if (!rows || rows.length === 0) {
-    return (
-      <Box p={6} bg="white" borderRadius="md" shadow="sm" minH="100vh" w="100%">
-        <HStack mb={4} spacing={4}>
-          <Input
-            placeholder="Search by name or email"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Select
-            placeholder="Filter by status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="pending">Pending</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-          </Select>
-        </HStack>
-        <Text mt={10} textAlign="center" fontSize="lg" color="gray.500">
-          No orders found
-        </Text>
-      </Box>
-    );
-  }
-
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
       {/* Search & Filters */}
       <HStack mb={4} spacing={4}>
         <Input
-          placeholder="Search by name or email"
+          placeholder="Search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Select
-          placeholder="Filter by status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="pending">Pending</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-        </Select>
+        <Button>Add</Button>
       </HStack>
 
-      {/* AG Grid */}
-      <MyTable
-        rowData={rows}
-        columnDefs={columnDefs}
-        setSelected={setSelectedOrder}
-        onDelete={handleDelete}
-      />
+      {/* Content area */}
+      {isLoading ? (
+        <HStack justifyContent="center" alignItems="center" minH="30vh">
+          <Spinner color="brandPink.500" size="xl" />
+        </HStack>
+      ) : (
+        <MyTable
+          rowData={rows}
+          columnDefs={columnDefs}
+          setSelected={setSelectedOrder}
+          onDelete={handleDelete}
+          type="orders"
+        />
+      )}
 
       {/* Edit Modal */}
       {selectedOrder && (

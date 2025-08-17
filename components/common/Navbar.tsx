@@ -75,15 +75,9 @@ export default function Navbar() {
       children: null,
     },
     {
-      id: "arrivals",
-      href: "#",
-      name: isArabic ? "جديد" : "New Arrivals",
-      children: null,
-    },
-    {
-      id: "best",
-      href: "#",
-      name: isArabic ? "الأكثر مبيعتاً" : "Best Sellers",
+      id: "logbook",
+      href: "/logbook",
+      name: isArabic ? "سجل الصور" : "Logbook",
       children: null,
     },
     {
@@ -91,6 +85,12 @@ export default function Navbar() {
       href: "/shop",
       name: isArabic ? "المتجر" : "Shop",
       children: [],
+    },
+    {
+      id: "kids",
+      href: "/kids",
+      name: isArabic ? "الأطفال" : "Kids",
+      children: null,
     },
   ];
 

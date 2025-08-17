@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, Button, HStack, Input, Spinner, Text } from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry } from "ag-grid-community";
 import { AllCommunityModule } from "ag-grid-community";
@@ -11,35 +11,53 @@ import {
   useAdminCategories,
   AdminCategory,
 } from "@/hooks/use-admin-categories";
-import SearchFilters from "@/components/admin/SearchFilters";
 import MyTable from "@/components/admin/MyTable";
 import EditCategoryModal from "@/components/admin/EditCategoryModal";
+
+type ModalMode = "create" | "edit";
 
 export default function CategoriesPage() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<AdminCategory | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState<ModalMode>("edit");
 
-  // 🔹 Fetch categories & mutations
+  // Fetch categories & mutations
   const { categories, isLoading, deleteCategory } = useAdminCategories(search);
 
-  // 🔹 Handle delete
+  // Delete
   const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this category?")) {
       deleteCategory.mutate(id);
     }
   };
 
-  // 🔹 Define columns
+  // Open for edit (row click)
+  const handleRowSelect = (cat: AdminCategory | null) => {
+    if (!cat) return;
+    setSelectedCategory(cat);
+    setMode("edit");
+    setIsModalOpen(true);
+  };
+
+  // Open for create
+  const handleAdd = () => {
+    setSelectedCategory(null);
+    setMode("create");
+    setIsModalOpen(true);
+  };
+
+  // Columns
   const columnDefs: ColDef<AdminCategory>[] = useMemo(
     () => [
       {
         headerName: "#",
         width: 80,
-        valueGetter: (params) => {
-          if (!params.node?.rowIndex) return "-";
-          return (params.node.rowIndex + 1).toString();
-        },
+        valueGetter: (params) =>
+          typeof params.node?.rowIndex === "number"
+            ? String(params.node.rowIndex + 1)
+            : "-",
       },
       { headerName: "Category Name", field: "name", flex: 2 },
       { headerName: "Name (Arabic)", field: "name_ar", flex: 2 },
@@ -61,39 +79,52 @@ export default function CategoriesPage() {
     []
   );
 
-  // 🔹 Loading State
-  if (isLoading) {
-    return <Box p={6}>Loading categories...</Box>;
-  }
-
   return (
-    <>
-      {/* 🔹 AG Grid Table */}
+    <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
+      <HStack mb={4} spacing={4}>
+        <Input
+          placeholder="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <Button onClick={handleAdd}>Add</Button>
+      </HStack>
+
       <Box
         bg="white"
         p={4}
         borderRadius="md"
         shadow="sm"
-        minH="100vh"
+        minH="60vh"
         w="100%"
         mt={4}
       >
-        <MyTable
-          rowData={categories}
-          columnDefs={columnDefs}
-          setSelected={setSelectedCategory}
-          onDelete={handleDelete}
-        />
+        {isLoading ? (
+          <HStack justifyContent="center" alignItems="center" minH="30vh">
+            <Spinner color="brandPink.500" size="xl" />
+          </HStack>
+        ) : (
+          <MyTable
+            rowData={categories}
+            columnDefs={columnDefs}
+            setSelected={handleRowSelect}
+            onDelete={handleDelete}
+            type="categories" // keep your prop if used internally
+          />
+        )}
       </Box>
 
-      {/* 🔹 Edit Modal */}
-      {selectedCategory && (
+      {isModalOpen && (
         <EditCategoryModal
-          category={selectedCategory}
-          isOpen={!!selectedCategory}
-          onClose={() => setSelectedCategory(null)}
+          mode={mode}
+          category={selectedCategory || undefined}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedCategory(null);
+          }}
         />
       )}
-    </>
+    </Box>
   );
 }

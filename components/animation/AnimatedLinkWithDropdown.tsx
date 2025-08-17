@@ -56,6 +56,7 @@ export function AnimatedLinkWithDropdown({
       position="relative"
       dir={isArabic ? "rtl" : "ltr"}
       minW={"150px"}
+      textAlign={"center"}
     >
       <MotionLink
         href={item.href}

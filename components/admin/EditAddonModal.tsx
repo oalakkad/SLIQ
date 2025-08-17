@@ -16,6 +16,7 @@ import {
   Checkbox,
   VStack,
   HStack,
+  IconButton,
   // ⛔ remove Chakra's Select import to avoid name clash
   // Select,
 } from "@chakra-ui/react";
@@ -23,6 +24,7 @@ import { Formik, Form, FieldArray } from "formik";
 import * as Yup from "yup";
 import { useAdminAddonCategories } from "@/hooks/use-admin-addon-categories";
 import ReactSelect, { MultiValue } from "react-select";
+import { FaTrash } from "react-icons/fa";
 
 // Validation Schema
 const AddonSchema = Yup.object().shape({
@@ -231,13 +233,15 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                                 >
                                   <NumberInputField />
                                 </NumberInput>
-                                <Button
+                                <IconButton
+                                  aria-label="remove-addon"
                                   size="sm"
                                   colorScheme="red"
+                                  icon={<FaTrash />}
                                   onClick={() => remove(i)}
                                 >
                                   Remove
-                                </Button>
+                                </IconButton>
                               </HStack>
                             ))}
                             <Button
