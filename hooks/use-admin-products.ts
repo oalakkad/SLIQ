@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { api } from "@/components/utils/api";
 
 export interface ProductImage {
   id: number;
@@ -15,7 +15,7 @@ export interface AdminProduct {
   slug: string;
   description?: string;
   description_ar?: string;
-  price: string;
+  price: number;
   stock_quantity: number;
   image: string; // Thumbnail
   is_new_arrival: boolean;
@@ -31,8 +31,14 @@ export type UpdateProductPayload = {
   data: Partial<AdminProduct> | FormData;
 };
 
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+type UploadImagesVars = {
+  id: number;
+  files: File[];
+  thumbnailIndex?: number; // 👈 new
+};
+type SetThumbVars = { productId: number; imageId: number };
+type SetThumbResp = { status: string; thumbnail_url: string };
+type UploadImagesResp = any;
 
 export function useAdminProducts(search?: string) {
   const queryClient = useQueryClient();
@@ -41,7 +47,7 @@ export function useAdminProducts(search?: string) {
   const { data: products = [], isLoading } = useQuery<AdminProduct[]>({
     queryKey: ["adminProducts", search],
     queryFn: async () => {
-      const res = await axios.get(`${API_URL}/admin/products/`, {
+      const res = await api.get("/admin/products/", {
         params: { search },
         withCredentials: true,
       });
@@ -52,7 +58,7 @@ export function useAdminProducts(search?: string) {
   // 🔹 Create Product
   const createProduct = useMutation({
     mutationFn: async (data: Partial<AdminProduct>) => {
-      const res = await axios.post(`${API_URL}/admin/products/`, data, {
+      const res = await api.post("/admin/products/", data, {
         withCredentials: true,
       });
       return res.data;
@@ -67,7 +73,7 @@ export function useAdminProducts(search?: string) {
       id,
       data,
     }: UpdateProductPayload) => {
-      const res = await axios.patch(`${API_URL}/admin/products/${id}/`, data, {
+      const res = await api.patch(`/admin/products/${id}/`, data, {
         withCredentials: true,
       });
       return res.data;
@@ -79,7 +85,7 @@ export function useAdminProducts(search?: string) {
   // 🔹 Delete Product
   const deleteProduct = useMutation({
     mutationFn: async (id: number) => {
-      await axios.delete(`${API_URL}/admin/products/${id}/`, {
+      await api.delete(`/admin/products/${id}/`, {
         withCredentials: true,
       });
     },
@@ -96,8 +102,8 @@ export function useAdminProducts(search?: string) {
       productId: number;
       imageId: number;
     }) => {
-      await axios.delete(
-        `${API_URL}/admin/products/${productId}/images/${imageId}/`,
+      await api.delete(
+        `/admin/products/${productId}/images/${imageId}/`,
         {
           withCredentials: true,
         }
@@ -112,63 +118,34 @@ export function useAdminProducts(search?: string) {
   });
 
   // 🔹 Set Thumbnail Image
-const setThumbnailImage = useMutation({
-  mutationFn: async ({
-    productId,
-    imageId,
-  }: {
-    productId: number;
-    imageId: number;
-  }) => {
-    const formData = new FormData();
-    formData.append("image_id", imageId.toString());
-
-    const res = await axios.post(
-      `${API_URL}/admin/products/${productId}/set-thumbnail/`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      }
-    );
-
-    return { image: res.data.image, imageId }; // Return structured response
-  },
-  onSuccess: (_, variables) => {
-    queryClient.invalidateQueries({ queryKey: ["adminProducts"] });
-    queryClient.invalidateQueries({
-      queryKey: ["adminProduct", variables.productId],
+const setThumbnailImage = useMutation<SetThumbResp, Error, SetThumbVars>({
+  mutationFn: async ({ productId, imageId }) => {
+    const res = await api.post(`/admin/products/${productId}/set-thumbnail/`, {
+      image_id: imageId,
     });
+    return res.data as SetThumbResp;
+  },
+  onSuccess: (_, vars) => {
+    queryClient.invalidateQueries({ queryKey: ["adminProducts"] });
+    queryClient.invalidateQueries({ queryKey: ["adminProduct", vars.productId] });
   },
 });
 
   // 🔹 Upload Product Images
-  const uploadProductImages = useMutation({
-  mutationFn: async ({
-    id,
-    files,
-  }: {
-    id: number;
-    files: File[];
-  }) => {
+  const uploadProductImages = useMutation<UploadImagesResp, Error, UploadImagesVars>({
+  mutationFn: async ({ id, files, thumbnailIndex }) => {
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
+    if (thumbnailIndex !== undefined && thumbnailIndex !== null) {
+      formData.append("thumbnail_index", String(thumbnailIndex));
+    }
 
-    const res = await axios.post(
-      `${API_URL}/admin/products/${id}/upload-images/`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      }
-    );
-
-    return res.data; // Should return UploadedImage[]
+    const res = await api.post(`/admin/products/${id}/upload-images/`, formData);
+    return res.data as UploadImagesResp;
   },
-
-  onSuccess: (_, variables) => {
+  onSuccess: (_, vars) => {
     queryClient.invalidateQueries({ queryKey: ["adminProducts"] });
-    queryClient.invalidateQueries({ queryKey: ["adminProduct", variables.id] });
+    queryClient.invalidateQueries({ queryKey: ["adminProduct", vars.id] });
   },
 });
 

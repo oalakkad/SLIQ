@@ -13,14 +13,21 @@ import {
   AccordionIcon,
   Link,
   useMediaQuery,
+  IconButton,
+  HStack,
 } from "@chakra-ui/react";
 import { useAppSelector } from "@/redux/hooks";
 import NextLink from "next/link";
+import { FaInstagram } from "react-icons/fa";
 
 const Footer = () => {
   const { data: categories = [] } = useMenuCategories();
   const [isMobile] = useMediaQuery("(max-width: 950px)");
   const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const socials = [
+    { icon: <FaInstagram />, href: "https://www.instagram.com/saie.kw/" },
+  ];
 
   const headingFont = isArabic
     ? "var(--font-cairo), sans-serif"
@@ -45,6 +52,8 @@ const Footer = () => {
             color="gray.600"
             _hover={{ textDecoration: "underline" }}
             fontFamily={bodyFont}
+            textAlign={"center"}
+            w={"100%"}
           >
             {isArabic ? product.name_ar : product.name}
           </Link>
@@ -57,6 +66,8 @@ const Footer = () => {
             color="#7ea2ca"
             fontWeight="medium"
             fontFamily={bodyFont}
+            textAlign={"center"}
+            w={"100%"}
           >
             {isArabic ? "عرض الكل" : "View All"}
           </Link>
@@ -67,8 +78,13 @@ const Footer = () => {
 
   const renderCategorySection = (category: any) => (
     <VStack key={category.id} align="start" spacing={2}>
-      <Link href={`/category/${category.slug}`}>
-        <Text fontWeight="bold" fontSize="md" fontFamily={headingFont}>
+      <Link href={`/category/${category.slug}`} w={"100%"}>
+        <Text
+          fontWeight="bold"
+          fontSize="md"
+          fontFamily={headingFont}
+          textAlign={"center"}
+        >
           {isArabic ? category.name_ar : category.name}
         </Text>
       </Link>
@@ -120,6 +136,60 @@ const Footer = () => {
             {categories
               .filter((category: any) => category.id !== 4)
               .map(renderCategorySection)}
+            <VStack align="start" spacing={2}>
+              <Link href={`/contact-us`} w={"100%"}>
+                <Text
+                  fontWeight="bold"
+                  fontSize="md"
+                  fontFamily={headingFont}
+                  textAlign={"center"}
+                >
+                  {isArabic ? "الدعم" : "Support"}
+                </Text>
+              </Link>
+              <Link
+                as={NextLink}
+                href={`/contact-us`}
+                fontSize="sm"
+                color="gray.600"
+                _hover={{ textDecoration: "underline" }}
+                fontFamily={bodyFont}
+                textAlign={"center"}
+                w={"100%"}
+              >
+                {isArabic ? "تواصل معنا" : "Contact Us"}
+              </Link>
+              <Text
+                cursor={"pointer"}
+                fontSize="sm"
+                color="gray.600"
+                _hover={{ textDecoration: "underline" }}
+                fontFamily={bodyFont}
+                textAlign={"center"}
+                w={"100%"}
+              >
+                {isArabic ? "التواصل الاجتماعي" : "Our Socials"}
+              </Text>
+              <HStack w={"100%"} justifyContent={"center"}>
+                {socials.map((social: any) => (
+                  <Link
+                    as={NextLink}
+                    key={social.href}
+                    href={social.href ?? "#"}
+                    target="_blank"
+                  >
+                    <IconButton
+                      aria-label={social.href}
+                      icon={social.icon}
+                      colorScheme="brandPink2"
+                      fontSize={"1.6rem"}
+                      size={"sm"}
+                      borderRadius={10}
+                    />
+                  </Link>
+                ))}
+              </HStack>
+            </VStack>
           </SimpleGrid>
         )}
 

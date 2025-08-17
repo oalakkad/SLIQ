@@ -1,32 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { Address } from "./use-address";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
-// --- Axios Instance with Interceptor ---
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      try {
-        // Attempt to refresh session
-        await axios.post(`${API_URL}/auth/refresh/`, {}, { withCredentials: true });
-        // Retry original request
-        return api(error.config!);
-      } catch (refreshError) {
-        console.error("Session expired. Redirecting to login...");
-        window.location.href = "/auth/login";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+import { api } from "@/components/utils/api";
 
 // --- Types ---
 export interface AdminCustomer {

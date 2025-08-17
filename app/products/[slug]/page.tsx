@@ -90,24 +90,11 @@ export default function ProductPage() {
           src={image}
           alt={product?.name}
           maxW={isMobile ? "100%" : "400px"}
+          h={"400px"}
+          objectFit={"contain"}
           borderRadius="md"
         />
         <HStack spacing={2} justify="center" flexWrap="wrap">
-          {product?.image && (
-            <Image
-              border={
-                product?.image === image ? "2px solid pink" : "2px solid grey"
-              }
-              onClick={() => setImage(product.image)}
-              src={product.image}
-              alt={product.name}
-              _hover={{ filter: "brightness(1.05);" }}
-              cursor={"pointer"}
-              boxSize="60px"
-              borderRadius="md"
-              objectFit="cover"
-            />
-          )}
           {product?.images?.map((img, index) => (
             <Image
               key={index}

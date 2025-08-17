@@ -1,8 +1,7 @@
 // hooks/use-admin-addon-categories.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosResponse } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+import { AxiosResponse } from "axios";
+import { api } from "@/components/utils/api";
 
 /* ============================
  * Types
@@ -44,8 +43,8 @@ type Paginated<T> = {
 const fetchAdminAddonCategories = async (
   search?: string
 ): Promise<AdminAddonCategory[]> => {
-  const res: AxiosResponse<AdminAddonCategoriesResponse> = await axios.get(
-    `${API_URL}/admin/addon-categories/`,
+  const res: AxiosResponse<AdminAddonCategoriesResponse> = await api.get(
+    "/admin/addon-categories/",
     { params: search ? { search } : undefined, withCredentials: true }
   );
   return res.data.results;
@@ -54,8 +53,8 @@ const fetchAdminAddonCategories = async (
 const createAddonCategoryRequest = async (
   data: Partial<AdminAddonCategory>
 ): Promise<AdminAddonCategory> => {
-  const res: AxiosResponse<AdminAddonCategory> = await axios.post(
-    `${API_URL}/admin/addon-categories/`,
+  const res: AxiosResponse<AdminAddonCategory> = await api.post(
+    "/admin/addon-categories/",
     data,
     { withCredentials: true }
   );
@@ -69,8 +68,8 @@ const updateAddonCategoryRequest = async ({
   id: number;
   data: Partial<AdminAddonCategory>;
 }): Promise<AdminAddonCategory> => {
-  const res: AxiosResponse<AdminAddonCategory> = await axios.patch(
-    `${API_URL}/admin/addon-categories/${id}/`,
+  const res: AxiosResponse<AdminAddonCategory> = await api.patch(
+    `/admin/addon-categories/${id}/`,
     data,
     { withCredentials: true }
   );
@@ -78,7 +77,7 @@ const updateAddonCategoryRequest = async ({
 };
 
 const deleteAddonCategoryRequest = async (id: number): Promise<void> => {
-  await axios.delete(`${API_URL}/admin/addon-categories/${id}/`, {
+  await api.delete(`/admin/addon-categories/${id}/`, {
     withCredentials: true,
   });
 };
@@ -86,7 +85,7 @@ const deleteAddonCategoryRequest = async (id: number): Promise<void> => {
 // Public: list all product categories to assign (supports both array and paginated)
 const fetchAllProductCategories = async (): Promise<CategoryItem[]> => {
   const res: AxiosResponse<CategoryItem[] | Paginated<CategoryItem>> =
-    await axios.get(`${API_URL}/categories/`);
+    await api.get("/categories/");
 
   const data = res.data;
   if (Array.isArray(data)) {
@@ -101,8 +100,8 @@ const fetchAllProductCategories = async (): Promise<CategoryItem[]> => {
 const fetchAddonCategoryLinkedProductCategories = async (
   addonCategoryId: number
 ): Promise<CategoryItem[]> => {
-  const res: AxiosResponse<CategoryItem[]> = await axios.get(
-    `${API_URL}/admin/addon-categories/${addonCategoryId}/product-categories/`,
+  const res: AxiosResponse<CategoryItem[]> = await api.get(
+    `admin/addon-categories/${addonCategoryId}/product-categories/`,
     { withCredentials: true }
   );
   return res.data;
@@ -116,8 +115,8 @@ const setAddonCategoryProductCategories = async ({
   addonCategoryId: number;
   categoryIds: number[];
 }): Promise<void> => {
-  await axios.post(
-    `${API_URL}/admin/addon-categories/${addonCategoryId}/product-categories/set/`,
+  await api.post(
+    `/admin/addon-categories/${addonCategoryId}/product-categories/set/`,
     { category_ids: categoryIds },
     { withCredentials: true }
   );
@@ -130,8 +129,8 @@ const addAddonCategoryProductCategories = async ({
   addonCategoryId: number;
   categoryIds: number[];
 }): Promise<void> => {
-  await axios.post(
-    `${API_URL}/admin/addon-categories/${addonCategoryId}/product-categories/add/`,
+  await api.post(
+    `/admin/addon-categories/${addonCategoryId}/product-categories/add/`,
     { category_ids: categoryIds },
     { withCredentials: true }
   );
@@ -144,8 +143,8 @@ const removeAddonCategoryProductCategories = async ({
   addonCategoryId: number;
   categoryIds: number[];
 }): Promise<void> => {
-  await axios.post(
-    `${API_URL}/admin/addon-categories/${addonCategoryId}/product-categories/remove/`,
+  await api.post(
+    `/admin/addon-categories/${addonCategoryId}/product-categories/remove/`,
     { category_ids: categoryIds },
     { withCredentials: true }
   );

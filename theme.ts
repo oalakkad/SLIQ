@@ -54,6 +54,18 @@ const theme = extendTheme({
     800: "#867575",
     900: "#574b4a",
   },
+  brandPink2: {
+      50:  "#fff7f8",
+      100: "#ffedef",
+      200: "#ffdadf",
+      300: "#ffc7cf",
+      400: "#ffb3bf",
+      500: "#ff9bab", // make this your BASE (main) shade
+      600: "#e68292",
+      700: "#b56671",
+      800: "#864a50",
+      900: "#572d30",
+    },
   brandLightGrey: {
     50:  "#ffffff",
     100: "#fdfdfd",
@@ -89,30 +101,6 @@ const theme = extendTheme({
         transition: "all 0.4s ease-in-out",
       },
       variants: {
-        solid: {
-          bg: "brand.primary",
-          color: "brand.primaryText",
-          _hover: {
-            bg: "brand.primaryDim",
-          },
-        },
-        outline: {
-          borderColor: "gray.500",
-          color: "brand.primaryText",
-          p: "10px 30px",
-          fontWeight: "bold",
-          _hover: {
-            backgroundColor: "gray.500",
-            color: "white",
-          },
-        },
-        ghost: {
-          bg: "transparent",
-          color: "brand.primaryText",
-          _hover: {
-            bg: "brand.primaryDim",
-          },
-        },
         solidYellow: {
           bg: "brand.yellow",
           color: "black",

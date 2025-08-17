@@ -224,7 +224,8 @@ export default function Navbar() {
                 fontSize={"1.3rem"}
                 p={2}
                 border={"none"}
-                variant={"outlineYellow"}
+                bg="transparent"
+                _hover={{ bg: "brand.yellow", color: "white" }}
                 borderRadius={"50%"}
               />
             </Link>
@@ -240,7 +241,8 @@ export default function Navbar() {
               fontSize="1.5rem"
               p={2}
               border="none"
-              variant={"outlinePink"}
+              bg="transparent"
+              _hover={{ bg: "brand.pink", color: "white" }}
               borderRadius="50%"
             />
           </Link>
@@ -274,7 +276,8 @@ export default function Navbar() {
               color={cartCount > 0 ? "#7ea2ca" : "gray.800"}
               p={2}
               border="none"
-              variant={"outlineBlue"}
+              bg="transparent"
+              _hover={{ bg: "brand.blue", color: "white" }}
               borderRadius="50%"
             />
           </Link>

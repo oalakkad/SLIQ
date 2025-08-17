@@ -25,8 +25,11 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
-import { AdminProduct, useAdminProducts } from "@/hooks/use-admin-products";
+import ReactSelect from "react-select";
 import { FaTrash } from "react-icons/fa";
+
+import { AdminProduct, useAdminProducts } from "@/hooks/use-admin-products";
+import { useAdminCategories } from "@/hooks/use-admin-categories";
 
 type Mode = "create" | "edit";
 
@@ -55,12 +58,19 @@ export default function EditProductModal({
   const toast = useToast();
 
   const {
-    createProduct,
-    updateProduct,
+    createProduct, // JSON
+    updateProduct, // JSON
     deleteProductImage,
-    setThumbnailImage,
-    uploadProductImages,
+    setThumbnailImage, // JSON: { image_id }, used in edit mode
+    uploadProductImages, // multipart; should accept { id, files, thumbnailIndex? }
   } = useAdminProducts();
+
+  // Categories
+  const { categories, isLoading: isCategoriesLoading } = useAdminCategories();
+  const categoryOptions = useMemo(
+    () => (categories ?? []).map((c) => ({ value: c.id, label: c.name })),
+    [categories]
+  );
 
   // ---------- Local state ----------
   const [name, setName] = useState(product?.name ?? "");
@@ -70,14 +80,17 @@ export default function EditProductModal({
   const [descriptionAr, setDescriptionAr] = useState(
     product?.description_ar ?? ""
   );
-  const [price, setPrice] = useState<number>(
-    product ? parseFloat(product.price) : 0
-  );
+  // price in AdminProduct is string; store as number in state
+  const [price, setPrice] = useState<number>(product ? product.price || 0 : 0);
   const [stock, setStock] = useState<number>(product?.stock_quantity ?? 0);
   const [isNew, setIsNew] = useState<boolean>(product?.is_new_arrival ?? false);
   const [isBest, setIsBest] = useState<boolean>(
     product?.is_best_seller ?? false
   );
+
+  const [selectedCategories, setSelectedCategories] = useState<
+    Array<{ value: number; label: string }>
+  >([]);
 
   const initialImages: DisplayImage[] = useMemo(() => {
     if (!product) return [];
@@ -100,6 +113,10 @@ export default function EditProductModal({
 
   // For CREATE: hold files to upload after create
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  // Index (in pendingFiles) of the pre-picked thumbnail (create mode)
+  const [pendingThumbIndex, setPendingThumbIndex] = useState<number | null>(
+    null
+  );
 
   // Reset state when modal opens or product changes
   useEffect(() => {
@@ -109,7 +126,7 @@ export default function EditProductModal({
     setSlug(product?.slug ?? "");
     setDescription(product?.description ?? "");
     setDescriptionAr(product?.description_ar ?? "");
-    setPrice(product ? parseFloat(product.price) : 0);
+    setPrice(product ? product.price || 0 : 0);
     setStock(product?.stock_quantity ?? 0);
     setIsNew(product?.is_new_arrival ?? false);
     setIsBest(product?.is_best_seller ?? false);
@@ -122,7 +139,6 @@ export default function EditProductModal({
           is_thumbnail: img.image === product.image,
         })) || []
       : [];
-
     setImages(imgs);
     setThumbnailId(
       product
@@ -130,59 +146,60 @@ export default function EditProductModal({
         : null
     );
     setPendingFiles([]);
+    setPendingThumbIndex(null);
+
+    if (product?.categories?.length) {
+      setSelectedCategories(
+        product.categories.map((c) => ({ value: c.id, label: c.name }))
+      );
+    } else {
+      setSelectedCategories([]);
+    }
   }, [product, isOpen]);
 
   // ---------- Actions ----------
   const handleSave = async () => {
-    // Build payload (FormData for both cases to keep backend consistent)
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("name_ar", nameAr);
-    formData.append("slug", slug);
-    formData.append("description", description);
-    formData.append("description_ar", descriptionAr);
-    formData.append("price", (Number.isFinite(price) ? price : 0).toFixed(3));
-    formData.append(
-      "stock_quantity",
-      String(Number.isFinite(stock) ? stock : 0)
-    );
-    formData.append("is_new_arrival", isNew ? "1" : "0");
-    formData.append("is_best_seller", isBest ? "1" : "0");
+    // Build JSON payload for your serializer
+    const payload = {
+      name,
+      name_ar: nameAr || undefined,
+      slug,
+      description: description || undefined,
+      description_ar: descriptionAr || undefined,
+      price: Number.isFinite(price) ? Number(price) : 0,
+      stock_quantity: Number.isFinite(stock) ? Number(stock) : 0,
+      is_new_arrival: !!isNew,
+      is_best_seller: !!isBest,
+      category_ids: selectedCategories.map((opt) => opt.value),
+    };
+
+    if (payload.category_ids.length === 0) {
+      toast({
+        title: "Please select at least one category.",
+        status: "warning",
+      });
+      return;
+    }
 
     try {
       if (mode === "edit" && product) {
-        await updateProduct.mutateAsync({ id: product.id, data: formData });
+        await updateProduct.mutateAsync({ id: product.id, data: payload });
         toast({ title: "Product updated successfully!", status: "success" });
         onClose();
         return;
       }
 
       // CREATE
-      const created = await createProduct.mutateAsync(
-        Object.fromEntries(formData as any)
-      );
+      const created = await createProduct.mutateAsync(payload);
+
       // Upload any pending files after product exists
       if (pendingFiles.length > 0) {
-        const uploaded = await uploadProductImages.mutateAsync({
+        // ✅ Send thumbnail_index so backend sets the thumbnail atomically
+        await uploadProductImages.mutateAsync({
           id: created.id,
           files: pendingFiles,
+          thumbnailIndex: pendingThumbIndex ?? undefined,
         });
-
-        // If user pre-picked a thumbnail among temp previews, map by index
-        const tempThumbIndex = images.findIndex(
-          (img) => img._isTemp && img.is_thumbnail
-        );
-        if (
-          tempThumbIndex >= 0 &&
-          Array.isArray(uploaded) &&
-          uploaded[tempThumbIndex]
-        ) {
-          const newThumbId = uploaded[tempThumbIndex].id;
-          await setThumbnailImage.mutateAsync({
-            productId: created.id,
-            imageId: newThumbId,
-          });
-        }
       }
 
       toast({ title: "Product created successfully!", status: "success" });
@@ -202,10 +219,10 @@ export default function EditProductModal({
   const handleDeleteImage = (imageId: number) => {
     // temp preview ids are negative
     if (mode === "create" && imageId < 0) {
-      setImages((prev) => prev.filter((img) => img.id !== imageId));
-      // also remove corresponding file by its index
       const tempIndex = Math.abs(imageId) - 1;
+      setImages((prev) => prev.filter((img) => img.id !== imageId));
       setPendingFiles((prev) => prev.filter((_, i) => i !== tempIndex));
+      if (pendingThumbIndex === tempIndex) setPendingThumbIndex(null);
       if (thumbnailId === imageId) setThumbnailId(null);
       return;
     }
@@ -222,18 +239,24 @@ export default function EditProductModal({
     );
   };
 
-  // Set thumbnail (edit: hit API immediately; create: mark temp)
+  // Set thumbnail (edit: hit API immediately; create: mark temp + remember index)
   const handleSetThumbnail = (imageId: number) => {
     if (mode === "create") {
       setThumbnailId(imageId);
       setImages((prev) =>
         prev.map((img) => ({ ...img, is_thumbnail: img.id === imageId }))
       );
+      if (imageId < 0) {
+        const idx = Math.abs(imageId) - 1; // temp id -> index in pendingFiles
+        setPendingThumbIndex(idx);
+      } else {
+        setPendingThumbIndex(null);
+      }
       return;
     }
     if (!product) return;
 
-    // Optimistic update
+    // Optimistic update for edit mode
     setThumbnailId(imageId);
     setImages((prev) =>
       prev.map((img) => ({ ...img, is_thumbnail: img.id === imageId }))
@@ -243,7 +266,6 @@ export default function EditProductModal({
       { productId: product.id, imageId },
       {
         onError: () => {
-          // revert
           const oldId =
             product.images?.find((img) => img.image === product.image)?.id ??
             null;
@@ -258,47 +280,6 @@ export default function EditProductModal({
 
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-  // Upload/select images
-  const handleNewImages = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-
-    if (mode === "edit" && product) {
-      uploadProductImages.mutate(
-        { id: product.id, files },
-        {
-          onSuccess: (uploadedImages) => {
-            const items = Array.isArray(uploadedImages)
-              ? uploadedImages
-              : // backend returns { images: [...] } in some cases; keep safe:
-                (uploadedImages as any)?.images || [];
-
-            setImages((prev) => [
-              ...prev,
-              ...items.map((img: any) => ({ ...img, is_thumbnail: false })),
-            ]);
-            // no toast spam if you prefer; keep it:
-            // toast({ title: "Images uploaded!", status: "success" });
-          },
-        }
-      );
-      return;
-    }
-
-    // CREATE mode: keep as previews & pending files
-    const startIndex = pendingFiles.length;
-    const tempPreviews: DisplayImage[] = files.map((file, idx) => ({
-      id: -(startIndex + idx + 1), // negative temp id
-      image: URL.createObjectURL(file),
-      is_thumbnail: false,
-      _isTemp: true,
-    }));
-
-    setPendingFiles((prev) => [...prev, ...files]);
-    setImages((prev) => [...prev, ...tempPreviews]);
-  };
-
   const isSubmitting =
     (mode === "edit" ? updateProduct.isPending : createProduct.isPending) ||
     setThumbnailImage.isPending ||
@@ -392,13 +373,69 @@ export default function EditProductModal({
               </FormControl>
             </HStack>
 
+            {/* ✅ Categories multi-select (JSON) */}
+            <FormControl isRequired>
+              <FormLabel>Categories</FormLabel>
+              <ReactSelect
+                isMulti
+                options={categoryOptions}
+                isLoading={isCategoriesLoading}
+                value={selectedCategories}
+                onChange={(vals) => setSelectedCategories(vals as any)}
+                placeholder="Select categories..."
+                classNamePrefix="rs"
+              />
+            </FormControl>
+
             <FormControl>
               <FormLabel>
                 {mode === "edit"
                   ? "Upload New Images"
                   : "Images (will upload after create)"}
               </FormLabel>
-              <Input type="file" multiple onChange={handleNewImages} />
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  if (!e.target.files) return;
+                  const files = Array.from(e.target.files);
+
+                  if (mode === "edit" && product) {
+                    uploadProductImages.mutate(
+                      { id: product.id, files },
+                      {
+                        onSuccess: (uploadedImages) => {
+                          const items = Array.isArray(uploadedImages)
+                            ? uploadedImages
+                            : (uploadedImages as any)?.images || [];
+                          setImages((prev) => [
+                            ...prev,
+                            ...items.map((img: any) => ({
+                              ...img,
+                              is_thumbnail: false,
+                            })),
+                          ]);
+                        },
+                      }
+                    );
+                    return;
+                  }
+
+                  // CREATE mode: previews & queue files
+                  const startIndex = pendingFiles.length;
+                  const tempPreviews: DisplayImage[] = files.map(
+                    (file, idx) => ({
+                      id: -(startIndex + idx + 1),
+                      image: URL.createObjectURL(file),
+                      is_thumbnail: false,
+                      _isTemp: true,
+                    })
+                  );
+
+                  setPendingFiles((prev) => [...prev, ...files]);
+                  setImages((prev) => [...prev, ...tempPreviews]);
+                }}
+              />
             </FormControl>
 
             <FormControl>
@@ -412,7 +449,6 @@ export default function EditProductModal({
                       : `${BACKEND_URL}${img.image}`;
                   return (
                     <Box key={img.id} position="relative">
-                      {/* Delete */}
                       <IconButton
                         icon={<FaTrash />}
                         size="sm"
@@ -424,18 +460,44 @@ export default function EditProductModal({
                         position="absolute"
                         bottom="2"
                         right="2"
-                        onClick={() => handleDeleteImage(img.id)}
+                        onClick={() => {
+                          // temp preview?
+                          if (mode === "create" && img.id < 0) {
+                            const tempIndex = Math.abs(img.id) - 1;
+                            setImages((prev) =>
+                              prev.filter((i) => i.id !== img.id)
+                            );
+                            setPendingFiles((prev) =>
+                              prev.filter((_, i) => i !== tempIndex)
+                            );
+                            if (pendingThumbIndex === tempIndex)
+                              setPendingThumbIndex(null);
+                            if (thumbnailId === img.id) setThumbnailId(null);
+                            return;
+                          }
+                          if (!product) return;
+                          deleteProductImage.mutate(
+                            { productId: product.id, imageId: img.id },
+                            {
+                              onSuccess: () => {
+                                setImages((prev) =>
+                                  prev.filter((i) => i.id !== img.id)
+                                );
+                                if (thumbnailId === img.id)
+                                  setThumbnailId(null);
+                              },
+                            }
+                          );
+                        }}
                         aria-label="Delete Image"
                       />
 
-                      {/* Thumbnail badge / action */}
                       {img.is_thumbnail ? (
                         <Badge
                           position="absolute"
                           top="2"
                           right="2"
                           colorScheme="green"
-                          cursor={"default"}
                         >
                           Thumbnail
                         </Badge>

@@ -1,32 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosError, AxiosResponse } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
-// --- Axios Instance with Interceptor ---
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
-
-// Refresh on 401
-api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      try {
-        // Attempt to refresh token/session
-        await axios.post(`${API_URL}/auth/refresh/`, {}, { withCredentials: true });
-        // Retry original request
-        return api(error.config!);
-      } catch (refreshError) {
-        console.error("Session expired. Redirecting to login...");
-        window.location.href = "/auth/login";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+import { api } from "@/components/utils/api";
+import { AxiosResponse } from "axios";
 
 // --- Types ---
 export interface AdminOrderItem {
@@ -64,23 +38,21 @@ interface AdminOrdersResponse {
 // --- API Requests ---
 // ✅ Fetch ALL pages of orders
 const fetchAllAdminOrders = async (
-  params?: Record<string, string>
+  params?: Record<string, string>,
+  signal?: AbortSignal
 ): Promise<AdminOrder[]> => {
-  let allOrders: AdminOrder[] = [];
-  let nextPage: string | null = `${API_URL}/admin/orders/`;
+  const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+  const url = `/admin/orders/${qs}`;
 
-  // Build query string for search/filters
-  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+  const { data } = await api.get<AdminOrder[] | AdminOrdersResponse>(url, { signal });
 
-  while (nextPage) {
-    const res: AxiosResponse<AdminOrdersResponse> = await api.get(
-      nextPage + (nextPage.includes("?") ? "&" + query.slice(1) : query)
-    );
-    allOrders = [...allOrders, ...res.data.results];
-    nextPage = res.data.next;
+  if (Array.isArray(data)) {
+    return data;                 // non-paginated backend
   }
-
-  return allOrders;
+  if (data && Array.isArray((data as AdminOrdersResponse).results)) {
+    return (data as AdminOrdersResponse).results; // paginated backend
+  }
+  throw new Error("Unexpected orders response shape");
 };
 
 const updateOrderRequest = async ({

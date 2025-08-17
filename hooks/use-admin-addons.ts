@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosResponse } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+import { AxiosResponse } from "axios";
+import { api } from "@/components/utils/api";
 
 // --- Types ---
 export interface AdminAddonOption {
@@ -39,8 +38,8 @@ interface AdminAddonsResponse {
 const fetchAdminAddons = async (
   search?: string
 ): Promise<AdminAddon[]> => {
-  const res: AxiosResponse<AdminAddonsResponse> = await axios.get(
-    `${API_URL}/admin/addons/`,
+  const res: AxiosResponse<AdminAddonsResponse> = await api.get(
+    "/admin/addons/",
     { params: search ? { search } : undefined, withCredentials: true }
   );
   return res.data.results;
@@ -49,8 +48,8 @@ const fetchAdminAddons = async (
 const createAddonRequest = async (
   data: Partial<AdminAddon> & { category_ids?: number[] }
 ): Promise<AdminAddon> => {
-  const res: AxiosResponse<AdminAddon> = await axios.post(
-    `${API_URL}/admin/addons/`,
+  const res: AxiosResponse<AdminAddon> = await api.post(
+    "/admin/addons/",
     data,
     { withCredentials: true }
   );
@@ -64,8 +63,8 @@ const updateAddonRequest = async ({
   id: number;
   data: Partial<AdminAddon> & { category_ids?: number[] };
 }): Promise<AdminAddon> => {
-  const res: AxiosResponse<AdminAddon> = await axios.patch(
-    `${API_URL}/admin/addons/${id}/`,
+  const res: AxiosResponse<AdminAddon> = await api.patch(
+    `/admin/addons/${id}/`,
     data,
     { withCredentials: true }
   );
@@ -73,7 +72,7 @@ const updateAddonRequest = async ({
 };
 
 const deleteAddonRequest = async (id: number): Promise<void> => {
-  await axios.delete(`${API_URL}/admin/addons/${id}/`, { withCredentials: true });
+  await api.delete(`/admin/addons/${id}/`, { withCredentials: true });
 };
 
 // --- Hook ---

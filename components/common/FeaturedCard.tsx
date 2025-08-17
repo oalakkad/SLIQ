@@ -71,7 +71,10 @@ export default function FeaturedCard({
     ? `${height * 1.2}px`
     : `${height * 1.5}px`;
 
-  const hoverImage = product.images?.[0]?.image || product.image;
+  const hoverImage =
+    product.image === product.images?.[0]?.image
+      ? product.images?.[1]?.image
+      : product.images?.[0]?.image;
   const productLink = `/products/${product.slug}`;
 
   const badge =
