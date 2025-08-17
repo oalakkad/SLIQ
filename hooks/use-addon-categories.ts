@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosResponse } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+import { AxiosResponse } from "axios";
+import { api } from "@/components/utils/api";
 
 // --- Types ---
 export interface AddonOption {
@@ -35,8 +34,8 @@ interface AddonCategoryResponse {
 
 // --- API Requests ---
 const fetchAddonCategories = async (): Promise<AddonCategory[]> => {
-  const res: AxiosResponse<AddonCategoryResponse> = await axios.get(
-    `${API_URL}/addons/categories/`,
+  const res: AxiosResponse<AddonCategoryResponse> = await api.get(
+    `/addons/categories/`,
     { withCredentials: true }
   );
   return res.data.results;
@@ -45,8 +44,8 @@ const fetchAddonCategories = async (): Promise<AddonCategory[]> => {
 const createAddonCategory = async (
   data: Partial<AddonCategory>
 ): Promise<AddonCategory> => {
-  const res: AxiosResponse<AddonCategory> = await axios.post(
-    `${API_URL}/addons/categories/`,
+  const res: AxiosResponse<AddonCategory> = await api.post(
+    "/addons/categories/",
     data,
     { withCredentials: true }
   );
@@ -60,8 +59,8 @@ const updateAddonCategory = async ({
   id: number;
   data: Partial<AddonCategory>;
 }): Promise<AddonCategory> => {
-  const res: AxiosResponse<AddonCategory> = await axios.patch(
-    `${API_URL}/addons/categories/${id}/`,
+  const res: AxiosResponse<AddonCategory> = await api.patch(
+    `/addons/categories/${id}/`,
     data,
     { withCredentials: true }
   );
@@ -69,7 +68,7 @@ const updateAddonCategory = async ({
 };
 
 const deleteAddonCategory = async (id: number): Promise<void> => {
-  await axios.delete(`${API_URL}/addons/categories/${id}/`, { withCredentials: true });
+  await api.delete(`/addons/categories/${id}/`, { withCredentials: true });
 };
 
 // --- Hook ---

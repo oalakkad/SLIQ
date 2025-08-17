@@ -1,7 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { api } from '@/components/utils/api';
 
 export interface OrderItem {
   id: number;
@@ -26,7 +24,7 @@ export const useOrders = () => {
   const ordersQuery = useQuery<Order[]>({
     queryKey: ['orders'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/orders/`, { withCredentials: true });
+      const response = await api.get("/orders/", { withCredentials: true });
       return response.data.results;
     },
   });
@@ -34,7 +32,7 @@ export const useOrders = () => {
   // Create an order from cart
   const createOrder = useMutation({
     mutationFn: async () => {
-      const response = await axios.post(`${API_URL}/orders/checkout/`, {}, { withCredentials: true });
+      const response = await api.post("/orders/checkout/", {}, { withCredentials: true });
       return response.data;
     },
     onSuccess: () => {

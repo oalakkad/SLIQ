@@ -52,7 +52,7 @@ const Footer = () => {
             color="gray.600"
             _hover={{ textDecoration: "underline" }}
             fontFamily={bodyFont}
-            textAlign={"center"}
+            textAlign={isMobile ? (isArabic ? "right" : "left") : "center"}
             w={"100%"}
           >
             {isArabic ? product.name_ar : product.name}
@@ -66,7 +66,7 @@ const Footer = () => {
             color="#7ea2ca"
             fontWeight="medium"
             fontFamily={bodyFont}
-            textAlign={"center"}
+            textAlign={isMobile ? (isArabic ? "right" : "left") : "center"}
             w={"100%"}
           >
             {isArabic ? "عرض الكل" : "View All"}
@@ -108,11 +108,7 @@ const Footer = () => {
               .map((category: any) => (
                 <AccordionItem key={category.id} border="none">
                   <h2>
-                    <AccordionButton
-                      _expanded={{ fontWeight: "bold" }}
-                      px={4}
-                      py={5}
-                    >
+                    <AccordionButton fontWeight="bold" px={4} py={5}>
                       <Box
                         flex="1"
                         textAlign={isArabic ? "right" : "left"}
@@ -130,6 +126,57 @@ const Footer = () => {
                   </AccordionPanel>
                 </AccordionItem>
               ))}
+            <AccordionItem border="none">
+              <h2>
+                <AccordionButton fontWeight="bold" px={4} py={5}>
+                  <Box
+                    flex="1"
+                    textAlign={isArabic ? "right" : "left"}
+                    fontFamily={bodyFont}
+                  >
+                    {isArabic ? "الدعم" : "Support"}
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4} px={0}>
+                <VStack align="start" spacing={2} px={4}>
+                  <Link
+                    as={NextLink}
+                    href={"/contact-us"}
+                    fontSize="sm"
+                    color="gray.600"
+                    _hover={{ textDecoration: "underline" }}
+                    fontFamily={bodyFont}
+                    textAlign={
+                      isMobile ? (isArabic ? "right" : "left") : "center"
+                    }
+                    w={"100%"}
+                  >
+                    {isArabic ? "تواصل معنا" : "Contact Us"}
+                  </Link>
+                </VStack>
+              </AccordionPanel>
+            </AccordionItem>
+            <HStack w={"100%"} justifyContent={"center"}>
+              {socials.map((social: any) => (
+                <Link
+                  as={NextLink}
+                  key={social.href}
+                  href={social.href ?? "#"}
+                  target="_blank"
+                >
+                  <IconButton
+                    aria-label={social.href}
+                    icon={social.icon}
+                    colorScheme="brandPink2"
+                    fontSize={"1.6rem"}
+                    size={"sm"}
+                    borderRadius={10}
+                  />
+                </Link>
+              ))}
+            </HStack>
           </Accordion>
         ) : (
           <SimpleGrid columns={{ base: 1, md: 3, lg: 4 }} spacing={10}>

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import axios, { AxiosResponse } from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+import { AxiosResponse } from "axios";
+import { api } from "@/components/utils/api";
 
 // --- Types ---
 export interface AddonOption {
@@ -30,8 +29,8 @@ export interface AddonCategory {
 
 // --- API Request ---
 const fetchProductAddonsBySlug = async (slug: string): Promise<AddonCategory[]> => {
-  const res: AxiosResponse<AddonCategory[]> = await axios.get(
-    `${API_URL}/products/${slug}/addons/`,
+  const res: AxiosResponse<AddonCategory[]> = await api.get(
+    `/products/${slug}/addons/`,
     { withCredentials: true }
   );
   return res.data;

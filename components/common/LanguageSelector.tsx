@@ -19,7 +19,7 @@ export default function LanguageSelector() {
 
   return (
     <Menu>
-      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+      <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant={"ghost"}>
         <HStack spacing={2}>
           <Text fontSize="sm">{isArabic ? "العربية" : "English"}</Text>
         </HStack>

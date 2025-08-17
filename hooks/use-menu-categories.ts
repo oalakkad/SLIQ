@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { api } from '@/components/utils/api';
 
 export interface MenuCategory {
   id: number;
@@ -49,7 +47,7 @@ export const useMenuCategories = () =>
   useQuery<MenuCategory[]>({
     queryKey: ['menu-categories'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/menu-categories/`, {
+      const response = await api.get("/menu-categories/", {
         withCredentials: true,
       });
       return response.data;

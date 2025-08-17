@@ -74,6 +74,29 @@ export default function Page() {
     },
   ];
 
+  const kidsProducts: CategoryCardProps[] = [
+    {
+      title: isArabic ? "الأخضر السعيد" : "HAPPY GREEN",
+      imageUrl: `${API_URL}/media/product-images/happy-green_SwXvMVa.png`,
+      href: "/products/happy-green",
+    },
+    {
+      title: isArabic ? "الدببة البنفسجية" : "PURPLE BEARS",
+      imageUrl: `${API_URL}/media/product-images/purple-bears_h77mWmn.png`,
+      href: "/products/purple-bear",
+    },
+    {
+      title: isArabic ? "الدببة السعيد" : "HAPPY BEARS",
+      imageUrl: `${API_URL}/media/product-images/happy-bear_Pb3cpaC.png`,
+      href: "/products/happy-bear",
+    },
+    {
+      title: isArabic ? "أسود وردي" : "BLACK PINK",
+      imageUrl: `${API_URL}/media/product-images/black-pink_YVEYYbt.png`,
+      href: "/products/black-pink",
+    },
+  ];
+
   const t = {
     saleTitle: isArabic ? "خصم 25٪ على كل المنتجات" : "25% OFF SITEWIDE",
     saleDesc: isArabic
@@ -107,6 +130,7 @@ export default function Page() {
       ? "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام."
       : "A brand founded on bold femininity, offering effective and effortless products.",
     ourStory: isArabic ? "قصتنا" : "Our Story",
+    kidsTitle: isArabic ? "الأطفال" : "Kids",
   };
 
   useEffect(() => {
@@ -144,6 +168,23 @@ export default function Page() {
 
   return (
     <Box dir={direction}>
+      <Box px={{ base: 4, md: 16 }} py={10} bg="brand.blue">
+        <Heading
+          color="gray.700"
+          fontFamily={bodyFont}
+          textAlign="center"
+          size="lg"
+          fontWeight={400}
+          my={5}
+        >
+          {t.kidsTitle}
+        </Heading>
+        <SimpleGrid columns={{ base: 2, md: 4 }} columnGap={6}>
+          {kidsProducts.map((cat) => (
+            <CategoryCard key={cat.title} {...cat} />
+          ))}
+        </SimpleGrid>
+      </Box>
       {imageGroups.slice(0, 5).map((images, i) => (
         <Box
           key={i}

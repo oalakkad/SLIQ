@@ -28,31 +28,32 @@ const CategoryCard = ({ title, imageUrl, href }: CategoryCardProps) => {
     ? "var(--font-cairo), sans-serif"
     : "var(--font-readex-pro), sans-serif";
   return (
-    <MotionBox
-      variants={cardVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      position="relative"
-      overflow="hidden"
-      aspectRatio={3 / 4}
-      w="full"
-      cursor="pointer"
-      role="group"
-    >
-      {/* Image container with zoom on hover */}
+    <Link href={href}>
       <MotionBox
-        backgroundImage={`url(${imageUrl})`}
-        backgroundSize="cover"
-        backgroundPosition="center"
-        width="100%"
-        height="100%"
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        _groupHover={{ transform: "scale(1.05)" }}
-      />
+        variants={cardVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        position="relative"
+        overflow="hidden"
+        aspectRatio={3 / 4}
+        w="full"
+        cursor="pointer"
+        role="group"
+        mt={{ base: 2, md: 4 }}
+      >
+        {/* Image container with zoom on hover */}
+        <MotionBox
+          backgroundImage={`url(${imageUrl})`}
+          backgroundSize="cover"
+          backgroundPosition="center"
+          width="100%"
+          height="100%"
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          _groupHover={{ transform: "scale(1.05)" }}
+        />
 
-      {/* Button-like text box */}
-      <Link href={href}>
+        {/* Button-like text box */}
         <Flex
           w="100%"
           position="absolute"
@@ -73,8 +74,8 @@ const CategoryCard = ({ title, imageUrl, href }: CategoryCardProps) => {
             </Text>
           </Box>
         </Flex>
-      </Link>
-    </MotionBox>
+      </MotionBox>
+    </Link>
   );
 };
 

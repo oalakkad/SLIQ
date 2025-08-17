@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { ProductCategory } from './use-menu-categories';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { api } from '@/components/utils/api';
 
 export interface Product {
   id: number;
@@ -54,7 +52,7 @@ export const usePaginatedProducts = (
     queryKey: ['products', { ...filters, page }],
     queryFn: async () => {
       const query = buildQueryParams(filters, page);
-      const response = await axios.get(`${API_URL}/products/?${query}`, {
+      const response = await api.get(`/products/?${query}`, {
         withCredentials: true,
       });
       return response.data;
@@ -67,7 +65,7 @@ export const useProduct = (slug: string) =>
   useQuery<Product>({
     queryKey: ['product', slug],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/products/${slug}/`, {
+      const response = await api.get(`/products/${slug}/`, {
         withCredentials: true,
       });
       return response.data;
