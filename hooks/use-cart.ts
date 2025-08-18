@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/components/utils/api';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // --- Types ---
 export interface CartProduct {
@@ -42,20 +44,20 @@ export interface AddToCartPayload {
 
 // --- API Requests ---
 const fetchCart = async (): Promise<Cart> => {
-  const res = await api.get("/cart/", { withCredentials: true });
+  const res = await axios.get(`${API_URL}/cart/`, { withCredentials: true });
   return res.data;
 };
 
 const addToCartRequest = async (payload: AddToCartPayload) => {
-  const res = await api.post("/cart/items/add/", payload, {
+  const res = await axios.post(`${API_URL}/cart/items/add/`, payload, {
     withCredentials: true,
   });
   return res.data;
 };
 
 const updateCartItemRequest = async (payload: { id: number; quantity: number }) => {
-  const res = await api.patch(
-    `/cart/items/${payload.id}/update/`,
+  const res = await axios.patch(
+    `${API_URL}/cart/items/${payload.id}/update/`,
     { quantity: payload.quantity },
     { withCredentials: true }
   );
@@ -63,7 +65,7 @@ const updateCartItemRequest = async (payload: { id: number; quantity: number }) 
 };
 
 const removeCartItemRequest = async (id: number) => {
-  const res = await api.delete(`/cart/items/${id}/delete/`, {
+  const res = await axios.delete(`${API_URL}/cart/items/${id}/delete/`, {
     withCredentials: true,
   });
   return res.data;

@@ -81,7 +81,7 @@ export default function MobileWishlist() {
             />
 
             {/* View Product */}
-            <Link href={`/product/${item.product.slug}`} passHref>
+            <Link href={`/products/${item.product.slug}`} passHref>
               <Button
                 as="a"
                 w="100%"

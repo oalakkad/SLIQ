@@ -120,6 +120,7 @@ export default function Page() {
               fontWeight={300}
               color={"gray.400"}
               fontFamily={bodyFont}
+              variant={"ghost"}
               leftIcon={
                 <Circle
                   size="20px"

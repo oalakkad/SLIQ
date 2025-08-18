@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/components/utils/api';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // --- Types ---
 export interface WishlistProduct {
@@ -25,28 +27,28 @@ export interface WishlistResponse {
 
 // --- API Requests ---
 const fetchWishlist = async (): Promise<WishlistResponse> => {
-  const res = await api.get("/wishlist/", {
+  const res = await axios.get(`${API_URL}/wishlist/`, {
     withCredentials: true,
   });
   return res.data;
 };
 
 const addToWishlistRequest = async (payload: { product: number }) => {
-  const res = await api.post("/wishlist/items/add/", payload, {
+  const res = await axios.post(`${API_URL}/wishlist/items/add/`, payload, {
     withCredentials: true,
   });
   return res.data;
 };
 
 const removeWishlistItemRequest = async (id: number) => {
-  const res = await api.delete(`/wishlist/items/${id}/delete/`, {
+  const res = await axios.delete(`${API_URL}/wishlist/items/${id}/delete/`, {
     withCredentials: true,
   });
   return res.data;
 };
 
 const clearWishlistRequest = async () => {
-  const res = await api.delete("/wishlist/clear/", {
+  const res = await axios.delete(`${API_URL}/wishlist/clear/`, {
     withCredentials: true,
   });
   return res.data;

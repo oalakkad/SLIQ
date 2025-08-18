@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -36,45 +36,72 @@ export default function AddonsModal({
   onConfirm,
   title,
 }: AddonsPickerModalProps) {
-  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const isArabic = useAppSelector((s) => s.lang.isArabic);
   const headingFont = isArabic
     ? "var(--font-cairo), sans-serif"
     : "var(--font-readex-pro), sans-serif";
-  const bodyFont = isArabic
-    ? "var(--font-cairo), serif"
-    : "var(--font-work-sans), serif";
 
   const { data, isLoading, isError } = useProductAddons(productSlug);
   const [selection, setSelection] = useState<SelectedAddonForCategory[]>([]);
+
+  const uiCategories: UIAddonCategory[] = useMemo(
+    () =>
+      (data || []).map((cat) => ({
+        id: cat.id,
+        name: isArabic && cat.name_ar ? cat.name_ar : cat.name,
+        name_ar: cat.name_ar,
+        addons: cat.addons.map((a) => ({
+          id: a.id,
+          name: isArabic && a.name_ar ? a.name_ar : a.name,
+          name_ar: a.name_ar,
+          price: Number(a.price || "0"),
+          allow_multiple_options: a.allow_multiple_options,
+          requires_custom_name: a.requires_custom_name,
+          options: a.options.map((o) => ({
+            id: o.id,
+            name: isArabic && o.name_ar ? o.name_ar : o.name,
+            name_ar: o.name_ar,
+            price: Number(o.price || "0"),
+          })),
+        })),
+      })) || [],
+    [data, isArabic]
+  );
+
+  // Auto-confirm once per open when there are no categories
+  const firedAutoConfirmRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) firedAutoConfirmRef.current = false;
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (
+      isOpen &&
+      !isLoading &&
+      !isError &&
+      uiCategories.length === 0 &&
+      !firedAutoConfirmRef.current
+    ) {
+      firedAutoConfirmRef.current = true;
+      onConfirm(selection); // [] by default
+      onClose();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isLoading, isError, uiCategories.length]);
 
   const handleConfirm = () => {
     onConfirm(selection);
     onClose();
   };
 
-  // Map API response into UI shape based on language
-  const uiCategories: UIAddonCategory[] =
-    (data || []).map((cat) => ({
-      id: cat.id,
-      name: isArabic && cat.name_ar ? cat.name_ar : cat.name,
-      name_ar: cat.name_ar,
-      addons: cat.addons.map((a) => ({
-        id: a.id,
-        name: isArabic && a.name_ar ? a.name_ar : a.name,
-        name_ar: a.name_ar,
-        price: Number(a.price || "0"),
-        allow_multiple_options: a.allow_multiple_options,
-        requires_custom_name: a.requires_custom_name,
-        options: a.options.map((o) => ({
-          id: o.id,
-          name: isArabic && o.name_ar ? o.name_ar : o.name,
-          name_ar: o.name_ar,
-          price: Number(o.price || "0"),
-        })),
-      })),
-    })) || [];
+  // 🔑 Only render the modal after loading finishes AND:
+  // - we have categories, or
+  // - an error occurred (so we can show the error)
+  const shouldRenderModal =
+    isOpen && !isLoading && (isError || uiCategories.length > 0);
 
-  // Translations for static text
+  if (!shouldRenderModal) return null;
+
   const t = {
     title: title || (isArabic ? "خصص طلبك" : "Customize your item"),
     loading: isArabic ? "جارٍ التحميل..." : "Loading...",
@@ -89,39 +116,26 @@ export default function AddonsModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+    <Modal isOpen={true} onClose={onClose} size="xl" isCentered>
       <ModalOverlay />
       <ModalContent dir={isArabic ? "rtl" : "ltr"}>
-        <ModalHeader textAlign={"center"}>{t.title}</ModalHeader>
+        <ModalHeader textAlign="center">{t.title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {isLoading && (
-            <Box py={6} display="flex" justifyContent="center">
-              <Spinner />
-              <Text ml={isArabic ? 0 : 2} mr={isArabic ? 2 : 0}>
-                {t.loading}
-              </Text>
-            </Box>
-          )}
-
-          {isError && !isLoading && (
+          {/* We won’t ever reach the loading/empty states due to shouldRenderModal,
+              but we keep these branches for completeness if you later tweak gating. */}
+          {isError && (
             <Text color="red.500" textAlign={isArabic ? "right" : "left"}>
               {t.error}
             </Text>
           )}
 
-          {!isLoading && !isError && uiCategories.length === 0 && (
-            <Text color="gray.600" textAlign={isArabic ? "right" : "left"}>
-              {t.noAddons}
-            </Text>
-          )}
-
-          {!isLoading && !isError && uiCategories.length > 0 && (
+          {!isError && uiCategories.length > 0 && (
             <AddonsSelector
               categories={uiCategories}
               showPrices
               onChange={setSelection}
-              isArabic={isArabic} // if AddonsSelector supports RTL/Arabic handling
+              isArabic={isArabic}
             />
           )}
         </ModalBody>
@@ -137,14 +151,14 @@ export default function AddonsModal({
             {t.cancel}
           </Button>
           <Button
-            bg={"gray.600"}
-            color={"white"}
+            bg="gray.600"
+            color="white"
             _hover={{ backgroundColor: "gray.500", color: "white" }}
             onClick={handleConfirm}
             fontFamily={headingFont}
             px={10}
             py={6}
-            isDisabled={isLoading || isError}
+            isDisabled={isError}
           >
             {t.confirm}
           </Button>
