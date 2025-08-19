@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, Button, HStack, Input, Spinner } from "@chakra-ui/react";
 import type { ColDef } from "ag-grid-community";
 import { ModuleRegistry } from "ag-grid-community";
 import { AllCommunityModule } from "ag-grid-community";
@@ -55,13 +55,27 @@ export default function CustomersPage() {
 
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
+      <HStack mb={4} spacing={4}>
+        <Input
+          placeholder="Search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </HStack>
       {/* AG Grid Table */}
-      <MyTable
-        rowData={customers}
-        columnDefs={columnDefs}
-        setSelected={setSelectedCustomer}
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <HStack justifyContent="center" alignItems="center" minH="30vh">
+          <Spinner color="brandPink.500" size="xl" />
+        </HStack>
+      ) : (
+        <MyTable
+          rowData={customers}
+          columnDefs={columnDefs}
+          setSelected={setSelectedCustomer}
+          onDelete={handleDelete}
+          type="customers"
+        />
+      )}
 
       {/* Edit Customer Modal */}
       {selectedCustomer && (

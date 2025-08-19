@@ -96,14 +96,16 @@ export default function MobileWishlist() {
           </Box>
         ))}
       </SimpleGrid>
-      <Flex flexDir={"column"} w={"100%"} alignItems={"center"} mt={10}>
-        <Text>Your wishlist is empty.</Text>
-        <Link href={"/shop"}>
-          <Button variant={"link"} my={3} fontFamily={"'Work Sans', serif"}>
-            Discover More
-          </Button>
-        </Link>
-      </Flex>
+      {items.length === 0 && (
+        <Flex flexDir={"column"} w={"100%"} alignItems={"center"} mt={10}>
+          <Text>Your wishlist is empty.</Text>
+          <Link href={"/shop"}>
+            <Button variant={"link"} my={3} fontFamily={"'Work Sans', serif"}>
+              Discover More
+            </Button>
+          </Link>
+        </Flex>
+      )}
     </Box>
   );
 }
