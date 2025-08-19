@@ -10,8 +10,6 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Box,
-  Spinner,
   Text,
 } from "@chakra-ui/react";
 import { useProductAddons } from "@/hooks/use-product-addons";
@@ -37,13 +35,16 @@ export default function AddonsModal({
   title,
 }: AddonsPickerModalProps) {
   const isArabic = useAppSelector((s) => s.lang.isArabic);
+
   const headingFont = isArabic
     ? "var(--font-cairo), sans-serif"
     : "var(--font-readex-pro), sans-serif";
 
   const { data, isLoading, isError } = useProductAddons(productSlug);
+
   const [selection, setSelection] = useState<SelectedAddonForCategory[]>([]);
 
+  // Map API response into UI shape based on language (memoized)
   const uiCategories: UIAddonCategory[] = useMemo(
     () =>
       (data || []).map((cat) => ({
@@ -68,8 +69,24 @@ export default function AddonsModal({
     [data, isArabic]
   );
 
-  // Auto-confirm once per open when there are no categories
+  // 🔄 Always start with a fresh selection on open or when switching product
+  useEffect(() => {
+    if (isOpen) {
+      setSelection([]);
+    }
+  }, [isOpen, productSlug]);
+
+  // 🧹 Ensure selection is cleared on close as well
+  useEffect(() => {
+    if (!isOpen) {
+      setSelection([]);
+    }
+  }, [isOpen]);
+
+  // 🔒 Auto-confirm when there are no categories (once per open)
   const firedAutoConfirmRef = useRef(false);
+
+  // Reset guard whenever modal closes
   useEffect(() => {
     if (!isOpen) firedAutoConfirmRef.current = false;
   }, [isOpen]);
@@ -83,9 +100,12 @@ export default function AddonsModal({
       !firedAutoConfirmRef.current
     ) {
       firedAutoConfirmRef.current = true;
-      onConfirm(selection); // [] by default
+      // Explicitly confirm with an empty selection and clear local state
+      setSelection([]);
+      onConfirm([]);
       onClose();
     }
+    // We intentionally avoid adding onConfirm/onClose/selection to deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isLoading, isError, uiCategories.length]);
 
@@ -94,9 +114,7 @@ export default function AddonsModal({
     onClose();
   };
 
-  // 🔑 Only render the modal after loading finishes AND:
-  // - we have categories, or
-  // - an error occurred (so we can show the error)
+  // ❌ Prevent flash: only render after loading, and only if we have something to show (error or categories)
   const shouldRenderModal =
     isOpen && !isLoading && (isError || uiCategories.length > 0);
 
@@ -104,13 +122,9 @@ export default function AddonsModal({
 
   const t = {
     title: title || (isArabic ? "خصص طلبك" : "Customize your item"),
-    loading: isArabic ? "جارٍ التحميل..." : "Loading...",
     error: isArabic
       ? "فشل تحميل الإضافات. يرجى المحاولة مرة أخرى."
       : "Failed to load addons. Please try again.",
-    noAddons: isArabic
-      ? "لا توجد إضافات متاحة لهذا المنتج."
-      : "No addons available for this product.",
     cancel: isArabic ? "إلغاء" : "Cancel",
     confirm: isArabic ? "أضف إلى السلة" : "Add to cart",
   };
@@ -122,8 +136,6 @@ export default function AddonsModal({
         <ModalHeader textAlign="center">{t.title}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {/* We won’t ever reach the loading/empty states due to shouldRenderModal,
-              but we keep these branches for completeness if you later tweak gating. */}
           {isError && (
             <Text color="red.500" textAlign={isArabic ? "right" : "left"}>
               {t.error}
