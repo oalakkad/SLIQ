@@ -122,7 +122,7 @@ export default function EditOrderModal({
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={handleSave}>
+          <Button colorScheme="brandPink" mr={3} onClick={handleSave}>
             Save
           </Button>
           <Button onClick={onClose}>Cancel</Button>

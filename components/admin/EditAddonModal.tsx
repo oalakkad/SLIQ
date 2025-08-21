@@ -260,7 +260,7 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                 </ModalBody>
 
                 <ModalFooter>
-                  <Button colorScheme="blue" type="submit">
+                  <Button colorScheme="brandPink" type="submit">
                     {addon ? "Save Changes" : "Create Addon"}
                   </Button>
                 </ModalFooter>

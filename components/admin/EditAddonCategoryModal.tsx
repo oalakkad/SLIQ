@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -14,7 +15,6 @@ import {
   Input,
   Spinner,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import Select, { MultiValue } from "react-select";
@@ -53,7 +53,7 @@ export default function EditAddonCategoryModal({
   const { data: linkedCats = [], isLoading: linkedLoading } =
     useLinkedProductCategories(category?.id);
 
-  // Local multiselect state (store as string IDs to match your submit mapping)
+  // Local multiselect state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Build options for react-select
@@ -66,15 +66,42 @@ export default function EditAddonCategoryModal({
     [allCats]
   );
 
-  // Pre-fill selections when linked categories load
+  // ----- Stable keys to prevent infinite loops -----
+  const linkedDefaultIds: string[] = useMemo(
+    () =>
+      category?.id
+        ? (linkedCats ?? []).map((c: CategoryItem) => String(c.id))
+        : [],
+    [category?.id, linkedCats]
+  );
+  const linkedDefaultsKey = useMemo(
+    () => linkedDefaultIds.slice().sort().join(","),
+    [linkedDefaultIds]
+  );
+  const selectedKey = useMemo(
+    () => selectedIds.slice().sort().join(","),
+    [selectedIds]
+  );
+
+  // Prefill only when:
+  // - modal is open
+  // - editing (has id)
+  // - linkedCats finished loading
+  // - current selection differs from linked defaults
   useEffect(() => {
-    if (isOpen) {
-      const defaults = (linkedCats ?? []).map((c: CategoryItem) =>
-        String(c.id)
-      );
-      setSelectedIds(defaults);
-    }
-  }, [isOpen, linkedCats]);
+    if (!isOpen) return;
+    if (!category?.id) return; // add mode -> don't prefill
+    if (catsLoading || linkedLoading) return;
+    if (selectedKey === linkedDefaultsKey) return; // already in sync
+    setSelectedIds(linkedDefaultIds);
+  }, [
+    isOpen,
+    category?.id,
+    catsLoading,
+    linkedLoading,
+    linkedDefaultsKey, // changes only when linked data actually changes
+    // intentionally NOT including selectedKey to avoid re-running after user edits
+  ]);
 
   const formik = useFormik({
     initialValues: {
@@ -93,12 +120,13 @@ export default function EditAddonCategoryModal({
         await updateAddonCategory.mutateAsync({ id, data: values });
       } else {
         const created = await createAddonCategory.mutateAsync(values);
-        id = created.id;
+        // adjust if your API nests id differently
+        id = (created as any)?.id ?? (created as any)?.data?.id ?? null;
       }
 
       // Assign product categories
       if (id) {
-        const ids = selectedIds.map((s) => Number(s));
+        const ids = selectedIds.map(Number);
         await setLinkedProductCategories.mutateAsync({
           addonCategoryId: id,
           categoryIds: ids,
@@ -109,26 +137,37 @@ export default function EditAddonCategoryModal({
     },
   });
 
-  const bodyDisabled: boolean = !!(catsLoading || (category && linkedLoading));
+  const isEdit = !!category?.id;
 
-  // Compute the value for react-select from selectedIds
+  // all booleans now ✅
+  const inputsDisabled = catsLoading || (isEdit && linkedLoading);
+  const selectDisabled = catsLoading || (isEdit && linkedLoading);
+  const isSaving =
+    createAddonCategory.isPending ||
+    updateAddonCategory.isPending ||
+    setLinkedProductCategories.isPending;
+
+  // Value for react-select from selectedIds
   const selectedOptions: Option[] = useMemo(
     () =>
       categoryOptions.filter((opt) => selectedIds.includes(String(opt.value))),
     [categoryOptions, selectedIds]
   );
 
+  // Portal react-select menu INSIDE the modal to avoid focus/overlay issues
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent ref={contentRef}>
         <ModalHeader>
           {category ? "Edit Addon Category" : "Add Addon Category"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <form onSubmit={formik.handleSubmit}>
-            <FormControl mb={3} isDisabled={bodyDisabled}>
+            <FormControl mb={3} isDisabled={inputsDisabled}>
               <FormLabel>Name</FormLabel>
               <Input
                 name="name"
@@ -137,7 +176,7 @@ export default function EditAddonCategoryModal({
               />
             </FormControl>
 
-            <FormControl mb={3} isDisabled={bodyDisabled}>
+            <FormControl mb={3} isDisabled={inputsDisabled}>
               <FormLabel>Name (Arabic)</FormLabel>
               <Input
                 name="name_ar"
@@ -146,9 +185,10 @@ export default function EditAddonCategoryModal({
               />
             </FormControl>
 
-            <FormControl mb={1} isDisabled={bodyDisabled}>
+            {/* Do NOT disable this FormControl to avoid pointer-events:none on react-select */}
+            <FormControl mb={1}>
               <FormLabel>Linked Product Categories</FormLabel>
-              {bodyDisabled ? (
+              {selectDisabled ? (
                 <Spinner size="sm" />
               ) : (
                 <Select
@@ -158,12 +198,12 @@ export default function EditAddonCategoryModal({
                   onChange={(vals: MultiValue<Option>) =>
                     setSelectedIds(vals.map((v) => String(v.value)))
                   }
-                  isDisabled={bodyDisabled}
                   placeholder="Select categories..."
-                  // Ensure the menu shows above Chakra Modal content
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
+                  // keep it interactive
+                  isDisabled={false}
+                  // Portal menu inside modal content (avoid focus trap issues)
+                  menuPortalTarget={contentRef.current ?? undefined}
+                  menuPosition="fixed"
                   styles={{
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                   }}
@@ -177,14 +217,14 @@ export default function EditAddonCategoryModal({
             Cancel
           </Button>
           <Button
-            colorScheme="blue"
+            colorScheme="brandPink"
             onClick={() => formik.handleSubmit()}
             isLoading={
               createAddonCategory.isPending ||
               updateAddonCategory.isPending ||
               setLinkedProductCategories.isPending
             }
-            isDisabled={bodyDisabled}
+            isDisabled={inputsDisabled || isSaving}
           >
             {category ? "Save Changes" : "Add"}
           </Button>

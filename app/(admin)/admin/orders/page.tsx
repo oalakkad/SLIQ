@@ -82,7 +82,7 @@ export default function OrdersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button>Add</Button>
+        {/* <Button>Add</Button> */}
       </HStack>
 
       {/* Content area */}

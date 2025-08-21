@@ -17,7 +17,7 @@ export default function SearchFilters({ onSearch }: SearchFiltersProps) {
         onChange={(e) => onSearch(e.target.value)}
         maxW="300px"
       />
-      <Button colorScheme="blue">Apply</Button>
+      <Button colorScheme="brandPink">Apply</Button>
     </Flex>
   );
 }

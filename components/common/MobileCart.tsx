@@ -198,7 +198,7 @@ export default function MobileCart() {
                       {isArabic ? "سعر الوحدة" : "Unit"}: {kwd(unitPrice)}
                     </Badge>
                     {parseMoney(item.unit_extra_price) > 0 && (
-                      <Badge variant="outline" colorScheme="blue">
+                      <Badge variant="outline" colorScheme="brandPink">
                         {isArabic ? "مصمّم حسب الطلب" : "Customized"}
                       </Badge>
                     )}
@@ -327,7 +327,10 @@ export default function MobileCart() {
                                   </Badge>
                                   <Text fontWeight="medium">{addonName}</Text>
                                   {sel.addon?.custom_name && (
-                                    <Badge colorScheme="blue" variant="outline">
+                                    <Badge
+                                      colorScheme="brandPink"
+                                      variant="outline"
+                                    >
                                       {isArabic
                                         ? `اسم مخصص: ${sel.addon.custom_name}`
                                         : `Custom name: ${sel.addon.custom_name}`}

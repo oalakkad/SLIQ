@@ -53,7 +53,10 @@ export default function AddonCategoriesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button colorScheme={"blue"} onClick={() => setIsAddModalOpen(true)}>
+        <Button
+          colorScheme={"brandPink"}
+          onClick={() => setIsAddModalOpen(true)}
+        >
           Add
         </Button>
       </HStack>

@@ -105,7 +105,7 @@ export default function EditCustomerModal({
             Cancel
           </Button>
           <Button
-            colorScheme="blue"
+            colorScheme="brandPink"
             onClick={handleSave}
             isLoading={updateCustomer.isPending}
           >

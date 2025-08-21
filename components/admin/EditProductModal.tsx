@@ -541,7 +541,7 @@ export default function EditProductModal({
             Cancel
           </Button>
           <Button
-            colorScheme="blue"
+            colorScheme="brandPink"
             onClick={handleSave}
             isLoading={isSubmitting}
           >

@@ -202,7 +202,7 @@ export default function DesktopCart() {
                           {isArabic ? "سعر الوحدة" : "Unit"}: {kwd(unitPrice)}
                         </Badge>
                         {parseMoney(item.unit_extra_price) > 0 && (
-                          <Badge variant="outline" colorScheme="blue">
+                          <Badge variant="outline" colorScheme="brandPink">
                             {isArabic ? "مصمّم حسب الطلب" : "Customized"}
                           </Badge>
                         )}
@@ -358,7 +358,7 @@ export default function DesktopCart() {
                                       </Text>
                                       {sel.addon?.custom_name && (
                                         <Badge
-                                          colorScheme="blue"
+                                          colorScheme="brandPink"
                                           variant="outline"
                                         >
                                           {isArabic
