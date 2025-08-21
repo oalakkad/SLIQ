@@ -1,3 +1,5 @@
+"use client";
+import { useAdminStats } from "@/hooks/use-admin-stats";
 import {
   Box,
   Flex,
@@ -9,10 +11,19 @@ import {
 } from "@chakra-ui/react";
 
 export default function AdminHome() {
+  const { stats, totalRevenueNumber, isLoading, isError, refetch } =
+    useAdminStats();
+  console.log(stats);
   const status = [
-    { label: "Total Orders", number: 1250, is_currency: false },
-    { label: "Total Customers", number: 340, is_currency: false },
-    { label: "Revenue", number: 340.0, is_currency: true },
+    { label: "Total Orders", number: stats?.orders_count },
+    {
+      label: "Total Customers",
+      number: stats?.users_count,
+    },
+    {
+      label: "Revenue",
+      number: Number(totalRevenueNumber).toFixed(3),
+    },
   ];
   return (
     <Flex direction="column" w={"100%"}>
@@ -31,9 +42,7 @@ export default function AdminHome() {
             textAlign={"center"}
           >
             <StatLabel>{stat.label}</StatLabel>
-            <StatNumber>
-              {stat.is_currency ? `${stat.number.toFixed(3)} KWD` : stat.number}
-            </StatNumber>
+            <StatNumber>{stat.number}</StatNumber>
           </Stat>
         ))}
       </SimpleGrid>
