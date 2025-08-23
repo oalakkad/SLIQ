@@ -13,6 +13,7 @@ import "@fontsource/readex-pro/600.css"; // SemiBold
 import "@fontsource/readex-pro/700.css"; // Bold
 import { Box } from "@chakra-ui/react";
 import QueryProvider from "@/components/utils/QueryProvider";
+import { useAppSelector } from "@/redux/hooks";
 const inter = Inter({ subsets: ["latin"] });
 
 export const cairo = Cairo({
@@ -45,6 +46,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}
+        style={{ fontFamily: "var(--font-cairo), serif" }}
       >
         <QueryProvider>
           <Provider>

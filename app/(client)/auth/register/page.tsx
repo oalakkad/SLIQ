@@ -1,35 +1,54 @@
+"use client";
 import Link from "next/link";
 import { RegisterForm } from "@/components/forms";
 import { SocialButtons } from "@/components/common";
+import { Box, Heading, Text } from "@chakra-ui/react";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function Page() {
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <img
-          className="mx-auto h-10 w-auto"
-          src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-          alt="Full Auth"
-        />
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-          Sign up for your account
-        </h2>
-      </div>
+    <Box w={"full"} px={6} pb={12} fontFamily={bodyFont}>
+      <Heading
+        mt={5}
+        color={"brand.pink"}
+        textAlign={"center"}
+        fontFamily={headingFont}
+      >
+        {isArabic ? "انشاء حساب" : "Sign up for your account"}
+      </Heading>
+      <div className="flex min-h-full flex-1 flex-col justify-center">
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+          <RegisterForm />
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <RegisterForm />
-        <SocialButtons />
-
-        <p className="mt-10 text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <Link
-            href="/auth/login"
-            className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+          <Text
+            className="mt-10 text-center text-sm text-gray-500"
+            dir={isArabic ? "rtl" : "ltr"}
           >
-            Login here
-          </Link>
-        </p>
+            {isArabic ? "لديك حساب بالفعل؟" : "Already have an account?"}
+            <Link
+              href="/auth/login"
+              className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+            >
+              <Text
+                as={"span"}
+                color={"brand.pink"}
+                mx={1}
+                fontFamily={headingFont}
+              >
+                {isArabic ? "تسجيل الدخول" : "Login here"}
+              </Text>
+            </Link>
+          </Text>
+        </div>
       </div>
-    </div>
+    </Box>
   );
 }

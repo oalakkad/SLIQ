@@ -1,10 +1,13 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRegisterMutation } from '@/redux/features/authApiSlice';
-import { toast } from 'react-toastify';
+import { useToast } from '@chakra-ui/react';
 
 export default function useRegister() {
 	const router = useRouter();
+	
+	const toast = useToast();
+	
 	const [register, { isLoading }] = useRegisterMutation();
 
 	const [formData, setFormData] = useState({
@@ -29,11 +32,25 @@ export default function useRegister() {
 		register({ first_name, last_name, email, password, re_password })
 			.unwrap()
 			.then(() => {
-				toast.success('Please check email to verify account');
+				toast({
+					title: "Please check email to verify account",
+					status: "success",
+					duration: 4000,
+					isClosable: true,
+				});
 				router.push('/auth/login');
 			})
-			.catch(() => {
-				toast.error('Failed to register account');
+			.catch((e) => {
+				Object.entries(e.data).forEach(([field, errors]) => {
+					(errors as string[]).forEach((err) => {
+						toast({
+							title: err[0].toUpperCase() + err.slice(1, err.length+1),
+							status: "error",
+							duration: 4000,
+							isClosable: true,
+						});
+					});
+				});
 			});
 	};
 

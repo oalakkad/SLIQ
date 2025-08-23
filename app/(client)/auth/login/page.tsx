@@ -6,11 +6,22 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import saieLogo from "@/public/saie-logo.png";
 import LoginForm from "@/components/forms/LoginForm"; // ✅ Import your LoginForm here
+import Link from "next/link";
 
 export default function LoginPage() {
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const router = useRouter();
+
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   if (isAuthenticated) {
     router.push("/");
@@ -24,6 +35,7 @@ export default function LoginPage() {
       alignItems="center"
       justifyContent="center"
       px={4}
+      fontFamily={bodyFont}
     >
       <Box
         bg="white"
@@ -34,32 +46,28 @@ export default function LoginPage() {
         maxW="md"
         textAlign="center"
       >
-        {/* Logo */}
-        <Flex w={"100%"} justifyContent={"center"}>
-          <Image src={saieLogo} alt="SAIE" width={128} height={49} />
-        </Flex>
-
         {/* Login Form */}
-        <Box mt={6}>
+        <Box mt={2}>
           <Heading
-            size="sm"
             textAlign="center"
             mb={2}
+            fontFamily={headingFont}
             fontWeight="semibold"
-            color="gray.700"
+            color="gray.500"
           >
-            Sign in
+            {isArabic ? "تسجيل الدخول" : "SIGN IN"}
           </Heading>
           <LoginForm />
-        </Box>
-
-        {/* Footer */}
-        <Box mt={4} fontSize="xs" color="gray.500">
-          <Text as="span" cursor="pointer" mr={3}>
-            Privacy
-          </Text>
-          <Text as="span" cursor="pointer">
-            Terms
+          <Text color={"gray.500"} mt={5} dir={isArabic ? "rtl" : "ltr"}>
+            {isArabic ? "ليس لديك حساب؟" : "Do not have an account?"}
+            <Link
+              href="/auth/register"
+              className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+            >
+              <Text as={"span"} color={"#7ea2ca"} mx={1}>
+                {isArabic ? "انشاء حساب" : "Register"}
+              </Text>
+            </Link>
           </Text>
         </Box>
       </Box>

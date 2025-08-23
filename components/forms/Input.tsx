@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 import Link from "next/link";
 import { Input as ChakraInput, Text } from "@chakra-ui/react";
+import { useAppSelector } from "@/redux/hooks";
 
 interface Props {
   labelId: string;
@@ -24,9 +25,23 @@ export default function Input({
   link,
   required = false,
 }: Props) {
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
   return (
-    <div>
-      <div className="flex justify-between align-center">
+    <div style={{ fontFamily: bodyFont }}>
+      <div
+        className="flex justify-between align-center"
+        style={{
+          direction: isArabic ? "rtl" : "ltr",
+          textAlign: isArabic ? "right" : "left",
+        }}
+      >
         <label
           htmlFor={labelId}
           className="block text-sm font-medium leading-6 text-gray-900"
@@ -50,6 +65,7 @@ export default function Input({
           className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           name={labelId}
           type={type}
+          dir={isArabic ? "rtl" : "ltr"}
           onChange={onChange}
           value={value}
           required={required}

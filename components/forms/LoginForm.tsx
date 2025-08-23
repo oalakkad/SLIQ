@@ -2,25 +2,28 @@
 
 import { useLogin } from "@/hooks";
 import { Form } from "@/components/forms";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function LoginForm() {
   const { email, password, isLoading, onChange, onSubmit } = useLogin();
 
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
   const config = [
     {
-      labelText: "Email address",
+      labelText: isArabic ? "البريد الإلكتروني" : "Email address",
       labelId: "email",
       type: "email",
       value: email,
       required: true,
     },
     {
-      labelText: "Password",
+      labelText: isArabic ? "كلمة السر" : "Password",
       labelId: "password",
       type: "password",
       value: password,
       link: {
-        linkText: "Forgot password?",
+        linkText: isArabic ? "نسيت كلمةالسر؟" : "Forgot password?",
         linkUrl: "/password-reset",
       },
       required: true,
@@ -31,7 +34,7 @@ export default function LoginForm() {
     <Form
       config={config}
       isLoading={isLoading}
-      btnText="Sign in"
+      btnText={isArabic ? "تسجيل الدخول" : "Sign in"}
       onChange={onChange}
       onSubmit={onSubmit}
     />

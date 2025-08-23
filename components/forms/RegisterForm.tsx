@@ -2,6 +2,7 @@
 
 import { useRegister } from "@/hooks";
 import { Form } from "@/components/forms";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function RegisterForm() {
   const {
@@ -15,37 +16,39 @@ export default function RegisterForm() {
     onSubmit,
   } = useRegister();
 
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+
   const config = [
     {
-      labelText: "First name",
+      labelText: isArabic ? "الاسم الأول" : "First name",
       labelId: "first_name",
       type: "text",
       value: first_name,
       required: true,
     },
     {
-      labelText: "Last name",
+      labelText: isArabic ? "اسم العائلة" : "Last name",
       labelId: "last_name",
       type: "text",
       value: last_name,
       required: true,
     },
     {
-      labelText: "Email address",
+      labelText: isArabic ? "البريد الإلكتروني" : "Email address",
       labelId: "email",
       type: "email",
       value: email,
       required: true,
     },
     {
-      labelText: "Password",
+      labelText: isArabic ? "كلمة المرور" : "Password",
       labelId: "password",
       type: "password",
       value: password,
       required: true,
     },
     {
-      labelText: "Confirm password",
+      labelText: isArabic ? "تأكيد كلمة المرور" : "Confirm password",
       labelId: "re_password",
       type: "password",
       value: re_password,
@@ -57,7 +60,7 @@ export default function RegisterForm() {
     <Form
       config={config}
       isLoading={isLoading}
-      btnText="Sign up"
+      btnText={isArabic ? "انشاء حساب" : "Sign up"}
       onChange={onChange}
       onSubmit={onSubmit}
     />
