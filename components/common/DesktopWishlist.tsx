@@ -20,14 +20,26 @@ export default function DesktopWishlist() {
 
   const wishlistTitle = isArabic ? "قائمة الرغبات" : "WISHLIST";
   const clearBtnLabel = isArabic ? "إفراغ القائمة" : "Clear wishlist";
-  const viewProductLabel = isArabic ? "عرض المنتج" : "VIEW PRODUCT";
+  const viewProductLabel = isArabic ? "عرض المنتج" : "VIEW";
   const emptyText = isArabic
     ? "قائمة الرغبات فارغة."
     : "Your wishlist is empty.";
   const discoverMoreText = isArabic ? "تصفح المزيد" : "Discover More";
 
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
+
   return (
-    <Box px={[4, 10]} py={10} dir={isArabic ? "rtl" : "ltr"}>
+    <Box
+      px={[4, 10]}
+      py={10}
+      dir={isArabic ? "rtl" : "ltr"}
+      fontFamily={bodyFont}
+    >
       <Flex justify="center" align="center" mb={8} flexDir="column">
         <Text fontSize="2xl" fontWeight="bold">
           {wishlistTitle}
@@ -39,7 +51,7 @@ export default function DesktopWishlist() {
             variant="link"
             _hover={{ textDecor: "none" }}
             my={3}
-            fontFamily="'Work Sans', serif"
+            fontFamily={headingFont}
             leftIcon={<FiX />}
             onClick={() => clearWishlist.mutate()}
           >
@@ -100,7 +112,7 @@ export default function DesktopWishlist() {
         <Flex flexDir="column" w="100%" alignItems="center" mt={10}>
           <Text>{emptyText}</Text>
           <Link href={"/shop"}>
-            <Button variant="link" my={3} fontFamily="'Work Sans', serif">
+            <Button variant="link" my={3}>
               {discoverMoreText}
             </Button>
           </Link>

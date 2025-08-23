@@ -13,9 +13,18 @@ import {
 import { FiX } from "react-icons/fi";
 import Link from "next/link";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useSelector } from "react-redux";
 
 export default function MobileWishlist() {
   const { items, isLoading, removeFromWishlist, clearWishlist } = useWishlist();
+  const isArabic = useSelector((state: any) => state.lang.isArabic);
+
+  const headingFont = isArabic
+    ? "var(--font-cairo), sans-serif"
+    : "var(--font-readex-pro), sans-serif";
+  const bodyFont = isArabic
+    ? "var(--font-cairo), serif"
+    : "var(--font-work-sans), serif";
 
   if (isLoading) {
     return (
@@ -30,18 +39,17 @@ export default function MobileWishlist() {
       {/* Title and Clear Wishlist */}
       <Flex direction="column" align="center" mb={6}>
         <Text fontSize="2xl" fontWeight="bold" mb={1}>
-          WISHLIST
+          {isArabic ? "قائمة الرغبات" : "WISHLIST"}
         </Text>
         {items.length > 0 && (
           <Button
             onClick={() => clearWishlist.mutate()}
             size="sm"
             variant="link"
-            fontFamily={"'Work Sans', serif"}
             color="gray.600"
             leftIcon={<FiX />}
           >
-            Clear wishlist
+            {isArabic ? "إفراغ القائمة" : "Clear wishlist"}
           </Button>
         )}
       </Flex>
@@ -90,7 +98,7 @@ export default function MobileWishlist() {
                 fontSize="xs"
                 borderRadius="none"
               >
-                VIEW
+                {isArabic ? "عرض المنتج" : "VIEW"}
               </Button>
             </Link>
           </Box>
@@ -98,10 +106,12 @@ export default function MobileWishlist() {
       </SimpleGrid>
       {items.length === 0 && (
         <Flex flexDir={"column"} w={"100%"} alignItems={"center"} mt={10}>
-          <Text>Your wishlist is empty.</Text>
+          <Text>
+            {isArabic ? "قائمة الرغبات فارغة." : "Your wishlist is empty."}
+          </Text>
           <Link href={"/shop"}>
-            <Button variant={"link"} my={3} fontFamily={"'Work Sans', serif"}>
-              Discover More
+            <Button variant={"link"} my={3}>
+              {isArabic ? "تصفح المزيد" : "Discover More"}
             </Button>
           </Link>
         </Flex>
