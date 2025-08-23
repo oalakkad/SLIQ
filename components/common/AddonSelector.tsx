@@ -145,15 +145,20 @@ export default function AddonsSelector({
     addon: Addon,
     nextOptionIds: number[]
   ) => {
+    let limitedOptionIds = nextOptionIds;
+
+    if (addon.allow_multiple_options) {
+      // ✅ limit to 2 maximum
+      if (limitedOptionIds.length > 2) {
+        limitedOptionIds = limitedOptionIds.slice(0, 2);
+      }
+    } else {
+      // fallback for single option
+      limitedOptionIds = limitedOptionIds.slice(0, 1);
+    }
+
     const next = selection.map((s) =>
-      s.categoryId === categoryId
-        ? {
-            ...s,
-            optionIds: addon.allow_multiple_options
-              ? nextOptionIds
-              : nextOptionIds.slice(0, 1),
-          }
-        : s
+      s.categoryId === categoryId ? { ...s, optionIds: limitedOptionIds } : s
     );
     emit(next);
   };
@@ -244,7 +249,10 @@ export default function AddonsSelector({
                     >
                       <HStack justify="space-between" align="center">
                         <HStack>
-                          <Radio value={String(addon.id)} />
+                          <Radio
+                            value={String(addon.id)}
+                            colorScheme="brandBlue"
+                          />
                           <VStack
                             align={isArabic ? "end" : "start"}
                             spacing={0}

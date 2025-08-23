@@ -87,7 +87,9 @@ export default function CategoriesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button onClick={handleAdd}>Add</Button>
+        <Button onClick={handleAdd} colorScheme="brandBlue">
+          Add
+        </Button>
       </HStack>
 
       <Box

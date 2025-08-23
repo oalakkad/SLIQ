@@ -1,5 +1,40 @@
 // theme.ts
-import { extendTheme } from "@chakra-ui/react";
+import { defineStyleConfig, extendTheme } from "@chakra-ui/react";
+
+export const Radio = defineStyleConfig({
+  baseStyle: {
+    control: {
+      borderRadius: "md", // square shape
+      _checked: {
+        bg: "brand.blue",       // background color when selected
+        borderColor: "brand.blue",
+        color: "white",
+
+        // remove the inner dot
+         _before: {
+          content: "none",
+        },
+      },
+    },
+  },
+});
+
+export const Checkbox = defineStyleConfig({
+  baseStyle: {
+    control: {
+      borderRadius: "md", // square edges (use "full" for rounded)
+      _checked: {
+        bg: "brand.blue",       // background color when checked
+        borderColor: "brand.blue",
+        color: "white",       // tick color (default is white)
+        _hover: {
+          bg: "brandBlue.600",
+          borderColor: "brandBlue.600",
+        },
+      },
+    },
+  },
+});
 
 const theme = extendTheme({
   colors: {
@@ -92,6 +127,8 @@ const theme = extendTheme({
   },
   },
   components: {
+    Checkbox,
+    Radio,
     Button: {
       baseStyle: {
         fontWeight: "medium",

@@ -152,7 +152,7 @@ export default function AddonsModal({
           )}
         </ModalBody>
 
-        <ModalFooter>
+        <ModalFooter justifyContent={"center"}>
           <Button
             variant="ghost"
             mr={isArabic ? 0 : 3}
@@ -163,9 +163,7 @@ export default function AddonsModal({
             {t.cancel}
           </Button>
           <Button
-            bg="gray.600"
-            color="white"
-            _hover={{ backgroundColor: "gray.500", color: "white" }}
+            variant={"solidBlue"}
             onClick={handleConfirm}
             fontFamily={headingFont}
             px={10}

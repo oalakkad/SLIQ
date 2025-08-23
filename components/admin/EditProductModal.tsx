@@ -30,6 +30,7 @@ import { FaTrash } from "react-icons/fa";
 
 import { AdminProduct, useAdminProducts } from "@/hooks/use-admin-products";
 import { useAdminCategories } from "@/hooks/use-admin-categories";
+import theme from "@/theme";
 
 type Mode = "create" | "edit";
 
@@ -384,6 +385,65 @@ export default function EditProductModal({
                 onChange={(vals) => setSelectedCategories(vals as any)}
                 placeholder="Select categories..."
                 classNamePrefix="rs"
+                styles={{
+                  // 🔹 merge both control customizations
+                  control: (base, state) => ({
+                    ...base,
+                    minHeight: 42, // from second config
+                    borderColor: state.isFocused
+                      ? theme.colors.brandBlue[500]
+                      : theme.colors.gray[300],
+                    boxShadow: state.isFocused
+                      ? `0 0 0 1px ${theme.colors.brandBlue[500]}`
+                      : undefined,
+                    "&:hover": {
+                      borderColor: theme.colors.brandBlue[400],
+                    },
+                  }),
+
+                  // 🔹 option styling (from first config)
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? theme.colors.brandBlue[500]
+                      : state.isFocused
+                      ? theme.colors.brandBlue[100]
+                      : "white",
+                    color: state.isSelected ? "white" : "black",
+                    cursor: "pointer",
+                  }),
+
+                  // 🔹 multi-value styles (from first config)
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: theme.colors.brandBlue[100],
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: theme.colors.brandBlue[700],
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: theme.colors.brandBlue[500],
+                    ":hover": {
+                      backgroundColor: theme.colors.brandBlue[500],
+                      color: "white",
+                    },
+                  }),
+
+                  // 🔹 menuPortal (from second config)
+                  menuPortal: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+
+                  // 🔹 valueContainer (from second config)
+                  valueContainer: (base) => ({
+                    ...base,
+                    paddingTop: 6,
+                    paddingBottom: 6,
+                  }),
+                }}
               />
             </FormControl>
 
@@ -393,9 +453,13 @@ export default function EditProductModal({
                   ? "Upload New Images"
                   : "Images (will upload after create)"}
               </FormLabel>
+
+              {/* ✅ Hidden file input */}
               <Input
                 type="file"
+                id="fileUpload"
                 multiple
+                display="none"
                 onChange={(e) => {
                   if (!e.target.files) return;
                   const files = Array.from(e.target.files);
@@ -436,6 +500,17 @@ export default function EditProductModal({
                   setImages((prev) => [...prev, ...tempPreviews]);
                 }}
               />
+
+              {/* ✅ Styled trigger button */}
+              <Button
+                as="label"
+                htmlFor="fileUpload"
+                colorScheme="brandBlue"
+                variant="outline"
+                cursor="pointer"
+              >
+                Choose Images
+              </Button>
             </FormControl>
 
             <FormControl>

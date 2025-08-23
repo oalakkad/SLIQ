@@ -124,7 +124,7 @@ export default function AddonsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button colorScheme="brandPink" onClick={() => setIsAddModalOpen(true)}>
+        <Button colorScheme="brandBlue" onClick={() => setIsAddModalOpen(true)}>
           Add
         </Button>
       </HStack>

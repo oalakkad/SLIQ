@@ -25,6 +25,7 @@ import * as Yup from "yup";
 import { useAdminAddonCategories } from "@/hooks/use-admin-addon-categories";
 import ReactSelect, { MultiValue } from "react-select";
 import { FaTrash } from "react-icons/fa";
+import theme from "@/theme";
 
 // Validation Schema
 const AddonSchema = Yup.object().shape({
@@ -163,11 +164,58 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                             : undefined
                         }
                         styles={{
-                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                          control: (base) => ({
+                          // 🔹 merge both control customizations
+                          control: (base, state) => ({
                             ...base,
-                            minHeight: 42,
+                            minHeight: 42, // from second config
+                            borderColor: state.isFocused
+                              ? theme.colors.brandBlue[500]
+                              : theme.colors.gray[300],
+                            boxShadow: state.isFocused
+                              ? `0 0 0 1px ${theme.colors.brandBlue[500]}`
+                              : undefined,
+                            "&:hover": {
+                              borderColor: theme.colors.brandBlue[400],
+                            },
                           }),
+
+                          // 🔹 option styling (from first config)
+                          option: (base, state) => ({
+                            ...base,
+                            backgroundColor: state.isSelected
+                              ? theme.colors.brandBlue[500]
+                              : state.isFocused
+                              ? theme.colors.brandBlue[100]
+                              : "white",
+                            color: state.isSelected ? "white" : "black",
+                            cursor: "pointer",
+                          }),
+
+                          // 🔹 multi-value styles (from first config)
+                          multiValue: (base) => ({
+                            ...base,
+                            backgroundColor: theme.colors.brandBlue[100],
+                          }),
+                          multiValueLabel: (base) => ({
+                            ...base,
+                            color: theme.colors.brandBlue[700],
+                          }),
+                          multiValueRemove: (base) => ({
+                            ...base,
+                            color: theme.colors.brandBlue[500],
+                            ":hover": {
+                              backgroundColor: theme.colors.brandBlue[500],
+                              color: "white",
+                            },
+                          }),
+
+                          // 🔹 menuPortal (from second config)
+                          menuPortal: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                          }),
+
+                          // 🔹 valueContainer (from second config)
                           valueContainer: (base) => ({
                             ...base,
                             paddingTop: 6,
