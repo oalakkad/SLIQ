@@ -68,8 +68,10 @@ export function AnimatedLinkWithDropdown({
         textDecoration="none"
         _hover={{ textDecoration: "none" }}
         whileHover="hover"
-        initial="initial"
-        animate={isOpen ? "hover" : "initial"}
+        initial={pathname === item.href ? "hover" : "initial"}
+        animate={
+          isOpen ? "hover" : pathname === item.href ? "hover" : "initial"
+        }
         position="relative"
         fontFamily={headingFont}
       >

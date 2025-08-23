@@ -130,7 +130,7 @@ export default function Page() {
       ? "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام."
       : "A brand founded on bold femininity, offering effective and effortless products.",
     ourStory: isArabic ? "قصتنا" : "Our Story",
-    kidsTitle: isArabic ? "الأطفال" : "Kids",
+    kidsTitle: isArabic ? "الأطفال" : "KIDS",
   };
 
   useEffect(() => {

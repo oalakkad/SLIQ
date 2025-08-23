@@ -4,9 +4,10 @@ import AddonsModal from "@/components/common/AddonsModal";
 import FeaturedCard, {
   FeaturedCardProps,
 } from "@/components/common/FeaturedCard";
+import PageSort from "@/components/common/PageSort";
 import PaginationButtons from "@/components/common/PaginationButtons";
 import { useCart } from "@/hooks/use-cart";
-import { usePaginatedProducts } from "@/hooks/use-products";
+import { SortKey, usePaginatedProducts } from "@/hooks/use-products";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useAppSelector } from "@/redux/hooks";
 import {
@@ -35,9 +36,14 @@ export default function Page() {
 
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = usePaginatedProducts(page, {
-    category_slug: slug,
-  });
+  const [sort, setSort] = useState<SortKey>(undefined);
+  const { data, isLoading } = usePaginatedProducts(
+    page,
+    {
+      category_slug: slug,
+    },
+    sort
+  );
 
   const { items: wishlist } = useWishlist();
 
@@ -48,7 +54,6 @@ export default function Page() {
   const totalPages = Math.ceil((data?.count || 0) / 12);
 
   const [color, setColor] = useState<string>("all");
-  const [sort, setSort] = useState<string>("none");
 
   const isArabic = useAppSelector((state) => state.lang.isArabic);
   const headingFont = isArabic
@@ -118,7 +123,7 @@ export default function Page() {
             justifyContent={"space-between"}
             pt={10}
           >
-            <Button
+            {/* <Button
               onClick={onToggle}
               w={isMobile ? "150px" : "250px"}
               h={"45px"}
@@ -182,33 +187,16 @@ export default function Page() {
                   </Flex>
                 }
               </Center>
-            )}
-            <Select
-              placeholder={isArabic ? "فرز حسب" : "SORT BY"}
-              size="lg"
-              w={isMobile ? "150px" : "250px"}
-              borderRadius={0}
-              border={"none"}
-              color={"gray.400"}
-              fontWeight={300}
-              fontFamily={bodyFont}
-              variant={"filled"}
-              h={"45px"}
-              bg="white"
-              value={sort}
-              style={{ paddingTop: "0" }}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="featured">{isArabic ? "مميز" : "Featured"}</option>
-              <option value="price-lth">
-                {isArabic ? "السعر من الأقل إلى الأعلى" : "Price, Low to High"}
-              </option>
-              <option value="price-htl">
-                {isArabic ? "السعر من الأعلى إلى الأقل" : "Price, High to Low"}
-              </option>
-            </Select>
+            )} */}
+            <PageSort
+              isMobile={isMobile}
+              isArabic={isArabic}
+              bodyFont={bodyFont}
+              sort={sort}
+              setSort={setSort}
+            />
           </Flex>
-          {isMobile && (
+          {/* {isMobile && (
             <Flex wrap="wrap" gap={1} justify="center" w={"100%"} mt={4}>
               {isOpen &&
                 COLORS.map((color) => (
@@ -225,7 +213,7 @@ export default function Page() {
                   />
                 ))}
             </Flex>
-          )}
+          )} */}
           <AnimatePresence mode="wait">
             {data && (
               <motion.div

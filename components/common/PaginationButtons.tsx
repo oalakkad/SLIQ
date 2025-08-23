@@ -2,6 +2,7 @@
 
 import { useAppSelector } from "@/redux/hooks";
 import { Button, Flex } from "@chakra-ui/react";
+import { useEffect } from "react";
 
 interface PaginationProps {
   totalPages: number;
@@ -16,6 +17,10 @@ export default function PaginationButtons({
 }: PaginationProps) {
   const isArabic = useAppSelector((state) => state.lang.isArabic);
   const pages = Array.from({ length: totalPages });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" }); // or 'auto'
+  }, [page]);
 
   return (
     <Flex
@@ -35,6 +40,7 @@ export default function PaginationButtons({
             mr={isArabic ? 0 : 1}
             ml={isArabic ? 1 : 0}
             border="none"
+            _hover={{ background: "#fde4e6", border: "none", color: "white" }}
             color={page === pageNum ? "white" : "black"}
             variant={page === pageNum ? "solidPink" : "outlinePink"}
           >

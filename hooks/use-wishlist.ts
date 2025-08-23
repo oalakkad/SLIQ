@@ -1,3 +1,4 @@
+import { useAppSelector } from '@/redux/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -57,10 +58,12 @@ const clearWishlistRequest = async () => {
 // --- Hook ---
 export const useWishlist = () => {
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   const wishlistQuery = useQuery<WishlistResponse, Error>({
     queryKey: ['wishlist'],
     queryFn: fetchWishlist,
+    enabled: isAuthenticated,
     staleTime: 60 * 1000,
   });
 

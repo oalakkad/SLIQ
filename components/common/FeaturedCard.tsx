@@ -212,26 +212,46 @@ export default function FeaturedCard({
           fontSize={isMobile ? "0.5rem" : "xs"}
           w="100%"
           py={6}
-          bg={isInCart ? "brand.pink" : "transparent"}
+          bg={
+            product?.stock_quantity === 0
+              ? "gray.300"
+              : isInCart
+              ? "brand.pink"
+              : "transparent"
+          }
           fontFamily={headingFont}
-          disabled={isInCart}
-          color={isInCart ? "black" : "gray.600"}
-          // onClick={(e) => {
-          //   e.stopPropagation(); // don't trigger card navigation
-          //   addToCart.mutate({ product_id: product.id, quantity: 1 });
-          // }}
+          disabled={isInCart || product?.stock_quantity === 0}
+          color={
+            product?.stock_quantity === 0
+              ? "gray.600"
+              : isInCart
+              ? "black"
+              : "gray.600"
+          }
           onClick={(e) => {
+            if (isInCart || product?.stock_quantity === 0) return;
             e.stopPropagation(); // don't trigger card navigation
             onCustomize?.();
+            // Or use addToCart.mutate here if needed
           }}
           _hover={
-            isInCart
+            product?.stock_quantity === 0
+              ? { backgroundColor: "gray.300" }
+              : isInCart
               ? { backgroundColor: "brand.pink" }
               : { backgroundColor: "gray.500", color: "white" }
           }
-          cursor={isInCart ? "not-allowed" : "pointer"}
+          cursor={
+            isInCart || product?.stock_quantity === 0
+              ? "not-allowed"
+              : "pointer"
+          }
         >
-          {isArabic
+          {product?.stock_quantity === 0
+            ? isArabic
+              ? "غير متوفر"
+              : "OUT OF STOCK"
+            : isArabic
             ? isInCart
               ? "في السلة"
               : "أضف إلى الحقيبة"

@@ -13,6 +13,7 @@ export interface Product {
   is_new_arrival: boolean;
   is_best_seller: boolean;
   categories: ProductCategory[];
+  stock_quantity: number;
 }
 
 export interface Filters {
@@ -31,6 +32,8 @@ interface PaginatedResponse {
   results: Product[];
 }
 
+export type SortKey = "featured" | "price-lth" | "price-htl" | undefined;
+
 const buildQueryParams = (filters: Filters, page: number) => {
   const params = new URLSearchParams({ page: page.toString() });
 
@@ -46,13 +49,16 @@ const buildQueryParams = (filters: Filters, page: number) => {
 
 export const usePaginatedProducts = (
   page: number,
-  filters: Filters = {}
+  filters: Filters = {},
+  sort?: SortKey
 ) =>
-  useQuery<PaginatedResponse>({
-    queryKey: ['products', { ...filters, page }],
+   useQuery<PaginatedResponse>({
+    // include `sort` in the cache key so each sort has its own cache entry
+    queryKey: ["products", { ...filters, page, sort }],
     queryFn: async () => {
-      const query = buildQueryParams(filters, page);
-      const response = await api.get(`/products/?${query}`, {
+      const query = buildQueryParams(filters, page); // ← unchanged
+      const ordering = sort ? `&ordering=${encodeURIComponent(sort)}` : "";
+      const response = await api.get(`/products/?${query}${ordering}`, {
         withCredentials: true,
       });
       return response.data;

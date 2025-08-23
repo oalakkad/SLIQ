@@ -13,7 +13,6 @@ import {
 export default function AdminHome() {
   const { stats, totalRevenueNumber, isLoading, isError, refetch } =
     useAdminStats();
-  console.log(stats);
   const status = [
     { label: "Total Orders", number: stats?.orders_count },
     {

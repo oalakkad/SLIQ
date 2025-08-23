@@ -1,3 +1,4 @@
+import { useAppSelector } from '@/redux/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -73,11 +74,13 @@ const removeCartItemRequest = async (id: number) => {
 
 // --- Hook ---
 export const useCart = () => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const queryClient = useQueryClient();
 
   const cartQuery = useQuery<Cart, Error>({
     queryKey: ['cart'],
     queryFn: fetchCart,
+    enabled: isAuthenticated,
     staleTime: 60 * 1000,
   });
 

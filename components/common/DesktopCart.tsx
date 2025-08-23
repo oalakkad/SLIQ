@@ -51,6 +51,7 @@ const parseMoney = (v: unknown) => Number.parseFloat(String(v ?? "0")) || 0;
 const kwd = (n: number) => `${n.toFixed(3)} KWD`;
 
 export default function DesktopCart() {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { data: cart, isLoading, updateCartItem, removeCartItem } = useCart();
 
   const isArabic = useAppSelector((state) => state.lang.isArabic);

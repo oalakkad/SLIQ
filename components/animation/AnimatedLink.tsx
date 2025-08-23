@@ -50,6 +50,7 @@ export function AnimatedLink({
           mb={marginBottom ?? 0}
           _hover={{ textDecoration: "none" }}
           whileHover="hover"
+          animate={pathname === href ? "hover" : "initial"}
           fontWeight={fontWeight ?? "bold"}
           initial="initial"
           fontSize="sm"

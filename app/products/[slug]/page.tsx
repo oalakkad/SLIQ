@@ -74,6 +74,8 @@ export default function ProductPage() {
     );
   }
 
+  console.log(product);
+
   return (
     <Flex
       direction={isMobile ? "column" : "row"}
@@ -135,31 +137,54 @@ export default function ProductPage() {
           flexDir={isArabic ? "row-reverse" : "row"}
           justifyContent={isArabic ? "right" : "left"}
         >
-          <Button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
+          <Button
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            variant={"ghost"}
+          >
             -
           </Button>
           <Text>{quantity}</Text>
-          <Button onClick={() => setQuantity((q) => q + 1)}>+</Button>
+          <Button onClick={() => setQuantity((q) => q + 1)} variant={"ghost"}>
+            +
+          </Button>
         </HStack>
 
         <Button
           mt={6}
           w="full"
-          bg={isInCart ? "gray.400" : "gray.700"}
+          bg={
+            product?.stock_quantity === 0
+              ? "gray.400"
+              : isInCart
+              ? "gray.400"
+              : "gray.700"
+          }
           color="white"
-          _hover={{ bg: isInCart ? "gray.400" : "gray.800" }}
-          onClick={() =>
+          _hover={{
+            bg:
+              product?.stock_quantity === 0
+                ? "gray.400"
+                : isInCart
+                ? "gray.400"
+                : "gray.800",
+          }}
+          onClick={() => {
+            if (product?.stock_quantity === 0 || isInCart) return; // block clicks
             openAddons({
               id: product?.id ?? -1,
               slug: product?.slug ?? "",
               name: product?.name ?? "",
-            })
-          }
-          disabled={isInCart}
+            });
+          }}
+          disabled={isInCart || product?.stock_quantity === 0}
           py={6}
           fontSize="sm"
         >
-          {isArabic
+          {product?.stock_quantity === 0
+            ? isArabic
+              ? "غير متوفر"
+              : "OUT OF STOCK"
+            : isArabic
             ? isInCart
               ? "في السلة"
               : "أضف إلى الحقيبة"
