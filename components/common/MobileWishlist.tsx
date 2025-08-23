@@ -35,7 +35,7 @@ export default function MobileWishlist() {
   }
 
   return (
-    <Box px={4} py={6}>
+    <Box px={4} py={6} dir={isArabic ? "rtl" : "ltr"}>
       {/* Title and Clear Wishlist */}
       <Flex direction="column" align="center" mb={6}>
         <Text fontSize="2xl" fontWeight="bold" mb={1}>
