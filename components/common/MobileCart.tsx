@@ -327,10 +327,7 @@ export default function MobileCart() {
                                   </Badge>
                                   <Text fontWeight="medium">{addonName}</Text>
                                   {sel.addon?.custom_name && (
-                                    <Badge
-                                      colorScheme="brandPink"
-                                      variant="outline"
-                                    >
+                                    <Badge colorScheme="blue" variant="outline">
                                       {isArabic
                                         ? `اسم مخصص: ${sel.addon.custom_name}`
                                         : `Custom name: ${sel.addon.custom_name}`}

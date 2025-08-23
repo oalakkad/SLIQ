@@ -271,169 +271,175 @@ export default function AddonsSelector({
                         index={isSelected ? 0 : undefined}
                         mt={2}
                       >
-                        <AccordionItem isDisabled={!isSelected}>
-                          <h2>
-                            <AccordionButton>
-                              <Box
-                                as="span"
-                                flex="1"
-                                textAlign={isArabic ? "right" : "left"}
-                              >
-                                {t.configure}
-                              </Box>
-                              <AccordionIcon />
-                            </AccordionButton>
-                          </h2>
-                          <AccordionPanel pb={4}>
-                            <VStack align="stretch" spacing={3}>
-                              {addon.requires_custom_name && (
-                                <Box>
-                                  <Text
-                                    fontSize="sm"
-                                    mb={1}
-                                    textAlign={isArabic ? "right" : "left"}
-                                  >
-                                    {t.customName}
-                                  </Text>
-                                  <Input
-                                    placeholder={t.customNamePlaceholder}
-                                    dir={isArabic ? "rtl" : "ltr"}
-                                    value={sel.customName ?? ""}
-                                    onChange={(e) =>
-                                      handleCustomName(cat.id, e.target.value)
-                                    }
-                                  />
-                                </Box>
-                              )}
-
-                              {addon.options.length > 0 ? (
-                                addon.allow_multiple_options ? (
-                                  <CheckboxGroup
-                                    value={sel.optionIds.map(String)}
-                                    onChange={(vals) =>
-                                      handleToggleOption(
-                                        cat.id,
-                                        addon,
-                                        (vals as string[]).map(Number)
-                                      )
-                                    }
-                                  >
-                                    <VStack align="stretch" spacing={2}>
-                                      {addon.options.map((opt) => {
-                                        const optName = displayName(
-                                          isArabic,
-                                          opt.name,
-                                          opt.name_ar
-                                        );
-                                        return (
-                                          <HStack
-                                            key={opt.id}
-                                            justify="space-between"
-                                          >
-                                            <Checkbox value={String(opt.id)}>
-                                              <Stack spacing={0}>
-                                                <Text
-                                                  textAlign={
-                                                    isArabic ? "right" : "left"
-                                                  }
-                                                >
-                                                  {optName}
-                                                </Text>
-                                              </Stack>
-                                            </Checkbox>
-                                            {showPrices && (
-                                              <Text fontSize="sm">
-                                                +{" "}
-                                                {formatKwd(
-                                                  Number(opt.price || 0)
-                                                )}
-                                              </Text>
-                                            )}
-                                          </HStack>
-                                        );
-                                      })}
-                                    </VStack>
-                                  </CheckboxGroup>
-                                ) : (
-                                  <RadioGroup
-                                    value={
-                                      sel.optionIds[0]
-                                        ? String(sel.optionIds[0])
-                                        : ""
-                                    }
-                                    onChange={(val) =>
-                                      handleToggleOption(cat.id, addon, [
-                                        Number(val),
-                                      ])
-                                    }
-                                  >
-                                    <VStack align="stretch" spacing={2}>
-                                      {addon.options.map((opt) => {
-                                        const optName = displayName(
-                                          isArabic,
-                                          opt.name,
-                                          opt.name_ar
-                                        );
-                                        return (
-                                          <HStack
-                                            key={opt.id}
-                                            justify="space-between"
-                                          >
-                                            <Radio value={String(opt.id)}>
-                                              <Stack spacing={0}>
-                                                <Text
-                                                  textAlign={
-                                                    isArabic ? "right" : "left"
-                                                  }
-                                                >
-                                                  {optName}
-                                                </Text>
-                                              </Stack>
-                                            </Radio>
-                                            {showPrices && (
-                                              <Text fontSize="sm">
-                                                +{" "}
-                                                {formatKwd(
-                                                  Number(opt.price || 0)
-                                                )}
-                                              </Text>
-                                            )}
-                                          </HStack>
-                                        );
-                                      })}
-                                    </VStack>
-                                  </RadioGroup>
-                                )
-                              ) : (
-                                <Text
-                                  fontSize="sm"
-                                  color="gray.500"
+                        {addon.options.length > 0 && (
+                          <AccordionItem isDisabled={!isSelected}>
+                            <h2>
+                              <AccordionButton>
+                                <Box
+                                  as="span"
+                                  flex="1"
                                   textAlign={isArabic ? "right" : "left"}
                                 >
-                                  {t.noOptions}
-                                </Text>
-                              )}
-
-                              {showPrices && isSelected && (
-                                <>
-                                  <Divider />
-                                  <HStack justify="space-between">
+                                  {t.configure}
+                                </Box>
+                                <AccordionIcon />
+                              </AccordionButton>
+                            </h2>
+                            <AccordionPanel pb={4}>
+                              <VStack align="stretch" spacing={3}>
+                                {addon.requires_custom_name && (
+                                  <Box>
                                     <Text
                                       fontSize="sm"
-                                      color="gray.600"
+                                      mb={1}
                                       textAlign={isArabic ? "right" : "left"}
                                     >
-                                      {t.subtotal}
+                                      {t.customName}
                                     </Text>
-                                    <Text fontWeight="semibold">
-                                      {formatKwd(Number(chosenTotal))}
-                                    </Text>
-                                  </HStack>
-                                </>
-                              )}
-                            </VStack>
-                          </AccordionPanel>
-                        </AccordionItem>
+                                    <Input
+                                      placeholder={t.customNamePlaceholder}
+                                      dir={isArabic ? "rtl" : "ltr"}
+                                      value={sel.customName ?? ""}
+                                      onChange={(e) =>
+                                        handleCustomName(cat.id, e.target.value)
+                                      }
+                                    />
+                                  </Box>
+                                )}
+
+                                {addon.options.length > 0 ? (
+                                  addon.allow_multiple_options ? (
+                                    <CheckboxGroup
+                                      value={sel.optionIds.map(String)}
+                                      onChange={(vals) =>
+                                        handleToggleOption(
+                                          cat.id,
+                                          addon,
+                                          (vals as string[]).map(Number)
+                                        )
+                                      }
+                                    >
+                                      <VStack align="stretch" spacing={2}>
+                                        {addon.options.map((opt) => {
+                                          const optName = displayName(
+                                            isArabic,
+                                            opt.name,
+                                            opt.name_ar
+                                          );
+                                          return (
+                                            <HStack
+                                              key={opt.id}
+                                              justify="space-between"
+                                            >
+                                              <Checkbox value={String(opt.id)}>
+                                                <Stack spacing={0}>
+                                                  <Text
+                                                    textAlign={
+                                                      isArabic
+                                                        ? "right"
+                                                        : "left"
+                                                    }
+                                                  >
+                                                    {optName}
+                                                  </Text>
+                                                </Stack>
+                                              </Checkbox>
+                                              {showPrices && (
+                                                <Text fontSize="sm">
+                                                  +{" "}
+                                                  {formatKwd(
+                                                    Number(opt.price || 0)
+                                                  )}
+                                                </Text>
+                                              )}
+                                            </HStack>
+                                          );
+                                        })}
+                                      </VStack>
+                                    </CheckboxGroup>
+                                  ) : (
+                                    <RadioGroup
+                                      value={
+                                        sel.optionIds[0]
+                                          ? String(sel.optionIds[0])
+                                          : ""
+                                      }
+                                      onChange={(val) =>
+                                        handleToggleOption(cat.id, addon, [
+                                          Number(val),
+                                        ])
+                                      }
+                                    >
+                                      <VStack align="stretch" spacing={2}>
+                                        {addon.options.map((opt) => {
+                                          const optName = displayName(
+                                            isArabic,
+                                            opt.name,
+                                            opt.name_ar
+                                          );
+                                          return (
+                                            <HStack
+                                              key={opt.id}
+                                              justify="space-between"
+                                            >
+                                              <Radio value={String(opt.id)}>
+                                                <Stack spacing={0}>
+                                                  <Text
+                                                    textAlign={
+                                                      isArabic
+                                                        ? "right"
+                                                        : "left"
+                                                    }
+                                                  >
+                                                    {optName}
+                                                  </Text>
+                                                </Stack>
+                                              </Radio>
+                                              {showPrices && (
+                                                <Text fontSize="sm">
+                                                  +{" "}
+                                                  {formatKwd(
+                                                    Number(opt.price || 0)
+                                                  )}
+                                                </Text>
+                                              )}
+                                            </HStack>
+                                          );
+                                        })}
+                                      </VStack>
+                                    </RadioGroup>
+                                  )
+                                ) : (
+                                  <Text
+                                    fontSize="sm"
+                                    color="gray.500"
+                                    textAlign={isArabic ? "right" : "left"}
+                                  >
+                                    {t.noOptions}
+                                  </Text>
+                                )}
+
+                                {showPrices && isSelected && (
+                                  <>
+                                    <Divider />
+                                    <HStack justify="space-between">
+                                      <Text
+                                        fontSize="sm"
+                                        color="gray.600"
+                                        textAlign={isArabic ? "right" : "left"}
+                                      >
+                                        {t.subtotal}
+                                      </Text>
+                                      <Text fontWeight="semibold">
+                                        {formatKwd(Number(chosenTotal))}
+                                      </Text>
+                                    </HStack>
+                                  </>
+                                )}
+                              </VStack>
+                            </AccordionPanel>
+                          </AccordionItem>
+                        )}
                       </Accordion>
                     </Box>
                   );

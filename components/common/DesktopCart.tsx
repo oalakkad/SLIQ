@@ -359,7 +359,7 @@ export default function DesktopCart() {
                                       </Text>
                                       {sel.addon?.custom_name && (
                                         <Badge
-                                          colorScheme="brandPink"
+                                          colorScheme="blue"
                                           variant="outline"
                                         >
                                           {isArabic
