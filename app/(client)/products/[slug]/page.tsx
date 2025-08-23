@@ -20,6 +20,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import AddonsModal from "@/components/common/AddonsModal";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 export default function ProductPage() {
   const params = useParams();
@@ -62,9 +63,20 @@ export default function ProductPage() {
     }
   }, [product]);
 
+  const { data: wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+
   const isInCart = useMemo(() => {
     return cart?.items?.some((item) => item.product?.id === product?.id);
   }, [cart, product]);
+
+  const isInWishlist = useMemo(() => {
+    return wishlist?.results?.some((item) => item.product?.id === product?.id);
+  }, [wishlist, product]);
+
+  const wishlistId = useMemo(() => {
+    return wishlist?.results.find((item) => item.product?.id === product?.id)
+      ?.id;
+  }, [wishlist, product]);
 
   if (isLoading) {
     return (
@@ -73,8 +85,6 @@ export default function ProductPage() {
       </Flex>
     );
   }
-
-  console.log(product);
 
   return (
     <Flex
@@ -193,8 +203,26 @@ export default function ProductPage() {
             : "ADD TO BAG"}
         </Button>
 
-        <Button leftIcon={<FiHeart />} variant="ghost" mt={2} w={"full"}>
-          {isArabic ? "أضف إلى المفضلة" : "Add to Wishlist"}
+        <Button
+          leftIcon={<FiHeart />}
+          variant="ghost"
+          bg={isInWishlist ? "brand.pink" : "transparent"}
+          _hover={{ bg: "brandPink.600", color: "gray.700" }}
+          mt={2}
+          w={"full"}
+          onClick={
+            isInWishlist
+              ? () => removeFromWishlist.mutate(wishlistId ?? -1)
+              : () => addToWishlist.mutate({ product: product?.id ?? -1 })
+          }
+        >
+          {isInWishlist
+            ? isArabic
+              ? "في قائمة الرغبات"
+              : "In Wishlist"
+            : isArabic
+            ? "أضف إلى الرغبات"
+            : "Add to Wishlist"}
         </Button>
 
         <Text mt={6} fontSize="sm" color="gray.700">

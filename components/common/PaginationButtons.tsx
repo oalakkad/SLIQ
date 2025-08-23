@@ -22,6 +22,10 @@ export default function PaginationButtons({
     window.scrollTo({ top: 0, behavior: "smooth" }); // or 'auto'
   }, [page]);
 
+  if (totalPages <= 1) {
+    return null;
+  }
+
   return (
     <Flex
       w="100%"

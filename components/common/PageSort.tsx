@@ -20,7 +20,6 @@ export default function PageSort({
   isArabic,
   isMobile,
 }: PageSortProps) {
-  console.log(sort);
   return (
     <Select
       placeholder={isArabic ? "فرز حسب" : "SORT BY"}
@@ -42,12 +41,12 @@ export default function PageSort({
         setSort(v || undefined); // "" -> undefined, others unchanged
       }}
     >
-      <option value="featured">{isArabic ? "مميز" : "Featured"}</option>
+      <option value="featured">{isArabic ? "مميز" : "FEATURED"}</option>
       <option value="price-lth">
-        {isArabic ? "السعر من الأقل إلى الأعلى" : "Price, Low to High"}
+        {isArabic ? "السعر من الأقل إلى الأعلى" : "PRICE, LOW TO HIGH"}
       </option>
       <option value="price-htl">
-        {isArabic ? "السعر من الأعلى إلى الأقل" : "Price, High to Low"}
+        {isArabic ? "السعر من الأعلى إلى الأقل" : "PRICE, HIGH TO LOW"}
       </option>
     </Select>
   );

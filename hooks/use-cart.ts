@@ -1,6 +1,7 @@
 import { useAppSelector } from '@/redux/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { api } from '@/components/utils/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -50,15 +51,15 @@ const fetchCart = async (): Promise<Cart> => {
 };
 
 const addToCartRequest = async (payload: AddToCartPayload) => {
-  const res = await axios.post(`${API_URL}/cart/items/add/`, payload, {
+  const res = await api.post("/cart/items/add/", payload, {
     withCredentials: true,
   });
   return res.data;
 };
 
 const updateCartItemRequest = async (payload: { id: number; quantity: number }) => {
-  const res = await axios.patch(
-    `${API_URL}/cart/items/${payload.id}/update/`,
+  const res = await api.patch(
+    `/cart/items/${payload.id}/update/`,
     { quantity: payload.quantity },
     { withCredentials: true }
   );
@@ -66,7 +67,7 @@ const updateCartItemRequest = async (payload: { id: number; quantity: number }) 
 };
 
 const removeCartItemRequest = async (id: number) => {
-  const res = await axios.delete(`${API_URL}/cart/items/${id}/delete/`, {
+  const res = await api.delete(`/cart/items/${id}/delete/`, {
     withCredentials: true,
   });
   return res.data;
