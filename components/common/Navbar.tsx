@@ -75,9 +75,9 @@ export default function Navbar() {
       children: null,
     },
     {
-      id: "logbook",
-      href: "/logbook",
-      name: isArabic ? "سجل الصور" : "Logbook",
+      id: "LOOKBOOK",
+      href: "/LOOKBOOK",
+      name: isArabic ? "سجل الصور" : "LOOKBOOK",
       children: null,
     },
     {

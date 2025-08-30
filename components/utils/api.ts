@@ -48,7 +48,7 @@ function notifyAll(ok: boolean) {
 
 /**
  * ----------------------------
- * Utilities (browser-only guards)
+ * Helpers
  * ----------------------------
  */
 let hasRedirectedToLogin = false;
@@ -60,17 +60,13 @@ function isOnAuthRoute(): boolean {
 }
 
 function safeRedirectToLogin() {
-  if (typeof window === "undefined") return; // SSR: let caller handle navigation
-  if (hasRedirectedToLogin) return;          // Debounce multiple redirects
-  if (isOnAuthRoute()) return;               // Already on login/related page
+  if (typeof window === "undefined") return;
+  if (hasRedirectedToLogin) return;
+  if (isOnAuthRoute()) return;
   hasRedirectedToLogin = true;
-  // replace avoids stacking history entries, which can feel like a "back" loop
   window.location.replace("/auth/login");
 }
 
-/**
- * Wait for the active refresh to complete, but time out if it takes too long.
- */
 function waitForRefreshWithTimeout(timeoutMs: number) {
   return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -85,41 +81,32 @@ function waitForRefreshWithTimeout(timeoutMs: number) {
   });
 }
 
-/**
- * ----------------------------
- * Helpers
- * ----------------------------
- */
-type Cfg = AxiosRequestConfig & {
-  _retryCount?: number;
-  // Optional per-request escape hatches:
-  //   headers: { "x-public": "1" }   -> never try refresh/redirect for this call
-  //   headers: { "x-skip-auth": "1" }-> alias; same effect
-};
+type Cfg = AxiosRequestConfig & { _retryCount?: number };
 
-function isPublicRequest(cfg?: AxiosRequestConfig) {
-  const h = (cfg?.headers || {}) as Record<string, any>;
-  // Support booleans/strings
-  return h["x-public"] === "1" || h["x-public"] === true || h["x-skip-auth"] === "1" || h["x-skip-auth"] === true;
+/**
+ * Check if request is public (skip auth/cookies/refresh)
+ * Convention: add `config.public = true` when calling api
+ */
+function isPublicRequest(cfg?: any): boolean {
+  if (!cfg) return false;
+  if (cfg.public) return true;
+
+  const url = (cfg.url || "").toString();
+  if (url.includes("/payments/verify/")) return true;
+
+  return false;
 }
 
 function shouldBypass(error: AxiosError, req: Cfg) {
   const res = error.response;
 
-  // No response -> network/timeout/etc. Let caller decide.
   if (!res) return true;
-
-  // Do not intercept refresh endpoint itself
   if (req.url?.includes(REFRESH_PATH)) return true;
-
-  // Do not intercept explicitly public calls
   if (isPublicRequest(req)) return true;
 
-  // Only handle 401; also bypass for 403/419 (often CSRF/session issues)
   if (res.status === 403 || res.status === 419) return true;
   if (res.status !== 401) return true;
 
-  // Enforce per-request retry cap
   const count = req._retryCount ?? 0;
   if (count >= MAX_401_RETRIES) return true;
 
@@ -128,9 +115,24 @@ function shouldBypass(error: AxiosError, req: Cfg) {
 
 /**
  * ----------------------------
- * Interceptor
+ * Interceptors
  * ----------------------------
  */
+
+// Request interceptor: make public calls simple (no cookies/headers)
+api.interceptors.request.use((config: any) => {
+  if (isPublicRequest(config)) {
+    config.withCredentials = false;
+    if (config.headers) {
+      delete config.headers.Authorization;
+      delete config.headers["X-CSRFToken"];
+      delete config.headers["x-csrftoken"];
+    }
+  }
+  return config;
+});
+
+// Response interceptor: refresh handling
 api.interceptors.response.use(
   (res: AxiosResponse) => res,
   async (error: AxiosError) => {
@@ -140,16 +142,13 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Track retry count for this request
     originalRequest._retryCount = (originalRequest._retryCount ?? 0) + 1;
 
-    // If a refresh is already running, wait (with timeout) then retry
     if (isRefreshing && refreshPromise) {
       try {
         await waitForRefreshWithTimeout(REFRESH_WAIT_TIMEOUT_MS);
         return api(originalRequest);
       } catch (waitErr) {
-        // If we failed waiting for refresh (timeout/fail), redirect once (client-side) then reject
         safeRedirectToLogin();
         return Promise.reject(waitErr);
       }
@@ -159,12 +158,10 @@ api.interceptors.response.use(
     isRefreshing = true;
     refreshPromise = (async () => {
       try {
-        // Adjust body if your backend expects specific payload for refresh
         await api.post(REFRESH_PATH, {});
         notifyAll(true);
       } catch (e) {
         notifyAll(false);
-        // Only redirect on the client and only once, not if already on an auth route
         safeRedirectToLogin();
         throw e;
       } finally {
@@ -173,10 +170,7 @@ api.interceptors.response.use(
       }
     })();
 
-    // Wait for the refresh we just started
     await refreshPromise;
-
-    // Retry the original request after successful refresh
     return api(originalRequest);
   }
 );

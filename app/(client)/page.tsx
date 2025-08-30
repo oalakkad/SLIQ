@@ -129,7 +129,7 @@ export default function Page() {
     aboutDesc: isArabic
       ? "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام."
       : "A brand founded on bold femininity, offering effective and effortless products.",
-    ourStory: isArabic ? "سجلنا" : "Our Logbook",
+    ourStory: isArabic ? "سجلنا" : "Our LOOKBOOK",
     kidsTitle: isArabic ? "الأطفال" : "KIDS",
   };
 
@@ -269,7 +269,7 @@ export default function Page() {
         title={t.aboutUs}
         description={t.aboutDesc}
         buttonText={t.ourStory}
-        buttonLink="/logbook"
+        buttonLink="/LOOKBOOK"
         imageSrc={`${API_URL}/media/home/banner2.svg`}
       />
     </Box>

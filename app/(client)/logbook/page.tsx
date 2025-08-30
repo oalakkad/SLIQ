@@ -45,7 +45,7 @@ export default function DesktopCart() {
   return (
     <Box w={"100%"}>
       <Heading textAlign={"center"} my={5} color={"gray.600"}>
-        {isArabic ? "سجل الصور" : "Logbook"}
+        {isArabic ? "سجل الصور" : "LOOKBOOK"}
       </Heading>
       <div style={{ width: "100%" }}>
         <iframe

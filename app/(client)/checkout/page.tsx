@@ -16,13 +16,17 @@ import {
   Image,
   InputLeftAddon,
   InputGroup,
+  useToast,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAddress } from "@/hooks/use-address";
 import AddAddressModal from "@/components/common/AddressModal";
 import { Cart, CartItem, useCart } from "@/hooks/use-cart";
-import { useOrders } from "@/hooks/use-orders";
 import { useSelector } from "react-redux";
+import SelectPaymentMethod from "@/components/payments/SelectPaymentMethod";
+import { useStartCheckout } from "@/hooks/use-payments";
 
 const OrderSummary = ({
   cart,
@@ -42,7 +46,12 @@ const OrderSummary = ({
         cart.items.map((item: CartItem) => (
           <Flex key={item.id} align="center" justify="space-between">
             <Flex gap={3} align="center">
-              <Box boxSize="50px" bg="gray.200" borderRadius="md">
+              <Box
+                boxSize="50px"
+                bg="gray.200"
+                borderRadius="md"
+                overflow="hidden"
+              >
                 <Image
                   src={item.product.image}
                   alt={isArabic ? item.product.name_ar : item.product.name}
@@ -57,7 +66,7 @@ const OrderSummary = ({
               </Box>
             </Flex>
             <Text>
-              {(Number(item.product.price) * item.quantity).toFixed(2)}{" "}
+              {(Number(item.product.price) * item.quantity).toFixed(3)}{" "}
               {isArabic ? "دينار كويتي" : "KWD"}
             </Text>
           </Flex>
@@ -85,9 +94,9 @@ const OrderSummary = ({
 );
 
 export default function CheckoutPage() {
+  const toast = useToast();
   const { data: cart, isLoading } = useCart();
   const { data: addresses, isLoading: isAddressLoading } = useAddress();
-  const { createOrder } = useOrders();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isArabic = useSelector((state: any) => state.lang.isArabic);
 
@@ -96,12 +105,69 @@ export default function CheckoutPage() {
     null
   );
 
+  // Payment-intent hook
+  const startCheckout = useStartCheckout();
+
+  // Track checkoutPaymentId + server-confirmed amount/currency from startCheckout
+  const [cpId, setCpId] = useState<number | null>(null);
+  const [cpAmount, setCpAmount] = useState<string | null>(null);
+  const [cpCurrency, setCpCurrency] = useState<string | null>(null);
+
+  const hasItems = useMemo(() => (cart?.items?.length ?? 0) > 0, [cart]);
+
   useEffect(() => {
     if (addresses?.results?.length && selectedAddressId === null) {
-      const defaultAddr = addresses.results.find((addr) => addr.is_default);
+      const defaultAddr = addresses.results.find(
+        (addr: any) => addr.is_default
+      );
       if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     }
   }, [addresses, selectedAddressId]);
+
+  // Start a checkout intent (does NOT create an order)
+  const handleContinueToPayment = () => {
+    if (!hasItems) {
+      toast({
+        status: "warning",
+        title: isArabic ? "السلة فارغة" : "Cart is empty",
+      });
+      return;
+    }
+    if (!selectedAddressId) {
+      toast({
+        status: "warning",
+        title: isArabic
+          ? "اختر عنوانًا للتوصيل"
+          : "Please select a delivery address",
+      });
+      return;
+    }
+
+    startCheckout.mutate(
+      { address_id: selectedAddressId, cart }, // cart is optional if server recomputes
+      {
+        onSuccess: ({ checkoutPaymentId, amount, currency }) => {
+          setCpId(checkoutPaymentId);
+          setCpAmount(amount);
+          setCpCurrency(currency);
+          toast({
+            status: "success",
+            title: isArabic ? "جاهز للدفع" : "Ready for payment",
+            description: isArabic
+              ? "اختر طريقة الدفع"
+              : "Select a payment method",
+          });
+        },
+        onError: (e: any) => {
+          toast({
+            status: "error",
+            title: isArabic ? "تعذّر التحضير للدفع" : "Failed to start payment",
+            description: e?.message ?? "",
+          });
+        },
+      }
+    );
+  };
 
   return (
     <Flex
@@ -160,7 +226,7 @@ export default function CheckoutPage() {
             <Spinner color="brand.pink" />
           ) : addresses?.results?.length ? (
             <VStack spacing={4} align="stretch">
-              {addresses.results.map((address) => (
+              {addresses.results.map((address: any) => (
                 <Box
                   key={address.id}
                   onClick={() => setSelectedAddressId(address.id)}
@@ -190,45 +256,51 @@ export default function CheckoutPage() {
         </Box>
 
         <Divider my={8} />
+
+        {/* PAYMENT */}
         <Heading size="md" mb={6} textAlign={isArabic ? "right" : "left"}>
           {isArabic ? "الدفع" : "PAYMENT"}
         </Heading>
 
-        <Stack spacing={4}>
-          <Checkbox
-            isChecked={useShippingAsBilling}
-            onChange={(e) => setUseShippingAsBilling(e.target.checked)}
+        {/* Before starting checkout: button */}
+        {!cpId && (
+          <Button
+            variant="solidBlue"
+            w="full"
+            py={7}
+            onClick={handleContinueToPayment}
+            isLoading={startCheckout.isPending}
+            loadingText={
+              isArabic ? "جارِ التحضير للدفع..." : "Preparing payment..."
+            }
+            isDisabled={!hasItems || isAddressLoading}
           >
-            {isArabic
-              ? "استخدم عنوان الشحن كعنوان الفوترة"
-              : "Use shipping address as billing address"}
-          </Checkbox>
-          <Input placeholder={isArabic ? "رقم البطاقة" : "Card number"} />
-          <Flex gap={4} direction={isArabic ? "row-reverse" : "row"}>
-            <Input
-              placeholder={
-                isArabic ? "تاريخ الانتهاء" : "Expiration date (MM / YY)"
-              }
-            />
-            <Input placeholder={isArabic ? "رمز الأمان" : "Security code"} />
-          </Flex>
-          <Input
-            placeholder={isArabic ? "الاسم على البطاقة" : "Name on card"}
-          />
-        </Stack>
-
-        {!useShippingAsBilling && (
-          <Stack spacing={4} mt={4}>
-            <Input placeholder={isArabic ? "البلد" : "Country"} />
-            <Input placeholder={isArabic ? "العنوان" : "Address"} />
-            <Flex gap={4} direction={isArabic ? "row-reverse" : "row"}>
-              <Input placeholder={isArabic ? "الولاية" : "State"} />
-              <Input placeholder={isArabic ? "المدينة" : "City"} />
-              <Input placeholder={isArabic ? "الرمز البريدي" : "ZIP code"} />
-            </Flex>
-          </Stack>
+            {isArabic ? "المتابعة إلى الدفع" : "Continue to Payment"}
+          </Button>
         )}
 
+        {/* After checkout intent: show server-confirmed amount & methods */}
+        {cpId && (
+          <Box mt={4}>
+            {(cpAmount || cpCurrency) && (
+              <Alert status="info" mb={4} borderRadius="md">
+                <AlertIcon />
+                <Text>
+                  {isArabic
+                    ? `المبلغ المستحق: ${cpAmount ?? "-"} ${
+                        cpCurrency ?? "KWD"
+                      } (مؤكّد من الخادم)`
+                    : `Amount due: ${cpAmount ?? "-"} ${
+                        cpCurrency ?? "KWD"
+                      } (server-confirmed)`}
+                </Text>
+              </Alert>
+            )}
+            <SelectPaymentMethod checkoutPaymentId={cpId} />
+          </Box>
+        )}
+
+        {/* Remember me + phone (optional) */}
         <Divider my={8} />
         <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
           {isArabic ? "تذكرني" : "REMEMBER ME"}
@@ -238,7 +310,7 @@ export default function CheckoutPage() {
             ? "احفظ معلوماتي لسهولة التسوق لاحقًا"
             : "Save my information for faster checkout"}
         </Checkbox>
-        <InputGroup>
+        <InputGroup mt={2}>
           <InputLeftAddon bg="brand.blue">+965</InputLeftAddon>
           <Input
             type="tel"
@@ -246,6 +318,7 @@ export default function CheckoutPage() {
           />
         </InputGroup>
 
+        {/* Mobile order summary */}
         <Box display={{ base: "block", md: "none" }} mt={10}>
           <OrderSummary
             cart={cart ?? { id: -1, items: [] }}
@@ -253,16 +326,6 @@ export default function CheckoutPage() {
             isArabic={isArabic}
           />
         </Box>
-
-        <Button
-          variant="solidBlue"
-          mt={6}
-          w="full"
-          py={7}
-          onClick={() => createOrder.mutate()}
-        >
-          {isArabic ? "ادفع الآن" : "PAY NOW"}
-        </Button>
       </Box>
 
       {/* Order summary last if English */}
