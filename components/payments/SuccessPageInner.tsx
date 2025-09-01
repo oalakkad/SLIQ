@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Heading,
@@ -16,24 +16,38 @@ import {
 import { useVerifyPayment } from "@/hooks/use-payments";
 import { useSelector } from "react-redux";
 
-export default function SuccessPageInner() {
-  const params = useSearchParams();
+// Props passed from server page
+type SuccessPageInnerProps = {
+  initialPaymentId: string;
+  initialCpId: number | null;
+};
+
+export default function SuccessPageInner({
+  initialPaymentId,
+  initialCpId,
+}: SuccessPageInnerProps) {
   const router = useRouter();
   const isArabic = useSelector((s: any) => s.lang.isArabic);
   const verify = useVerifyPayment();
 
-  const paymentId = params.get("paymentId") || "";
-  const cpId = params.get("cpId");
+  // Debug logging
+  useEffect(() => {
+    console.log("[SuccessPageInner] mounted with", {
+      initialPaymentId,
+      initialCpId,
+      verify,
+    });
+  }, [initialPaymentId, initialCpId, verify]);
 
   // Trigger verification once on mount
   useEffect(() => {
-    if (paymentId && cpId && verify.isIdle) {
-      verify.mutate({ paymentId, cpId: Number(cpId) });
+    if (initialPaymentId && initialCpId && verify.isIdle) {
+      verify.mutate({ paymentId: initialPaymentId, cpId: initialCpId });
     }
-  }, [paymentId, cpId, verify.isIdle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialPaymentId, initialCpId, verify.isIdle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Missing params
-  if (!paymentId || !cpId) {
+  if (!initialPaymentId || !initialCpId) {
     return (
       <Box p={8} minH={"50vh"}>
         <Alert status="error" borderRadius="md">
@@ -62,6 +76,7 @@ export default function SuccessPageInner() {
 
   // Error → failed
   if (verify.isError) {
+    console.error("[SuccessPageInner] verify error:", verify.error);
     return (
       <VStack p={8} textAlign="center" minH={"50vh"} justifyContent={"center"}>
         <Alert status="error" borderRadius="md" mb={4}>
@@ -79,11 +94,22 @@ export default function SuccessPageInner() {
     );
   }
 
-  // Success: API returned data
+  // Success
   const data = verify.data as {
     paymentStatus: "paid" | "failed";
-    orderId?: number | null;
+    order: {
+      id: number;
+      user: number | null;
+      status: string;
+      total_price: string;
+      created_at: string;
+      updated_at: string;
+      items: any[];
+      guest_email?: string | null;
+    } | null;
   };
+
+  const isGuestOrder = !data?.order?.user;
 
   return (
     <Flex
@@ -93,19 +119,29 @@ export default function SuccessPageInner() {
       flexDir={"column"}
       justifyContent={"center"}
     >
-      {data?.paymentStatus === "paid" ? (
+      {data?.paymentStatus === "paid" && data.order ? (
         <VStack justifyContent={"center"}>
           <Heading size="lg">
             {isArabic ? "تم الدفع بنجاح" : "Payment Successful"}
           </Heading>
+
           <Text mt={3}>
             {isArabic
-              ? `رقم الطلب: ${data.orderId}`
-              : `Your order number is ${data.orderId}.`}
+              ? `رقم الطلب: ${data.order.id}`
+              : `Your order number is ${data.order.id}.`}
           </Text>
-          <Button mt={6} onClick={() => router.push("/orders")} w={"lg"}>
-            {isArabic ? "عرض الطلب" : "View Order"}
-          </Button>
+
+          {isGuestOrder ? (
+            <Text mt={4} maxW="lg">
+              {isArabic
+                ? "لقد تم تسجيل طلبك بنجاح. ستصلك التحديثات عبر البريد الإلكتروني الذي أدخلته."
+                : "Your order has been placed successfully. You will receive updates via the email you provided."}
+            </Text>
+          ) : (
+            <Button mt={6} onClick={() => router.push("/orders")} w={"lg"}>
+              {isArabic ? "عرض الطلب" : "View Order"}
+            </Button>
+          )}
         </VStack>
       ) : (
         <>

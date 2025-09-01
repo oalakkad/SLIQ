@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/components/utils/api';
+import { useAppSelector } from '@/redux/hooks';
 
 // --- Types ---
 export interface Address {
@@ -59,11 +60,13 @@ const setDefaultAddressRequest = async (id: number) => {
 // --- Hook ---
 export const useAddress = () => {
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
 
   const addressQuery = useQuery<PaginatedAddressResponse>({
     queryKey: ['addresses'],
     queryFn: fetchAddresses,
     staleTime: 60 * 1000,
+    enabled: isAuthenticated,
   });
 
   const create = useMutation({

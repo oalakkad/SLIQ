@@ -12,6 +12,29 @@ export interface AdminOrderItem {
     name: string;
     name_ar?: string;
   };
+  addons?: Array<{
+    category: {
+      id: number;
+      name: string;
+      name_ar: string;
+    };
+    addon: {
+      id: number;
+      name: string;
+      name_ar: string;
+      base_price: string;
+      allow_multiple_options: boolean;
+      requires_custom_name: boolean;
+      custom_name?: string | null;
+    };
+    options: Array<{
+      id: number;
+      name: string;
+      name_ar: string;
+      extra_price: string;
+    }>;
+    selection_subtotal: string;
+  }>;
 }
 
 export interface AdminOrder {
@@ -21,12 +44,19 @@ export interface AdminOrder {
     first_name: string;
     last_name: string;
     email: string;
-  };
+  } | null; // ✅ allow null for guest orders
+
+  // Guest fallback fields
+  guest_name?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+
   total_price: string;
   status: string;
   created_at: string;
   items: AdminOrderItem[];
 }
+
 
 interface AdminOrdersResponse {
   count: number;

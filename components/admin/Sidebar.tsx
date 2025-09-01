@@ -7,6 +7,7 @@ import { Box } from "@chakra-ui/react";
 import { useRouter, usePathname } from "next/navigation";
 import { FaHome, FaShoppingCart, FaBox, FaUsers } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
+import { GrTransaction } from "react-icons/gr";
 import Cookies from "js-cookie";
 
 export default function AdminSidebar() {
@@ -119,6 +120,14 @@ export default function AdminSidebar() {
               onClick={() => router.push("/admin/orders")}
             >
               Orders
+            </MenuItem>
+
+            <MenuItem
+              icon={<GrTransaction />}
+              active={pathname === "/admin/payments"}
+              onClick={() => router.push("/admin/payments")}
+            >
+              Payments
             </MenuItem>
 
             <SubMenu icon={<FaBox />} label="Products" defaultOpen>

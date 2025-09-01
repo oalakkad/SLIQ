@@ -24,10 +24,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useAddress } from "@/hooks/use-address";
 import AddAddressModal from "@/components/common/AddressModal";
 import { Cart, CartItem, useCart } from "@/hooks/use-cart";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "@/redux/hooks";
 import SelectPaymentMethod from "@/components/payments/SelectPaymentMethod";
 import { useStartCheckout } from "@/hooks/use-payments";
 
+/** Order Summary card */
 const OrderSummary = ({
   cart,
   isLoading,
@@ -96,33 +97,51 @@ const OrderSummary = ({
 export default function CheckoutPage() {
   const toast = useToast();
   const { data: cart, isLoading } = useCart();
-  const { data: addresses, isLoading: isAddressLoading } = useAddress();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const isArabic = useSelector((state: any) => state.lang.isArabic);
+  const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  // Authenticated users: fetch saved addresses
+  const { data: addresses, isLoading: isAddressLoading } = useAddress();
+
+  // Selected address id for authenticated users
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+
+  // Guest delivery form
+  const [guestForm, setGuestForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    postal_code: "",
+    country: "",
+  });
+
+  const handleGuestChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setGuestForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const [useShippingAsBilling, setUseShippingAsBilling] = useState(true);
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-    null
-  );
 
   // Payment-intent hook
   const startCheckout = useStartCheckout();
 
-  // Track checkoutPaymentId + server-confirmed amount/currency from startCheckout
+  // Track checkoutPaymentId + server-confirmed amount/currency
   const [cpId, setCpId] = useState<number | null>(null);
   const [cpAmount, setCpAmount] = useState<string | null>(null);
   const [cpCurrency, setCpCurrency] = useState<string | null>(null);
 
   const hasItems = useMemo(() => (cart?.items?.length ?? 0) > 0, [cart]);
 
+  // Auto-select default address for authenticated users
   useEffect(() => {
-    if (addresses?.results?.length && selectedAddressId === null) {
-      const defaultAddr = addresses.results.find(
-        (addr: any) => addr.is_default
-      );
+    if (isAuthenticated && addresses?.results?.length && selectedAddressId === null) {
+      const defaultAddr = addresses.results.find((addr: any) => addr.is_default);
       if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     }
-  }, [addresses, selectedAddressId]);
+  }, [isAuthenticated, addresses, selectedAddressId]);
 
   // Start a checkout intent (does NOT create an order)
   const handleContinueToPayment = () => {
@@ -133,40 +152,77 @@ export default function CheckoutPage() {
       });
       return;
     }
-    if (!selectedAddressId) {
-      toast({
-        status: "warning",
-        title: isArabic
-          ? "اختر عنوانًا للتوصيل"
-          : "Please select a delivery address",
-      });
-      return;
-    }
 
-    startCheckout.mutate(
-      { address_id: selectedAddressId, cart }, // cart is optional if server recomputes
-      {
-        onSuccess: ({ checkoutPaymentId, amount, currency }) => {
-          setCpId(checkoutPaymentId);
-          setCpAmount(amount);
-          setCpCurrency(currency);
-          toast({
-            status: "success",
-            title: isArabic ? "جاهز للدفع" : "Ready for payment",
-            description: isArabic
-              ? "اختر طريقة الدفع"
-              : "Select a payment method",
-          });
-        },
-        onError: (e: any) => {
-          toast({
-            status: "error",
-            title: isArabic ? "تعذّر التحضير للدفع" : "Failed to start payment",
-            description: e?.message ?? "",
-          });
-        },
+    if (isAuthenticated) {
+      if (!selectedAddressId) {
+        toast({
+          status: "warning",
+          title: isArabic ? "اختر عنوانًا للتوصيل" : "Please select a delivery address",
+        });
+        return;
       }
-    );
+      startCheckout.mutate(
+        { address_id: selectedAddressId, cart },
+        {
+          onSuccess: ({ checkoutPaymentId, amount, currency }) => {
+            setCpId(checkoutPaymentId);
+            setCpAmount(amount);
+            setCpCurrency(currency);
+            toast({
+              status: "success",
+              title: isArabic ? "جاهز للدفع" : "Ready for payment",
+              description: isArabic ? "اختر طريقة الدفع" : "Select a payment method",
+            });
+          },
+          onError: (e: any) => {
+            toast({
+              status: "error",
+              title: isArabic ? "تعذّر التحضير للدفع" : "Failed to start payment",
+              description: e?.message ?? "",
+            });
+          },
+        }
+      );
+    } else {
+      if (!guestForm.name || !guestForm.email || !guestForm.phone || !guestForm.address) {
+        toast({
+          status: "warning",
+          title: isArabic
+            ? "يرجى ملء بيانات التوصيل"
+            : "Please fill in delivery details",
+        });
+        return;
+      }
+      startCheckout.mutate(
+        {
+          guest: {
+            name: guestForm.name,
+            email: guestForm.email,
+            phone: guestForm.phone,
+          },
+          cart,
+        },
+        {
+          onSuccess: ({ checkoutPaymentId, amount, currency }) => {
+            setCpId(checkoutPaymentId);
+            setCpAmount(amount);
+            setCpCurrency(currency);
+            toast({
+              status: "success",
+              title: isArabic ? "جاهز للدفع" : "Ready for payment",
+              description: isArabic ? "اختر طريقة الدفع" : "Select a payment method",
+            });
+          },
+          onError: (e: any) => {
+            toast({
+              status: "error",
+              title: isArabic ? "تعذّر التحضير للدفع" : "Failed to start payment",
+              description: e?.message ?? "",
+            });
+          },
+        }
+      );
+    }
   };
 
   return (
@@ -179,18 +235,8 @@ export default function CheckoutPage() {
     >
       {/* ORDER SUMMARY first if Arabic */}
       {isArabic && (
-        <Box
-          flex={1}
-          display={{ base: "none", md: "block" }}
-          position="sticky"
-          top={4}
-          alignSelf="flex-start"
-        >
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-          />
+        <Box flex={1} display={{ base: "none", md: "block" }} position="sticky" top={4}>
+          <OrderSummary cart={cart ?? { id: -1, items: [] }} isLoading={isLoading} isArabic={isArabic} />
         </Box>
       )}
 
@@ -200,60 +246,87 @@ export default function CheckoutPage() {
           {isArabic ? "التوصيل" : "DELIVERY"}
         </Heading>
 
-        <Stack spacing={4}>
-          <Input
-            placeholder={isArabic ? "البريد الإلكتروني" : "Email address"}
-            type="email"
-          />
-          <Checkbox>
-            {isArabic
-              ? "أرسل لي الأخبار والعروض"
-              : "Email me with news and offers"}
-          </Checkbox>
-        </Stack>
-
-        <Box mt={8}>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Text fontSize="lg" fontWeight="bold">
-              {isArabic ? "العناوين المحفوظة" : "SAVED ADDRESSES"}
-            </Text>
-            <Button size="sm" onClick={onOpen} variant="link">
-              {isArabic ? "إضافة عنوان" : "Add Address"}
-            </Button>
-          </Flex>
-          <AddAddressModal isOpen={isOpen} onClose={onClose} />
-          {isAddressLoading ? (
-            <Spinner color="brand.pink" />
-          ) : addresses?.results?.length ? (
-            <VStack spacing={4} align="stretch">
-              {addresses.results.map((address: any) => (
-                <Box
-                  key={address.id}
-                  onClick={() => setSelectedAddressId(address.id)}
-                  cursor="pointer"
-                  w="100%"
-                  p={4}
-                  bg={
-                    address.id === selectedAddressId ? "brand.blue" : "gray.100"
-                  }
-                  borderRadius="md"
-                  textAlign={isArabic ? "right" : "left"}
-                >
-                  <Text fontWeight="bold">{address.full_name}</Text>
-                  <Text>{address.address_line}</Text>
-                  <Text>
-                    {address.city}, {address.postal_code}, {address.country}
-                  </Text>
-                  <Text>{address.phone}</Text>
-                </Box>
-              ))}
-            </VStack>
-          ) : (
-            <Text textAlign={isArabic ? "right" : "left"}>
-              {isArabic ? "لا توجد عناوين." : "No addresses found."}
-            </Text>
-          )}
-        </Box>
+        {isAuthenticated ? (
+          <>
+            <Flex justify="space-between" align="center" mb={4}>
+              <Text fontSize="lg" fontWeight="bold">
+                {isArabic ? "العناوين المحفوظة" : "SAVED ADDRESSES"}
+              </Text>
+              <Button size="sm" onClick={onOpen} variant="link">
+                {isArabic ? "إضافة عنوان" : "Add Address"}
+              </Button>
+            </Flex>
+            <AddAddressModal isOpen={isOpen} onClose={onClose} />
+            {isAddressLoading ? (
+              <Spinner color="brand.pink" />
+            ) : addresses?.results?.length ? (
+              <VStack spacing={4} align="stretch">
+                {addresses.results.map((address: any) => (
+                  <Box
+                    key={address.id}
+                    onClick={() => setSelectedAddressId(address.id)}
+                    cursor="pointer"
+                    p={4}
+                    bg={address.id === selectedAddressId ? "brand.blue" : "gray.100"}
+                    borderRadius="md"
+                    textAlign={isArabic ? "right" : "left"}
+                  >
+                    <Text fontWeight="bold">{address.full_name}</Text>
+                    <Text>{address.address_line}</Text>
+                    <Text>
+                      {address.city}, {address.postal_code}, {address.country}
+                    </Text>
+                    <Text>{address.phone}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              <Text>{isArabic ? "لا توجد عناوين." : "No addresses found."}</Text>
+            )}
+          </>
+        ) : (
+          <>
+            <Stack spacing={3}>
+              <Input
+                placeholder={isArabic ? "الاسم الكامل" : "Full Name"}
+                name="name"
+                value={guestForm.name}
+                onChange={handleGuestChange}
+              />
+              <Input
+                placeholder={isArabic ? "البريد الإلكتروني" : "Email address"}
+                type="email"
+                name="email"
+                value={guestForm.email}
+                onChange={handleGuestChange}
+              />
+              <InputGroup>
+                <InputLeftAddon bg="brand.blue">+965</InputLeftAddon>
+                <Input
+                  placeholder={isArabic ? "رقم الهاتف" : "Phone number"}
+                  type="tel"
+                  name="phone"
+                  value={guestForm.phone}
+                  onChange={handleGuestChange}
+                />
+              </InputGroup>
+              <Input
+                placeholder={isArabic ? "العنوان" : "Address Line"}
+                name="address"
+                value={guestForm.address}
+                onChange={handleGuestChange}
+              />
+              <Input placeholder={isArabic ? "المدينة" : "City"} name="city" value={guestForm.city} onChange={handleGuestChange} />
+              <Input
+                placeholder={isArabic ? "الرمز البريدي" : "Postal Code"}
+                name="postal_code"
+                value={guestForm.postal_code}
+                onChange={handleGuestChange}
+              />
+              <Input placeholder={isArabic ? "الدولة" : "Country"} name="country" value={guestForm.country} onChange={handleGuestChange} />
+            </Stack>
+          </>
+        )}
 
         <Divider my={8} />
 
@@ -262,7 +335,6 @@ export default function CheckoutPage() {
           {isArabic ? "الدفع" : "PAYMENT"}
         </Heading>
 
-        {/* Before starting checkout: button */}
         {!cpId && (
           <Button
             variant="solidBlue"
@@ -270,16 +342,13 @@ export default function CheckoutPage() {
             py={7}
             onClick={handleContinueToPayment}
             isLoading={startCheckout.isPending}
-            loadingText={
-              isArabic ? "جارِ التحضير للدفع..." : "Preparing payment..."
-            }
-            isDisabled={!hasItems || isAddressLoading}
+            loadingText={isArabic ? "جارِ التحضير للدفع..." : "Preparing payment..."}
+            isDisabled={!hasItems || (isAuthenticated && isAddressLoading)}
           >
             {isArabic ? "المتابعة إلى الدفع" : "Continue to Payment"}
           </Button>
         )}
 
-        {/* After checkout intent: show server-confirmed amount & methods */}
         {cpId && (
           <Box mt={4}>
             {(cpAmount || cpCurrency) && (
@@ -287,12 +356,8 @@ export default function CheckoutPage() {
                 <AlertIcon />
                 <Text>
                   {isArabic
-                    ? `المبلغ المستحق: ${cpAmount ?? "-"} ${
-                        cpCurrency ?? "KWD"
-                      } (مؤكّد من الخادم)`
-                    : `Amount due: ${cpAmount ?? "-"} ${
-                        cpCurrency ?? "KWD"
-                      } (server-confirmed)`}
+                    ? `المبلغ المستحق: ${cpAmount ?? "-"} ${cpCurrency ?? "KWD"} (مؤكّد من الخادم)`
+                    : `Amount due: ${cpAmount ?? "-"} ${cpCurrency ?? "KWD"} (server-confirmed)`}
                 </Text>
               </Alert>
             )}
@@ -300,7 +365,6 @@ export default function CheckoutPage() {
           </Box>
         )}
 
-        {/* Remember me + phone (optional) */}
         <Divider my={8} />
         <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
           {isArabic ? "تذكرني" : "REMEMBER ME"}
@@ -310,38 +374,17 @@ export default function CheckoutPage() {
             ? "احفظ معلوماتي لسهولة التسوق لاحقًا"
             : "Save my information for faster checkout"}
         </Checkbox>
-        <InputGroup mt={2}>
-          <InputLeftAddon bg="brand.blue">+965</InputLeftAddon>
-          <Input
-            type="tel"
-            placeholder={isArabic ? "رقم الهاتف" : "Mobile phone number"}
-          />
-        </InputGroup>
 
         {/* Mobile order summary */}
         <Box display={{ base: "block", md: "none" }} mt={10}>
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-          />
+          <OrderSummary cart={cart ?? { id: -1, items: [] }} isLoading={isLoading} isArabic={isArabic} />
         </Box>
       </Box>
 
       {/* Order summary last if English */}
       {!isArabic && (
-        <Box
-          flex={1}
-          display={{ base: "none", md: "block" }}
-          position="sticky"
-          top={4}
-          alignSelf="flex-start"
-        >
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-          />
+        <Box flex={1} display={{ base: "none", md: "block" }} position="sticky" top={4}>
+          <OrderSummary cart={cart ?? { id: -1, items: [] }} isLoading={isLoading} isArabic={isArabic} />
         </Box>
       )}
     </Flex>

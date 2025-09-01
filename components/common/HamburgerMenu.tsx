@@ -189,7 +189,7 @@ export const HamburgerMenu = ({
                 />
                 <RecursiveMenuItem
                   onClose={onClose}
-                  item={{ href: "/profile", name: "الحساب الشخصي" }}
+                  item={{ href: "/profile", name: isArabic ? "الحساب الشخصي" : "Profile" }}
                   depth={1}
                 />
               </VStack>

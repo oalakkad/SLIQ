@@ -1,10 +1,12 @@
 "use client";
 
 import { api } from "@/components/utils/api";
+import { guestApi } from "@/components/utils/guestApi";
+import { useAppSelector } from "@/redux/hooks";
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-/** ─── Types from MyFatoorah & your backend ───────────────────────────────── */
+/** ─── Types from MyFatoorah & backend ───────────────────────────────── */
 
 export type PaymentMethod = {
   PaymentMethodId: number;
@@ -13,13 +15,11 @@ export type PaymentMethod = {
   ImageUrl?: string;
   ServiceCharge?: number;
   TotalAmount?: number;
-  // MyFatoorah may include more fields; keep index signature for forward-compat.
   [k: string]: unknown;
 };
 
 export type InitiateResponse = {
   PaymentMethods: PaymentMethod[];
-  // Other MyFatoorah "Data" fields can show up; allow them:
   [k: string]: unknown;
 };
 
@@ -28,29 +28,46 @@ export type ExecutePaymentResponse = {
   invoiceId?: string | number;
 };
 
-export type VerifyResponse =
-  | { orderId: number; paymentStatus: "paid" }
-  | { orderId: null | undefined; paymentStatus: "failed" };
-
 export type StartCheckoutPayload = {
-  // Whatever you send from the client; backend recomputes totals anyway.
   address_id?: number;
-  cart?: unknown;
+  cart?: unknown; // optional snapshot
+  guest?: { name: string; email: string; phone?: string }; // ✅ allow guest info
 };
 
 export type StartCheckoutResponse = {
   checkoutPaymentId: number;
-  amount: string;   // e.g. "11.000"
-  currency: string; // e.g. "KWD"
+  amount: string;
+  currency: string;
 };
 
-/** Optional legacy one-step (not used in your new flow, kept for compatibility) */
 export type SendPaymentResponse = {
   invoiceUrl: string;
   invoiceId: string | number;
 };
 
-/** ─── Error helper ───────────────────────────────────────────────────────── */
+/** ─── Order Types (from backend OrderSerializer) ───────────────────────── */
+
+export type OrderItem = {
+  id: number;
+  product: any; // Replace with your Product type
+  quantity: number;
+  price_at_purchase: string;
+};
+
+export type Order = {
+  id: number;
+  status: string;
+  total_price: string;
+  created_at: string;
+  updated_at: string;
+  items: OrderItem[];
+};
+
+export type VerifyResponse =
+  | { paymentStatus: "paid"; order: Order }
+  | { paymentStatus: "failed"; order: null };
+
+/** ─── Error helper ────────────────────────────────────────────────────── */
 
 function toError(e: unknown): Error {
   const ax = e as AxiosError<any>;
@@ -63,7 +80,7 @@ function toError(e: unknown): Error {
   return new Error(msg);
 }
 
-/** A) One-step (legacy): create hosted invoice link (SendPayment) */
+/** A) One-step legacy flow (not used now) */
 export function useSendPayment() {
   return useMutation({
     mutationKey: ["payments", "send"],
@@ -78,13 +95,16 @@ export function useSendPayment() {
   });
 }
 
-/** B0) Start checkout (creates CheckoutPayment + returns cpId/amount/currency) */
+/** B0) Start checkout intent */
 export function useStartCheckout() {
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const client = isAuthenticated ? api : guestApi;
+
   return useMutation({
     mutationKey: ["payments", "start"],
     mutationFn: async (payload: StartCheckoutPayload) => {
       try {
-        const { data } = await api.post<StartCheckoutResponse>(
+        const { data } = await client.post<StartCheckoutResponse>(
           "payments/checkout/start/",
           payload
         );
@@ -96,7 +116,7 @@ export function useStartCheckout() {
   });
 }
 
-/** B1) List payment methods for a checkout payment intent (InitiatePayment) */
+/** B1) List payment methods */
 export function usePaymentMethods<
   TData = InitiateResponse,
   TError = Error
@@ -104,12 +124,15 @@ export function usePaymentMethods<
   checkoutPaymentId: number | null,
   options?: Omit<UseQueryOptions<InitiateResponse, TError, TData>, "queryKey" | "queryFn">
 ) {
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const client = isAuthenticated ? api : guestApi;
+
   return useQuery<InitiateResponse, TError, TData>({
     queryKey: ["payments", "initiate", checkoutPaymentId],
     enabled: !!checkoutPaymentId,
     queryFn: async () => {
-      const { data } = await api.post<InitiateResponse>("payments/initiate/", {
-        checkoutPaymentId, // ✅ send cpId
+      const { data } = await client.post<InitiateResponse>("payments/initiate/", {
+        checkoutPaymentId,
       });
       return data;
     },
@@ -117,13 +140,16 @@ export function usePaymentMethods<
   });
 }
 
-/** B2) Execute the chosen method (returns redirect PaymentURL) */
+/** B2) Execute chosen payment method */
 export function useExecutePayment() {
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
+  const client = isAuthenticated ? api : guestApi;
+
   return useMutation({
     mutationKey: ["payments", "execute"],
     mutationFn: async (payload: { checkoutPaymentId: number; paymentMethodId: number }) => {
       try {
-        const { data } = await api.post<ExecutePaymentResponse>("payments/execute/", payload);
+        const { data } = await client.post<ExecutePaymentResponse>("payments/execute/", payload);
         return data;
       } catch (e) {
         throw toError(e);
@@ -132,32 +158,21 @@ export function useExecutePayment() {
   });
 }
 
-/**
- * C) Verify after redirect:
- *   GET /payments/verify/?paymentId=...&cpId=...
- *   - 200 → { orderId, paymentStatus: "paid" }
- *   - 400 → axios throws; surface error (treat as failed in UI)
- *
- * Note: The "x-public" header avoids auth refresh on a fresh tab.
- */
+/** C) Verify after redirect — creates the Order */
 export function useVerifyPayment() {
   return useMutation({
     mutationKey: ["payments", "verify"],
     mutationFn: async (p: { paymentId: string; cpId: number }) => {
-      // mark it "public" via query param (not a header)
       const params = new URLSearchParams({
         paymentId: p.paymentId,
         cpId: String(p.cpId),
-        public: "1",
       }).toString();
 
-      // IMPORTANT: no headers, no cookies here
-      const { data } = await api.get(`/payments/verify/?${params}`, {
-        withCredentials: false,
-        // do not set any headers here
+      const { data } = await guestApi.get(`/payments/verify/?${params}`, {
+        withCredentials: false, // ✅ always public
       });
 
-      return data as { paymentStatus: string; orderId?: number | null };
+      return data as VerifyResponse;
     },
   });
 }

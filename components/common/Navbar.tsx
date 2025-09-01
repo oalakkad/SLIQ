@@ -76,7 +76,7 @@ export default function Navbar() {
     },
     {
       id: "LOOKBOOK",
-      href: "/LOOKBOOK",
+      href: "/lookbook",
       name: isArabic ? "سجل الصور" : "LOOKBOOK",
       children: null,
     },
@@ -268,7 +268,7 @@ export default function Navbar() {
         </Box>
 
         <Box position="relative">
-          <Link href={isAuthenticated ? "/cart" : "/auth/login"}>
+          <Link href={"/cart"}>
             <IconButton
               aria-label="cart"
               icon={cartCount > 0 ? <BsBagFill /> : <SlBag />}

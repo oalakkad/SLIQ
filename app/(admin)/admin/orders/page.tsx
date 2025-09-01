@@ -40,38 +40,45 @@ export default function OrdersPage() {
 
   // 🔹 Define columns
   const columnDefs: ColDef<AdminOrder>[] = useMemo(
-    () => [
-      { headerName: "ID", field: "id", width: 80 },
-      {
-        headerName: "Customer",
-        valueGetter: (params) =>
-          `${params.data?.user.first_name ?? ""} ${
-            params.data?.user.last_name ?? ""
-          }`,
-        flex: 2,
+  () => [
+    { headerName: "ID", field: "id", width: 80 },
+    {
+      headerName: "Customer",
+      valueGetter: (params) => {
+        const user = params.data?.user;
+        if (user) {
+          return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+        }
+        return params.data?.guest_name ?? "Guest";
       },
-      {
-        headerName: "Email",
-        valueGetter: (params) => params.data?.user.email ?? "",
-        flex: 2,
-      },
-      { headerName: "Status", field: "status", flex: 2 },
-      {
-        headerName: "Total (KWD)",
-        valueGetter: (params) => `${params.data?.total_price ?? "0.000"} KWD`,
-        flex: 2,
-      },
-      {
-        headerName: "Date",
-        valueGetter: (params) =>
-          params.data?.created_at
-            ? new Date(params.data.created_at).toLocaleDateString()
-            : "—",
-        flex: 2,
-      },
-    ],
-    []
-  );
+      flex: 2,
+    },
+    {
+      headerName: "Email",
+      valueGetter: (params) =>
+        params.data?.user?.email ??
+        params.data?.guest_email ??
+        "—",
+      flex: 2,
+    },
+    { headerName: "Status", field: "status", flex: 2 },
+    {
+      headerName: "Total (KWD)",
+      valueGetter: (params) =>
+        `${params.data?.total_price ?? "0.000"} KWD`,
+      flex: 2,
+    },
+    {
+      headerName: "Date",
+      valueGetter: (params) =>
+        params.data?.created_at
+          ? new Date(params.data.created_at).toLocaleDateString()
+          : "—",
+      flex: 2,
+    },
+  ],
+  []
+);
 
   return (
     <Box bg="white" p={4} borderRadius="md" shadow="sm" minH="100vh" w="100%">
