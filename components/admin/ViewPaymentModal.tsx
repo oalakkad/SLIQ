@@ -84,7 +84,7 @@ export default function ViewPaymentModal({ payment, isOpen, onClose }: Props) {
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose} colorScheme="brandPink">
+          <Button onClick={onClose} colorScheme="brandBlue">
             Close
           </Button>
         </ModalFooter>

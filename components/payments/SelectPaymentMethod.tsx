@@ -140,7 +140,7 @@ export default function SelectPaymentMethod({
                   p={4}
                   cursor="pointer"
                   _hover={{ borderColor: "gray.300" }}
-                  borderColor={active ? "blue.400" : "gray.200"}
+                  borderColor={active ? "brandBlue.500" : "gray.200"}
                   boxShadow={
                     active ? "0 0 0 1px var(--chakra-colors-blue-400)" : "none"
                   }
@@ -195,7 +195,8 @@ export default function SelectPaymentMethod({
         <Button
           mt={6}
           size="lg"
-          colorScheme="blue"
+          colorScheme="brandBlue"
+          color={"gray.600"}
           onClick={onPay}
           isLoading={execPay.isPending}
           loadingText={t.loading}

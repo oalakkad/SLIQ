@@ -529,9 +529,9 @@ export default function EditProductModal({
                         size="sm"
                         bg={"transparent"}
                         border={"1px solid"}
-                        borderColor={"gray.700"}
-                        color={"gray.700"}
-                        _hover={{ color: "white", bg: "gray.700" }}
+                        borderColor={"brandBlue.500"}
+                        color={"brandBlue.500"}
+                        _hover={{ color: "white", bg: "brandBlue.700", borderColor: "brandBlue.500" }}
                         position="absolute"
                         bottom="2"
                         right="2"
@@ -572,7 +572,7 @@ export default function EditProductModal({
                           position="absolute"
                           top="2"
                           right="2"
-                          colorScheme="green"
+                          colorScheme="brandPink"
                         >
                           Thumbnail
                         </Badge>
@@ -583,10 +583,10 @@ export default function EditProductModal({
                           right="1"
                           onClick={() => handleSetThumbnail(img.id)}
                           transition={"0.3s all ease-in-out"}
-                          color={"gray.700"}
+                          color={"brandBlue.500"}
                           border={"1px solid"}
-                          borderColor={"gray.700"}
-                          _hover={{ color: "white", bg: "gray.700" }}
+                          borderColor={"brandBlue.500"}
+                          _hover={{ color: "white", bg: "brandBlue.700" }}
                           bg={"transparent"}
                           cursor={"pointer"}
                         >
@@ -597,7 +597,7 @@ export default function EditProductModal({
                       <Image
                         src={src}
                         alt={img.alt_text || ""}
-                        boxSize="150px"
+                        boxSize="250px"
                         objectFit="cover"
                         border={"1px solid"}
                         borderColor={"brand.500"}
@@ -616,7 +616,7 @@ export default function EditProductModal({
             Cancel
           </Button>
           <Button
-            colorScheme="brandPink"
+            colorScheme="brandBlue"
             onClick={handleSave}
             isLoading={isSubmitting}
           >

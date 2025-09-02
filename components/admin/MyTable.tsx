@@ -54,7 +54,7 @@ export default function MyTable({
       >
         <style>{`
           .del-btn {
-            background: #fde4e6;
+            background: #d6e4f5;
             border: none;
             color: white;
             padding: 0.5rem;
@@ -63,7 +63,7 @@ export default function MyTable({
             transition: 0.3s all ease-in-out;
           }
           .del-btn:hover {
-            background: #f8b9bc;
+            background: #bdcbdb;
           }
         `}</style>
         <AgGridReact

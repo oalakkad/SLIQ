@@ -217,7 +217,7 @@ export default function EditAddonCategoryModal({
             Cancel
           </Button>
           <Button
-            colorScheme="brandPink"
+            colorScheme="brandBlue"
             onClick={() => formik.handleSubmit()}
             isLoading={
               createAddonCategory.isPending ||

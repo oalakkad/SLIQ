@@ -140,7 +140,7 @@ export default function EditCategoryModal({
             Cancel
           </Button>
           <Button
-            colorScheme="brandPink"
+            colorScheme="brandBlue"
             onClick={handleSave}
             isLoading={isSubmitting}
           >

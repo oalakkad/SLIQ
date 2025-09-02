@@ -65,7 +65,7 @@ export default function AdminSidebar() {
           marginLeft: "10px",
         },
         "a, .fpTHfu, .ps-sidebar-container": {
-          backgroundColor: "#fde4e6 !important",
+          backgroundColor: "#d6e4f5 !important",
         },
       }}
     >

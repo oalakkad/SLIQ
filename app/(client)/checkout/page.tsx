@@ -507,7 +507,7 @@ const handleApplyDiscount = async () => {
             value={discountCode}
             onChange={(e) => setDiscountCode(e.target.value)}
           />
-          <Button variant="solidBlue" onClick={handleApplyDiscount}>
+          <Button colorScheme="brandBlue" color={"gray.700"} onClick={handleApplyDiscount}>
             {isArabic ? "تطبيق" : "Apply"}
           </Button>
         </Flex>
