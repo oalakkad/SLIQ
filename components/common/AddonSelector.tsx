@@ -20,7 +20,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 
-// ----- Types you can reuse across app -----
+// ----- Types -----
 export interface AddonOption {
   id: number;
   name: string;
@@ -32,7 +32,7 @@ export interface Addon {
   id: number;
   name: string;
   name_ar?: string;
-  price: number; // base price for the addon (if any)
+  price: number; // base price
   requires_custom_name?: boolean;
   allow_multiple_options: boolean;
   options: AddonOption[];
@@ -45,18 +45,16 @@ export interface AddonCategory {
   addons: Addon[];
 }
 
-// Selection payload per category
 export interface SelectedAddonForCategory {
   categoryId: number;
   addonId: number | null;
-  optionIds: number[]; // empty if none selected
-  customName?: string | null; // only if requires_custom_name
+  optionIds: number[];
+  customName?: string | null;
 }
 
-// Component props
 interface AddonsSelectorProps {
   categories: AddonCategory[];
-  value?: SelectedAddonForCategory[]; // controlled initial value (optional)
+  value?: SelectedAddonForCategory[];
   onChange?: (selection: SelectedAddonForCategory[]) => void;
   showPrices?: boolean;
   isArabic?: boolean;
@@ -67,7 +65,6 @@ const formatKwd = (n: number) => `${Number(n).toFixed(3)} KWD`;
 const displayName = (isAr: boolean, name: string, name_ar?: string) =>
   isAr && name_ar ? name_ar : name;
 
-// compute total “extra” for a chosen addon entry (base addon price + options)
 function computeAddonTotal(addon: Addon, chosenOptionIds: number[]): number {
   const optsTotal = addon.options
     .filter((o) => chosenOptionIds.includes(o.id))
@@ -75,7 +72,6 @@ function computeAddonTotal(addon: Addon, chosenOptionIds: number[]): number {
   return Number(addon.price || 0) + optsTotal;
 }
 
-// i18n strings
 const strings = (ar: boolean) => ({
   selected: ar ? "المحدد:" : "Selected:",
   selectOne: ar ? "اختر واحدًا" : "Select one",
@@ -95,7 +91,6 @@ export default function AddonsSelector({
 }: AddonsSelectorProps) {
   const t = strings(isArabic);
 
-  // internal controlled state -> one selection per category
   const [selection, setSelection] = useState<SelectedAddonForCategory[]>(
     () =>
       value ??
@@ -107,18 +102,15 @@ export default function AddonsSelector({
       }))
   );
 
-  // keep internal state in sync if parent passes new value
   useEffect(() => {
     if (value) setSelection(value);
   }, [value]);
 
-  // emit changes upward
   const emit = (next: SelectedAddonForCategory[]) => {
     setSelection(next);
     onChange?.(next);
   };
 
-  // lookup helpers
   const byCategoryId = useMemo(() => {
     const map = new Map<number, SelectedAddonForCategory>();
     selection.forEach((s) => map.set(s.categoryId, s));
@@ -132,7 +124,7 @@ export default function AddonsSelector({
         ? {
             categoryId,
             addonId,
-            optionIds: [], // reset options when switching addons
+            optionIds: [],
             customName: null,
           }
         : s
@@ -148,12 +140,10 @@ export default function AddonsSelector({
     let limitedOptionIds = nextOptionIds;
 
     if (addon.allow_multiple_options) {
-      // ✅ limit to 2 maximum
       if (limitedOptionIds.length > 2) {
         limitedOptionIds = limitedOptionIds.slice(0, 2);
       }
     } else {
-      // fallback for single option
       limitedOptionIds = limitedOptionIds.slice(0, 1);
     }
 
@@ -187,20 +177,12 @@ export default function AddonsSelector({
         return (
           <Box key={cat.id} borderWidth="1px" borderRadius="md" p={4}>
             <HStack justify="space-between" mb={3} wrap="wrap">
-              <Text
-                fontSize="lg"
-                fontWeight="bold"
-                textAlign={isArabic ? "right" : "left"}
-              >
+              <Text fontSize="lg" fontWeight="bold">
                 {catDisplayName}
               </Text>
 
               {sel.addonId ? (
-                <Text
-                  fontSize="sm"
-                  color="gray.600"
-                  textAlign={isArabic ? "right" : "left"}
-                >
+                <Text fontSize="sm" color="gray.600">
                   {t.selected}{" "}
                   <strong>
                     {selectedAddon
@@ -213,17 +195,12 @@ export default function AddonsSelector({
                   </strong>
                 </Text>
               ) : (
-                <Text
-                  fontSize="sm"
-                  color="gray.500"
-                  textAlign={isArabic ? "right" : "left"}
-                >
+                <Text fontSize="sm" color="gray.500">
                   {t.selectOne}
                 </Text>
               )}
             </HStack>
 
-            {/* One addon per category */}
             <RadioGroup
               value={sel.addonId ? String(sel.addonId) : ""}
               onChange={(val) => handleSelectAddon(cat.id, val)}
@@ -241,28 +218,12 @@ export default function AddonsSelector({
                     : addon.price || 0;
 
                   return (
-                    <Box
-                      key={addon.id}
-                      borderWidth="1px"
-                      borderRadius="md"
-                      p={3}
-                    >
+                    <Box key={addon.id} borderWidth="1px" borderRadius="md" p={3}>
                       <HStack justify="space-between" align="center">
                         <HStack>
-                          <Radio
-                            value={String(addon.id)}
-                            colorScheme="brandBlue"
-                          />
-                          <VStack
-                            align={isArabic ? "end" : "start"}
-                            spacing={0}
-                          >
-                            <Text
-                              fontWeight="semibold"
-                              textAlign={isArabic ? "right" : "left"}
-                            >
-                              {addonName}
-                            </Text>
+                          <Radio value={String(addon.id)} colorScheme="brandBlue" />
+                          <VStack align={isArabic ? "end" : "start"} spacing={0}>
+                            <Text fontWeight="semibold">{addonName}</Text>
                           </VStack>
                         </HStack>
 
@@ -273,21 +234,13 @@ export default function AddonsSelector({
                         )}
                       </HStack>
 
-                      {/* Options + custom name in an accordion row */}
-                      <Accordion
-                        allowToggle
-                        index={isSelected ? 0 : undefined}
-                        mt={2}
-                      >
-                        {addon.options.length > 0 && (
+                      {/* Accordion if addon has options OR requires custom name */}
+                      <Accordion allowToggle index={isSelected ? 0 : undefined} mt={2}>
+                        {(addon.requires_custom_name || addon.options.length > 0) && (
                           <AccordionItem isDisabled={!isSelected}>
                             <h2>
                               <AccordionButton>
-                                <Box
-                                  as="span"
-                                  flex="1"
-                                  textAlign={isArabic ? "right" : "left"}
-                                >
+                                <Box as="span" flex="1" textAlign={isArabic ? "right" : "left"}>
                                   {t.configure}
                                 </Box>
                                 <AccordionIcon />
@@ -295,13 +248,10 @@ export default function AddonsSelector({
                             </h2>
                             <AccordionPanel pb={4}>
                               <VStack align="stretch" spacing={3}>
+                                {/* ✅ Always render custom name if required */}
                                 {addon.requires_custom_name && (
                                   <Box>
-                                    <Text
-                                      fontSize="sm"
-                                      mb={1}
-                                      textAlign={isArabic ? "right" : "left"}
-                                    >
+                                    <Text fontSize="sm" mb={1}>
                                       {t.customName}
                                     </Text>
                                     <Input
@@ -315,6 +265,7 @@ export default function AddonsSelector({
                                   </Box>
                                 )}
 
+                                {/* Options */}
                                 {addon.options.length > 0 ? (
                                   addon.allow_multiple_options ? (
                                     <CheckboxGroup
@@ -335,29 +286,13 @@ export default function AddonsSelector({
                                             opt.name_ar
                                           );
                                           return (
-                                            <HStack
-                                              key={opt.id}
-                                              justify="space-between"
-                                            >
+                                            <HStack key={opt.id} justify="space-between">
                                               <Checkbox value={String(opt.id)}>
-                                                <Stack spacing={0}>
-                                                  <Text
-                                                    textAlign={
-                                                      isArabic
-                                                        ? "right"
-                                                        : "left"
-                                                    }
-                                                  >
-                                                    {optName}
-                                                  </Text>
-                                                </Stack>
+                                                <Text>{optName}</Text>
                                               </Checkbox>
                                               {showPrices && (
                                                 <Text fontSize="sm">
-                                                  +{" "}
-                                                  {formatKwd(
-                                                    Number(opt.price || 0)
-                                                  )}
+                                                  + {formatKwd(Number(opt.price || 0))}
                                                 </Text>
                                               )}
                                             </HStack>
@@ -367,15 +302,9 @@ export default function AddonsSelector({
                                     </CheckboxGroup>
                                   ) : (
                                     <RadioGroup
-                                      value={
-                                        sel.optionIds[0]
-                                          ? String(sel.optionIds[0])
-                                          : ""
-                                      }
+                                      value={sel.optionIds[0] ? String(sel.optionIds[0]) : ""}
                                       onChange={(val) =>
-                                        handleToggleOption(cat.id, addon, [
-                                          Number(val),
-                                        ])
+                                        handleToggleOption(cat.id, addon, [Number(val)])
                                       }
                                     >
                                       <VStack align="stretch" spacing={2}>
@@ -386,29 +315,13 @@ export default function AddonsSelector({
                                             opt.name_ar
                                           );
                                           return (
-                                            <HStack
-                                              key={opt.id}
-                                              justify="space-between"
-                                            >
+                                            <HStack key={opt.id} justify="space-between">
                                               <Radio value={String(opt.id)}>
-                                                <Stack spacing={0}>
-                                                  <Text
-                                                    textAlign={
-                                                      isArabic
-                                                        ? "right"
-                                                        : "left"
-                                                    }
-                                                  >
-                                                    {optName}
-                                                  </Text>
-                                                </Stack>
+                                                <Text>{optName}</Text>
                                               </Radio>
                                               {showPrices && (
                                                 <Text fontSize="sm">
-                                                  +{" "}
-                                                  {formatKwd(
-                                                    Number(opt.price || 0)
-                                                  )}
+                                                  + {formatKwd(Number(opt.price || 0))}
                                                 </Text>
                                               )}
                                             </HStack>
@@ -418,24 +331,19 @@ export default function AddonsSelector({
                                     </RadioGroup>
                                   )
                                 ) : (
-                                  <Text
-                                    fontSize="sm"
-                                    color="gray.500"
-                                    textAlign={isArabic ? "right" : "left"}
-                                  >
-                                    {t.noOptions}
-                                  </Text>
+                                  !addon.requires_custom_name && (
+                                    <Text fontSize="sm" color="gray.500">
+                                      {t.noOptions}
+                                    </Text>
+                                  )
                                 )}
 
+                                {/* Subtotal */}
                                 {showPrices && isSelected && (
                                   <>
                                     <Divider />
                                     <HStack justify="space-between">
-                                      <Text
-                                        fontSize="sm"
-                                        color="gray.600"
-                                        textAlign={isArabic ? "right" : "left"}
-                                      >
+                                      <Text fontSize="sm" color="gray.600">
                                         {t.subtotal}
                                       </Text>
                                       <Text fontWeight="semibold">

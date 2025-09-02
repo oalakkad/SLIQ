@@ -32,6 +32,7 @@ export type StartCheckoutPayload = {
   address_id?: number;
   cart?: unknown; // optional snapshot
   guest?: { name: string; email: string; phone?: string }; // ✅ allow guest info
+  discount_code?: string;
 };
 
 export type StartCheckoutResponse = {

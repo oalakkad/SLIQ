@@ -37,24 +37,48 @@ export interface AdminOrderItem {
   }>;
 }
 
+export interface AdminOrderDiscount {
+  id: number;
+  code: string;
+  value: string; // percentage or fixed value
+  discount_type: "percent" | "fixed";
+}
+
 export interface AdminOrder {
   id: number;
-  user: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-  } | null; // ✅ allow null for guest orders
-
-  // Guest fallback fields
+  user: { id: number; first_name: string; last_name: string; email: string } | null;
   guest_name?: string | null;
   guest_email?: string | null;
   guest_phone?: string | null;
 
   total_price: string;
+  discount?: AdminOrderDiscount | null;   // full object
+  discount_amount?: string;
+
   status: string;
   created_at: string;
+  updated_at?: string;
   items: AdminOrderItem[];
+}
+
+// Separate type just for update requests
+export interface AdminOrderUpdatePayload {
+  status?: string;
+  total_price?: string;
+  discount?: number | null;        // 👈 only the ID here
+  discount_amount?: string;
+  items_write?: {
+    id: number;
+    product: number;
+    quantity: number;
+    price_at_purchase: string;
+    addons?: {
+      category_id: number | null;
+      addon_id: number | null;
+      option_ids: number[];
+      custom_name?: string | null;
+    }[];
+  }[];
 }
 
 
@@ -90,7 +114,7 @@ const updateOrderRequest = async ({
   data,
 }: {
   id: number;
-  data: Partial<AdminOrder>;
+  data: Partial<AdminOrderUpdatePayload>;
 }) => {
   const res: AxiosResponse<AdminOrder> = await api.patch(
     `/admin/orders/${id}/`,

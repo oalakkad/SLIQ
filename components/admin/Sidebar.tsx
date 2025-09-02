@@ -8,6 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FaHome, FaShoppingCart, FaBox, FaUsers } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import { GrTransaction } from "react-icons/gr";
+import { MdDiscount } from "react-icons/md";
 import Cookies from "js-cookie";
 
 export default function AdminSidebar() {
@@ -128,6 +129,14 @@ export default function AdminSidebar() {
               onClick={() => router.push("/admin/payments")}
             >
               Payments
+            </MenuItem>
+
+            <MenuItem
+              icon={<MdDiscount />}
+              active={pathname === "/admin/discounts"}
+              onClick={() => router.push("/admin/discounts")}
+            >
+              Discounts
             </MenuItem>
 
             <SubMenu icon={<FaBox />} label="Products" defaultOpen>

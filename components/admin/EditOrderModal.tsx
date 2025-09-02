@@ -40,21 +40,26 @@ export default function EditOrderModal({
   const [status, setStatus] = useState(order.status);
   const [items, setItems] = useState(order.items);
   const [totalPrice, setTotalPrice] = useState(order.total_price);
+  const [discount, setDiscount] = useState(order.discount);
+  const [discountAmount, setDiscountAmount] = useState(order.discount_amount);
 
-  // 🔹 Recalculate total
+  // 🔹 Recalculate total including discount
   useEffect(() => {
-    const newTotal = items
-      .reduce(
-        (sum, item) =>
-          sum + Number(item.price_at_purchase) * Number(item.quantity),
-        0
-      )
-      .toFixed(3);
+    const subtotal = items.reduce(
+      (sum, item) =>
+        sum + Number(item.price_at_purchase) * Number(item.quantity),
+      0
+    );
+    const newTotal = (subtotal - Number(discountAmount || 0)).toFixed(3);
     setTotalPrice(newTotal);
-  }, [items]);
+  }, [items, discountAmount]);
 
   // 🔹 Update quantity
-  const handleQuantityChange = (index: number, valueAsString: string, valueAsNumber: number) => {
+  const handleQuantityChange = (
+    index: number,
+    valueAsString: string,
+    valueAsNumber: number
+  ) => {
     setItems((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], quantity: valueAsNumber };
@@ -87,28 +92,30 @@ export default function EditOrderModal({
 
   // 🔹 Save
   const handleSave = () => {
-  const updatedOrder = {
-    status,
-    total_price: totalPrice,
-    items_write: items.map((item) => ({
-      id: item.id,
-      product: item.product.id,
-      quantity: item.quantity,
-      price_at_purchase: item.price_at_purchase,
-      addons: item.addons?.map((a: any) => ({
-        category_id: a.category?.id ?? null,
-        addon_id: a.addon?.id ?? null,
-        option_ids: (a.options || []).map((opt: any) => opt.id),
-        custom_name: a.addon?.custom_name ?? null,
+    const updatedOrder = {
+      status,
+      total_price: totalPrice,
+      discount: discount ? discount.id : null,
+      discount_amount: discountAmount,
+      items_write: items.map((item) => ({
+        id: item.id,
+        product: item.product.id,
+        quantity: item.quantity,
+        price_at_purchase: item.price_at_purchase,
+        addons: item.addons?.map((a: any) => ({
+          category_id: a.category?.id ?? null,
+          addon_id: a.addon?.id ?? null,
+          option_ids: (a.options || []).map((opt: any) => opt.id),
+          custom_name: a.addon?.custom_name ?? null,
+        })),
       })),
-    })),
-  };
+    };
 
-  updateOrder.mutate(
-    { id: order.id, data: updatedOrder },
-    { onSuccess: () => onClose() }
-  );
-};
+    updateOrder.mutate(
+      { id: order.id, data: updatedOrder },
+      { onSuccess: () => onClose() }
+    );
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -127,8 +134,21 @@ export default function EditOrderModal({
               <option value="cancelled">Cancelled</option>
             </Select>
 
-            {/* Total */}
-            <Input value={totalPrice} isReadOnly />
+            {/* Totals */}
+            <Box>
+              <Text fontWeight="bold" mb={2}>
+                Totals
+              </Text>
+              <Input value={totalPrice} isReadOnly mb={2} />
+              {discount && (
+                <Box fontSize="sm" color="green.600">
+                  <Text>
+                    Discount ({discount.code}): -{Number(discountAmount).toFixed(3)}{" "}
+                    KWD
+                  </Text>
+                </Box>
+              )}
+            </Box>
 
             {/* Items */}
             <Text fontWeight="bold">Items</Text>
