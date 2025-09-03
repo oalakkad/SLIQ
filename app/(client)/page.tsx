@@ -18,7 +18,6 @@ import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import HeroBanner from "@/components/common/HeroBanner";
 import AboutSection from "@/components/common/AboutSection";
 import CategoryCard from "@/components/common/CategoryCard";
-import FeaturedProductCarousel from "@/components/common/FeaturedCardCarousel";
 import ThreeImages from "@/components/common/ThreeImages";
 
 import type { ThreeImagesProps } from "@/components/common/ThreeImages";
@@ -29,7 +28,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 const generateImageSet = (start: number): ThreeImagesProps[] =>
   [0, 1, 2].map((i) => ({
-    src: `${API_URL}/media/home/${start + i}.svg`,
+    src: `${API_URL}/media/home/${start + i}.webp`,
     alt: `Image ${i + 1}`,
   }));
 
@@ -37,9 +36,6 @@ const imageGroups = [
   generateImageSet(1),
   generateImageSet(4),
   generateImageSet(7),
-  generateImageSet(10),
-  generateImageSet(13),
-  generateImageSet(16),
 ];
 
 export default function Page() {
@@ -98,33 +94,27 @@ export default function Page() {
   ];
 
   const t = {
-    saleTitle: isArabic ? "خصم 25٪ على كل المنتجات" : "25% OFF SITEWIDE",
-    saleDesc: isArabic
-      ? "تسوقي مستلزمات الشعر الأساسية بخصم 25٪ حتى 6 يوليو. تطبق الشروط."
-      : "Our Summer sale has arrived, take 25% off effortless hair essentials through July 6th. Exclusions apply.",
     shopNow: isArabic ? "تسوقي الآن" : "SHOP NOW",
-    sweetSummer: isArabic ? "صيف حلو للشعر" : "SWEET SUMMER HAIR",
-    summerDesc: isArabic
-      ? "جربي إكسسوارات الشعر الصيفية والعناية الفائقة المنعشة."
-      : "Refresh your summer hair wardrobe with sweet seasonal accessories and hair care.",
-    sundrenched: isArabic ? "لأيام مشمسة" : "FOR SUN-DRENCHED DAYS",
-    sunDesc: isArabic
-      ? "استمتعي بعطر الشعر والهيدباند والمشابك الخفيفة."
-      : "Take your hair from morning to golden hour with Aura Mist, headbands, and barrettes.",
-    hairMilk: isArabic
-      ? "تعرفي على هيڤنلي هير ميلك"
-      : "MEET HEAVENLY HAIR MILK",
-    milkDesc: isArabic
-      ? "منتج رائع لفك التشابك والحماية من الحرارة والتقليل من التجعد."
-      : "Pre-styling must-have that detangles, protects from heat, and reduces frizz.",
-    flawlessDesc: isArabic
-      ? "اكتشفي العناية بالشعر والفرش والإكسسوارات لفصل الإجازات."
-      : "Hair care, accessories, and brushes for vacation-season long.",
+    hairClipsTitle: isArabic ? "مشابك شعر عصرية" : "TRENDY HAIR CLIPS",
+    hairClipsDesc: isArabic
+      ? "أضيفي لمسة فورية لإطلالتكِ مع مشابك أنيقة تناسب كل المناسبات."
+      : "Elevate your look instantly with stylish hair clips made for every occasion.",
+
+    hairBrushesTitle: isArabic ? "فرش شعر أساسية" : "ESSENTIAL HAIR BRUSHES",
+    hairBrushesDesc: isArabic
+      ? "اعتني بشعركِ مع مجموعة فرش عالية الجودة للتسريح اليومي والتصفيف المثالي."
+      : "Care for your hair with premium brushes designed for everyday detangling and flawless styling.",
+
+    makeupBagsTitle: isArabic ? "حقيبة مكياج أنيقة" : "CHIC MAKEUP BAGS",
+    makeupBagsDesc: isArabic
+      ? "احملي مستحضراتكِ المفضلة بأناقة مع حقائب عملية للسفر والاستخدام اليومي."
+      : "Carry your beauty essentials in style with versatile makeup bags, perfect for travel or daily use.",
+
     shopCategory: isArabic ? "تسوقي حسب الفئة" : "SHOP BY CATEGORY",
     inspiredBy: isArabic ? "مستوحى من" : "INSPIRED BY",
     inspiredDesc: isArabic
-      ? "هيڤنلي هير ميلك يمنح شعرك النعومة والرائحة الفانيليا ويقلل التجعد."
-      : '"Heavenly Hair Milk was formulated for soft, smooth and vanilla-scented hair..."',
+      ? "مجموعة مستوحاة من الأيام المشمسة والإجازات الصغيرة ولمسات الأناقة اليومية."
+      : "A collection inspired by sunlit days, weekend escapes, and effortless everyday elegance.",
     aboutUs: isArabic ? "من نحن" : "ABOUT US",
     aboutDesc: isArabic
       ? "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام."
@@ -206,22 +196,18 @@ export default function Page() {
             <Heading size="lg" color="gray.500" my={2} fontFamily={headingFont}>
               {
                 [
-                  t.saleTitle,
-                  t.sweetSummer,
-                  t.sundrenched,
-                  t.hairMilk,
-                  t.hairMilk,
+                  t.hairClipsTitle,
+                  t.hairBrushesTitle,
+                  t.makeupBagsTitle,
                 ][i]
               }
             </Heading>
             <Text fontWeight={100} color="black" fontFamily={bodyFont}>
               {
                 [
-                  t.saleDesc,
-                  t.summerDesc,
-                  t.sunDesc,
-                  t.milkDesc,
-                  t.flawlessDesc,
+                  t.hairClipsDesc,
+                  t.hairBrushesDesc,
+                  t.makeupBagsDesc,
                 ][i]
               }
             </Text>
@@ -269,7 +255,7 @@ export default function Page() {
         title={t.aboutUs}
         description={t.aboutDesc}
         buttonText={t.ourStory}
-        buttonLink="/LOOKBOOK"
+        buttonLink="/lookbook"
         imageSrc={`${API_URL}/media/home/banner2.svg`}
       />
     </Box>

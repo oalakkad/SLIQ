@@ -38,7 +38,6 @@ const AboutSection = ({
       ref={ref}
       direction={{ base: "column", md: "row" }}
       w="100%"
-      mt={10}
       bg="#efe7e2"
       overflow="hidden"
     >
