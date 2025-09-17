@@ -1,21 +1,18 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useActivationMutation } from "@/redux/features/authApiSlice";
 import { Flex, Heading, Spinner, useToast } from "@chakra-ui/react";
 
-export default function Page({
-  params,
-}: {
-  params: { uid: string; token: string };
-}) {
+export default function Page() {
   const router = useRouter();
+  const params = useParams<{ uid: string; token: string }>();
   const [activation] = useActivationMutation();
   const toast = useToast();
 
   useEffect(() => {
-    const uid = params.uid;
-    const token = params.token;
+    const uid = params?.uid;
+    const token = params?.token;
 
     if (!uid || !token) return;
 
