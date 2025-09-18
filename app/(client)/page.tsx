@@ -158,23 +158,6 @@ export default function Page() {
 
   return (
     <Box dir={direction}>
-      <Box px={{ base: 4, md: 16 }} py={10} bg="brand.blue">
-        <Heading
-          color="gray.700"
-          fontFamily={bodyFont}
-          textAlign="center"
-          size="lg"
-          fontWeight={400}
-          my={5}
-        >
-          {t.kidsTitle}
-        </Heading>
-        <SimpleGrid columns={{ base: 2, md: 4 }} columnGap={6}>
-          {kidsProducts.map((cat) => (
-            <CategoryCard key={cat.title} {...cat} />
-          ))}
-        </SimpleGrid>
-      </Box>
       {imageGroups.slice(0, 5).map((images, i) => (
         <Box
           key={i}
@@ -238,6 +221,24 @@ export default function Page() {
         </Heading>
         <SimpleGrid columns={{ base: 2, md: 4 }} columnGap={6}>
           {categories.map((cat) => (
+            <CategoryCard key={cat.title} {...cat} />
+          ))}
+        </SimpleGrid>
+      </Box>
+
+      <Box px={{ base: 4, md: 16 }} py={10} bg="brand.blue">
+        <Heading
+          color="gray.700"
+          fontFamily={bodyFont}
+          textAlign="center"
+          size="lg"
+          fontWeight={400}
+          my={5}
+        >
+          {t.kidsTitle}
+        </Heading>
+        <SimpleGrid columns={{ base: 2, md: 4 }} columnGap={6}>
+          {kidsProducts.map((cat) => (
             <CategoryCard key={cat.title} {...cat} />
           ))}
         </SimpleGrid>
