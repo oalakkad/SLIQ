@@ -6,7 +6,7 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
  * Config
  * ----------------------------
  */
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api` || "http://localhost:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const REFRESH_PATH = "/jwt/refresh/";
 
 const REFRESH_WAIT_TIMEOUT_MS = 5000;
