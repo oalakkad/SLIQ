@@ -24,7 +24,8 @@ import type { ThreeImagesProps } from "@/components/common/ThreeImages";
 import type { CategoryCardProps } from "@/components/common/CategoryCard";
 import { useAppSelector } from "@/redux/hooks";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`.slice(0, process.env.NEXT_PUBLIC_API_UR.length-4) || "http://localhost:8000/api";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_URL = apiUrl.length > 4 ? apiUrl.slice(0, apiUrl.length - 4) : apiUrl;
 
 const generateImageSet = (start: number): ThreeImagesProps[] =>
   [0, 1, 2].map((i) => ({
