@@ -24,7 +24,7 @@ import type { ThreeImagesProps } from "@/components/common/ThreeImages";
 import type { CategoryCardProps } from "@/components/common/CategoryCard";
 import { useAppSelector } from "@/redux/hooks";
 
-const API_URL = process.env.AWS_URL || "http://localhost:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_AWS_URL || "http://localhost:8000/api";
 
 const generateImageSet = (start: number): ThreeImagesProps[] =>
   [0, 1, 2].map((i) => ({
