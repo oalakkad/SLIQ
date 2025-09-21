@@ -9,16 +9,38 @@ type Post = {
   shortcode: string;
 };
 
+// Raw API response type (loose)
+type IGApiPost = {
+  id?: string;
+  pk?: string;
+  shortcode?: string;
+  code?: string;
+  image_url?: string;
+  display_url?: string;
+  thumbnail_url?: string;
+  media_url?: string;
+  caption?: string;
+  node?: {
+    id?: string;
+    shortcode?: string;
+    code?: string;
+    display_url?: string;
+    thumbnail_src?: string;
+    image_versions2?: { candidates?: { url: string }[] };
+  };
+};
+
 export default function InstagramFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [paginationToken, setPaginationToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const username = "saie.kw";
+  const username = "saie.kw"; // 👈 change to your IG username
   const amount = 12;
 
-  const pickImageUrl = (p: any): string =>
+  // Helpers to pick correct fields
+  const pickImageUrl = (p: IGApiPost): string =>
     p.image_url ||
     p.display_url ||
     p.thumbnail_url ||
@@ -28,23 +50,13 @@ export default function InstagramFeed() {
     p.node?.image_versions2?.candidates?.[0]?.url ||
     "";
 
-  const pickShortcode = (p: any): string =>
-    p.shortcode ||
-    p.code ||
-    p.node?.shortcode ||
-    p.node?.code ||
-    "";
+  const pickShortcode = (p: IGApiPost): string =>
+    p.shortcode || p.code || p.node?.shortcode || p.node?.code || "";
 
-  const pickId = (p: any): string =>
+  const pickId = (p: IGApiPost): string =>
     p.id || p.pk || p.node?.id || crypto.randomUUID();
 
   const fetchPosts = async () => {
-    if (!process.env.NEXT_PUBLIC_RAPIDAPI_KEY) {
-      console.error("Missing NEXT_PUBLIC_RAPIDAPI_KEY");
-      setErr("Missing RapidAPI key. Add NEXT_PUBLIC_RAPIDAPI_KEY to .env.local and restart.");
-      return;
-    }
-
     setLoading(true);
     setErr(null);
 
@@ -60,33 +72,34 @@ export default function InstagramFeed() {
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
+            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!, // 👈 add this to .env.local
             "X-RapidAPI-Host": "instagram-scraper-stable-api.p.rapidapi.com",
           },
         }
       );
 
-      // Inspect what comes back:
-      // console.log(res.data);
+      const items: IGApiPost[] =
+        res.data?.posts ?? res.data?.data ?? res.data?.items ?? [];
 
-      const items = res.data?.posts ?? res.data?.data ?? res.data?.items ?? [];
-      const newPosts: Post[] = items.map((item: any) => ({
-        id: pickId(item),
-        display_url: pickImageUrl(item),
-        shortcode: pickShortcode(item),
-      })).filter(p => p.display_url && p.shortcode);
+      const newPosts: Post[] = items
+        .map((item) => ({
+          id: pickId(item),
+          display_url: pickImageUrl(item),
+          shortcode: pickShortcode(item),
+        }))
+        .filter((p) => p.display_url && p.shortcode);
 
-      setPosts(prev => [...prev, ...newPosts]);
+      setPosts((prev) => [...prev, ...newPosts]);
       setPaginationToken(res.data?.pagination_token ?? null);
     } catch (e: any) {
       console.error("Error fetching IG posts", e?.response?.data || e?.message);
-      setErr("Couldn’t load posts. Check subscription/host name/key or try server proxying.");
+      setErr("Could not load posts.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Kick off the first request on mount
+  // First fetch on mount
   useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +128,7 @@ export default function InstagramFeed() {
       {loading && <Spinner mt={4} size="lg" thickness="3px" />}
 
       {!loading && paginationToken && (
-        <Button mt={6} colorScheme="brandPink" onClick={fetchPosts}>
+        <Button mt={6} colorScheme="pink" onClick={fetchPosts}>
           Load More
         </Button>
       )}
