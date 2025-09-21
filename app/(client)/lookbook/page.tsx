@@ -116,7 +116,7 @@ export default function InstagramFeed() {
             rel="noreferrer"
           >
             <Image
-              src={post.display_url}
+              src={`/api/proxy-image/?url=${encodeURIComponent(post.display_url)}`}
               alt="Instagram post"
               borderRadius="xl"
               _hover={{ transform: "scale(1.05)", transition: "0.2s" }}
