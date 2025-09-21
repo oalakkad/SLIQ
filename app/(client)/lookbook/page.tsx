@@ -11,34 +11,43 @@ type Post = {
 
 export default function InstagramFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [page, setPage] = useState(1);
+  const [paginationToken, setPaginationToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const username = "saie.kw"; // 👈 replace
-  const pageSize = 6; // how many posts per load
+  const username = "saie.kw"; // 👈 replace if needed
+  const amount = 12; // default number of posts per request
 
-  const fetchPosts = async (p = 1) => {
+  const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `https://instagram-scraper-api2.p.rapidapi.com/v1.2/posts`,
+      const formData = new URLSearchParams();
+      formData.append("username_or_url", username);
+      formData.append("amount", amount.toString());
+      if (paginationToken) {
+        formData.append("pagination_token", paginationToken);
+      }
+
+      const res = await axios.post(
+        "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php",
+        formData,
         {
-          params: { username, page: p, limit: pageSize },
           headers: {
-            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
-            "X-RapidAPI-Host": "instagram-scraper-api2.p.rapidapi.com",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "x-rapidapi-key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
+            "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
           },
         }
       );
 
       const newPosts =
-        res.data?.data?.items?.map((item: any) => ({
+        res.data?.items?.map((item: any) => ({
           id: item.id,
           display_url: item.display_url,
           shortcode: item.shortcode,
         })) || [];
 
       setPosts((prev) => [...prev, ...newPosts]);
+      setPaginationToken(res.data?.pagination_token || null);
     } catch (err) {
       console.error("Error fetching IG posts", err);
     }
@@ -46,8 +55,8 @@ export default function InstagramFeed() {
   };
 
   useEffect(() => {
-    fetchPosts(page);
-  }, [page]);
+    fetchPosts();
+  }, []);
 
   return (
     <Box textAlign="center" my={10}>
@@ -69,10 +78,10 @@ export default function InstagramFeed() {
         ))}
       </SimpleGrid>
 
-      {loading && <Spinner mt={4} />}
+      {loading && <Spinner mt={4} colorScheme="brandPink" />}
 
-      {!loading && posts.length > 0 && (
-        <Button mt={6} colorScheme="teal" onClick={() => setPage(page + 1)}>
+      {!loading && paginationToken && (
+        <Button mt={6} colorScheme="brandPink" onClick={fetchPosts}>
           Load More
         </Button>
       )}
