@@ -18,45 +18,41 @@ export default function InstagramFeed() {
   const amount = 12; // default number of posts per request
 
   const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const formData = new URLSearchParams();
-      formData.append("username_or_url", username);
-      formData.append("amount", amount.toString());
-      if (paginationToken) {
-        formData.append("pagination_token", paginationToken);
-      }
-
-      const res = await axios.post(
-        "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php",
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "x-rapidapi-key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
-            "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
-          },
-        }
-      );
-
-      const newPosts =
-        res.data?.items?.map((item: any) => ({
-          id: item.id,
-          display_url: item.display_url,
-          shortcode: item.shortcode,
-        })) || [];
-
-      setPosts((prev) => [...prev, ...newPosts]);
-      setPaginationToken(res.data?.pagination_token || null);
-    } catch (err) {
-      console.error("Error fetching IG posts", err);
+  setLoading(true);
+  try {
+    const formData = new URLSearchParams();
+    formData.append("username_or_url", username);
+    formData.append("amount", amount.toString());
+    if (paginationToken) {
+      formData.append("pagination_token", paginationToken);
     }
-    setLoading(false);
-  };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+    const res = await axios.post(
+      "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "x-rapidapi-key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
+          "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
+        },
+      }
+    );
+
+    const newPosts =
+      res.data?.posts?.map((post: any) => ({
+        id: post.node.id,
+        display_url: post.node.image_versions2?.candidates?.[0]?.url || "",
+        shortcode: post.node.code,
+      })) || [];
+
+    setPosts((prev) => [...prev, ...newPosts]);
+    setPaginationToken(res.data?.pagination_token || null);
+  } catch (err) {
+    console.error("Error fetching IG posts", err);
+  }
+  setLoading(false);
+};
 
   return (
     <Box textAlign="center" my={10}>
