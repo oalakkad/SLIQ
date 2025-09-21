@@ -1,7 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Box, Button, Image, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Image,
+  SimpleGrid,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
 
 type Post = {
   id: string;
@@ -9,7 +16,6 @@ type Post = {
   shortcode: string;
 };
 
-// Raw API response type (loose)
 type IGApiPost = {
   id?: string;
   pk?: string;
@@ -35,17 +41,18 @@ export default function InstagramFeed() {
   const [paginationToken, setPaginationToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
-  const username = "saie.kw"; // 👈 change to your IG username
+  const username = "saie.kw";
   const amount = 12;
 
-  // Helpers to pick correct fields
   const pickImageUrl = (p: IGApiPost): string =>
+    p.thumbnail_url ||
     p.image_url ||
     p.display_url ||
-    p.thumbnail_url ||
     p.media_url ||
     p.node?.display_url ||
     p.node?.thumbnail_src ||
@@ -74,7 +81,7 @@ export default function InstagramFeed() {
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!, // 👈 add this to .env.local
+            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
             "X-RapidAPI-Host": "instagram-scraper-stable-api.p.rapidapi.com",
           },
         }
@@ -91,6 +98,13 @@ export default function InstagramFeed() {
         }))
         .filter((p) => p.display_url && p.shortcode);
 
+      // Mark all new images as "loading"
+      const newLoadingState = newPosts.reduce((acc, post) => {
+        acc[post.id] = true;
+        return acc;
+      }, {} as Record<string, boolean>);
+
+      setImageLoading((prev) => ({ ...prev, ...newLoadingState }));
       setPosts((prev) => [...prev, ...newPosts]);
       setPaginationToken(res.data?.pagination_token ?? null);
     } catch (e: any) {
@@ -101,7 +115,6 @@ export default function InstagramFeed() {
     }
   };
 
-  // First fetch on mount
   useEffect(() => {
     fetchPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,26 +124,55 @@ export default function InstagramFeed() {
     <Box textAlign="center" my={10}>
       <SimpleGrid columns={[2, 3, 4]} spacing={4}>
         {posts.map((post) => (
-          <a
+          <Box
             key={post.id}
-            href={`https://www.instagram.com/p/${post.shortcode}`}
-            target="_blank"
-            rel="noreferrer"
+            position="relative"
+            width="100%"
+            paddingBottom="100%" // square aspect ratio
+            overflow="hidden"
+            borderRadius="xl"
           >
-            <Image
-              src={`${API_URL}/proxy-image/?url=${encodeURIComponent(post.display_url)}`}
-              alt="Instagram post"
-              borderRadius="xl"
-              _hover={{ transform: "scale(1.05)", transition: "0.2s" }}
-            />
-          </a>
+            {imageLoading[post.id] && (
+              <Spinner
+                size="lg"
+                thickness="3px"
+                colorScheme="brandPink"
+                position="absolute"
+                top="50%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+              />
+            )}
+
+            <a
+              href={`https://www.instagram.com/p/${post.shortcode}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Image
+                src={`${API_URL}/proxy-image/?url=${encodeURIComponent(
+                  post.display_url
+                )}`}
+                alt="Instagram post"
+                position="absolute"
+                top="0"
+                left="0"
+                width="100%"
+                height="100%"
+                objectFit="cover"
+                onLoad={() =>
+                  setImageLoading((prev) => ({ ...prev, [post.id]: false }))
+                }
+              />
+            </a>
+          </Box>
         ))}
       </SimpleGrid>
 
-      {loading && <Spinner mt={4} size="lg" thickness="3px" />}
+      {loading && <Spinner mt={4} size="lg" colorScheme="brandPink" thickness="3px" />}
 
       {!loading && paginationToken && (
-        <Button mt={6} colorScheme="pink" onClick={fetchPosts}>
+        <Button mt={6} colorScheme="brandPink" onClick={fetchPosts}>
           Load More
         </Button>
       )}
