@@ -36,6 +36,8 @@ export default function InstagramFeed() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
   const username = "saie.kw"; // 👈 change to your IG username
   const amount = 12;
 
@@ -116,7 +118,7 @@ export default function InstagramFeed() {
             rel="noreferrer"
           >
             <Image
-              src={`/api/proxy-image/?url=${encodeURIComponent(post.display_url)}`}
+              src={`${API_URL}/proxy-image/?url=${encodeURIComponent(post.display_url)}`}
               alt="Instagram post"
               borderRadius="xl"
               _hover={{ transform: "scale(1.05)", transition: "0.2s" }}
