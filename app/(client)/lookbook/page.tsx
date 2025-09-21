@@ -13,46 +13,84 @@ export default function InstagramFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [paginationToken, setPaginationToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  const username = "saie.kw"; // 👈 replace if needed
-  const amount = 12; // default number of posts per request
+  const username = "saie.kw";
+  const amount = 12;
+
+  const pickImageUrl = (p: any): string =>
+    p.image_url ||
+    p.display_url ||
+    p.thumbnail_url ||
+    p.media_url ||
+    p.node?.display_url ||
+    p.node?.thumbnail_src ||
+    p.node?.image_versions2?.candidates?.[0]?.url ||
+    "";
+
+  const pickShortcode = (p: any): string =>
+    p.shortcode ||
+    p.code ||
+    p.node?.shortcode ||
+    p.node?.code ||
+    "";
+
+  const pickId = (p: any): string =>
+    p.id || p.pk || p.node?.id || crypto.randomUUID();
 
   const fetchPosts = async () => {
-  setLoading(true);
-  try {
-    const formData = new URLSearchParams();
-    formData.append("username_or_url", username);
-    formData.append("amount", amount.toString());
-    if (paginationToken) {
-      formData.append("pagination_token", paginationToken);
+    if (!process.env.NEXT_PUBLIC_RAPIDAPI_KEY) {
+      console.error("Missing NEXT_PUBLIC_RAPIDAPI_KEY");
+      setErr("Missing RapidAPI key. Add NEXT_PUBLIC_RAPIDAPI_KEY to .env.local and restart.");
+      return;
     }
 
-    const res = await axios.post(
-      "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php",
-      formData,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "x-rapidapi-key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
-          "x-rapidapi-host": "instagram-scraper-stable-api.p.rapidapi.com",
-        },
-      }
-    );
+    setLoading(true);
+    setErr(null);
 
-    const newPosts =
-      res.data?.posts?.map((post: any) => ({
-        id: post.node.id,
-        display_url: post.node.image_versions2?.candidates?.[0]?.url || "",
-        shortcode: post.node.code,
-      })) || [];
+    try {
+      const formData = new URLSearchParams();
+      formData.append("username_or_url", username);
+      formData.append("amount", String(amount));
+      if (paginationToken) formData.append("pagination_token", paginationToken);
 
-    setPosts((prev) => [...prev, ...newPosts]);
-    setPaginationToken(res.data?.pagination_token || null);
-  } catch (err) {
-    console.error("Error fetching IG posts", err);
-  }
-  setLoading(false);
-};
+      const res = await axios.post(
+        "https://instagram-scraper-stable-api.p.rapidapi.com/get_ig_user_posts.php",
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-RapidAPI-Key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY!,
+            "X-RapidAPI-Host": "instagram-scraper-stable-api.p.rapidapi.com",
+          },
+        }
+      );
+
+      // Inspect what comes back:
+      // console.log(res.data);
+
+      const items = res.data?.posts ?? res.data?.data ?? res.data?.items ?? [];
+      const newPosts: Post[] = items.map((item: any) => ({
+        id: pickId(item),
+        display_url: pickImageUrl(item),
+        shortcode: pickShortcode(item),
+      })).filter(p => p.display_url && p.shortcode);
+
+      setPosts(prev => [...prev, ...newPosts]);
+      setPaginationToken(res.data?.pagination_token ?? null);
+    } catch (e: any) {
+      console.error("Error fetching IG posts", e?.response?.data || e?.message);
+      setErr("Couldn’t load posts. Check subscription/host name/key or try server proxying.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Kick off the first request on mount
+  useEffect(() => {
+    fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box textAlign="center" my={10}>
@@ -74,7 +112,7 @@ export default function InstagramFeed() {
         ))}
       </SimpleGrid>
 
-      {loading && <Spinner mt={4} colorScheme="brandPink" />}
+      {loading && <Spinner mt={4} size="lg" thickness="3px" />}
 
       {!loading && paginationToken && (
         <Button mt={6} colorScheme="brandPink" onClick={fetchPosts}>
@@ -82,9 +120,15 @@ export default function InstagramFeed() {
         </Button>
       )}
 
-      {posts.length === 0 && !loading && (
+      {!loading && posts.length === 0 && (
         <Text mt={4} color="gray.500">
           No posts found.
+        </Text>
+      )}
+
+      {err && (
+        <Text mt={4} color="red.500">
+          {err}
         </Text>
       )}
     </Box>
