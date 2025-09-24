@@ -45,8 +45,36 @@ export const useCart = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
 
-  // Choose the correct API instance
+  // Pick API client depending on auth state
   const client = isAuthenticated ? api : guestApi;
+
+  // Helper: show toast for backend errors
+  const showErrors = (error: any) => {
+    const errData = error?.response?.data || error;
+    if (errData && typeof errData === "object") {
+      Object.entries(errData).forEach(([field, messages]) => {
+        (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
+          toast({
+            title: field === "non_field_errors" ? "Error" : field,
+            description: String(msg),
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "top-right",
+          });
+        });
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
 
   // Fetch cart
   const cartQuery = useQuery<Cart, Error>({
@@ -61,81 +89,57 @@ export const useCart = () => {
   // Add item
   const addToCart = useMutation({
     mutationFn: async (payload: AddToCartPayload) => {
-      const { data } = await client.post("/cart/items/add/", payload);
-      return data;
+      try {
+        const { data } = await client.post("/cart/items/add/", payload);
+        return data;
+      } catch (error) {
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
     onError: (error: AxiosError<any>) => {
-      if (error.response?.data) {
-        const errData = error.response.data;
-        Object.entries(errData).forEach(([field, messages]) => {
-          (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
-            toast({
-              title: field === "non_field_errors" ? "Error" : field,
-              description: msg,
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-              position: "top-right",
-            });
-          });
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top-right",
-        });
-      }
+      showErrors(error);
     },
   });
 
   // Update item
   const updateCartItem = useMutation({
     mutationFn: async (payload: { id: number; quantity: number }) => {
-      const { data } = await client.patch(`/cart/items/${payload.id}/update/`, {
-        quantity: payload.quantity,
-      });
-      return data;
+      try {
+        const { data } = await client.patch(
+          `/cart/items/${payload.id}/update/`,
+          { quantity: payload.quantity }
+        );
+        return data;
+      } catch (error) {
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
     onError: (error: AxiosError<any>) => {
-      toast({
-        title: "Update failed",
-        description: error.response?.data?.detail || error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top-right",
-      });
+      showErrors(error);
     },
   });
 
   // Remove item
   const removeCartItem = useMutation({
     mutationFn: async (id: number) => {
-      const { data } = await client.delete(`/cart/items/${id}/delete/`);
-      return data;
+      try {
+        const { data } = await client.delete(`/cart/items/${id}/delete/`);
+        return data;
+      } catch (error) {
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
     onError: (error: AxiosError<any>) => {
-      toast({
-        title: "Remove failed",
-        description: error.response?.data?.detail || error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top-right",
-      });
+      showErrors(error);
     },
   });
 
