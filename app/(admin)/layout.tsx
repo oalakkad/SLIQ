@@ -57,7 +57,3 @@ export default function AdminClientLayout({
     </html>
   );
 }
-
-this is the admin layout.tsx
-
-can i add an isAuthenticated (useAppSelector), to check if the user is logged in, otherwise shows a spinner chakrauiv2
