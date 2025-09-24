@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic"; // force SSR, disable prerendering
+
 import { ReactNode, useEffect, useState } from "react";
 import { Box, Spinner, Center } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
@@ -7,10 +9,6 @@ import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
 import { Cairo, Work_Sans, Readex_Pro } from "next/font/google";
 import { useAppSelector } from "@/redux/hooks";
-
-// force client runtime
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
 export const cairo = Cairo({
   subsets: ["arabic"],
