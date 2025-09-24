@@ -6,6 +6,7 @@ import AdminSidebar from "@/components/admin/Sidebar";
 import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
 import { Inter, Cairo, Work_Sans, Readex_Pro } from "next/font/google";
+import { useAppSelector } from "@/redux/hooks";
 export const cairo = Cairo({
   subsets: ["arabic"],
   weight: ["200", "300", "400", "500", "600", "700"],
@@ -32,6 +33,9 @@ export default function AdminClientLayout({
 }: {
   children: ReactNode;
 }) {
+
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  
   return (
     <html lang="en">
       <body
@@ -39,18 +43,28 @@ export default function AdminClientLayout({
       >
         <QueryProvider>
           <Providers>
-            <Box display="flex" minH="100vh">
-              <AdminSidebar />
-              <Box
-                flex="1"
-                display="flex"
-                p={6}
-                bg="gray.50"
-                fontFamily={"var(--font-cairo), serif !important"}
-              >
-                {children}
+            {loading ? (
+              <Center minH="100vh" w="100%">
+                <Spinner size="xl" />
+              </Center>
+            ) : isAuthenticated ? (
+              <Box display="flex" minH="100vh">
+                <AdminSidebar />
+                <Box
+                  flex="1"
+                  display="flex"
+                  p={6}
+                  bg="gray.50"
+                  fontFamily={"var(--font-cairo), serif !important"}
+                >
+                  {children}
+                </Box>
               </Box>
-            </Box>
+            ) : (
+              <Center minH="100vh" w="100%">
+                <Spinner size="xl" />
+              </Center>
+            )}
           </Providers>
         </QueryProvider>
       </body>
