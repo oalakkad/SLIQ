@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, Spinner, Center } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
 import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
