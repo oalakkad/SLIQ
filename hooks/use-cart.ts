@@ -72,9 +72,15 @@ export const useCart = () => {
         const errData = error.response.data;
         Object.entries(errData).forEach(([field, messages]) => {
           (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
+            // 👇 override specific backend message
+            const friendly =
+              msg === "Addon 2 requires custom_name."
+                ? "Please fill the custom name."
+                : msg;
+
             toast({
               title: field === "non_field_errors" ? "Error" : field,
-              description: msg,
+              description: friendly,
               status: "error",
               duration: 5000,
               isClosable: true,
