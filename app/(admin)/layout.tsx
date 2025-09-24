@@ -1,12 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Box, Spinner, Center } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
 import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
-import { Inter, Cairo, Work_Sans, Readex_Pro } from "next/font/google";
+import { Cairo, Work_Sans, Readex_Pro } from "next/font/google";
 import { useAppSelector } from "@/redux/hooks";
+
 export const cairo = Cairo({
   subsets: ["arabic"],
   weight: ["200", "300", "400", "500", "600", "700"],
@@ -33,9 +34,24 @@ export default function AdminClientLayout({
 }: {
   children: ReactNode;
 }) {
+  const [isClient, setIsClient] = useState(false);
 
+  // Ensure code only runs on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Prevent store access during SSR
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  
+
+  if (!isClient) {
+    return (
+      <Center minH="100vh" w="100%">
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
   return (
     <html lang="en">
       <body
