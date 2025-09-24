@@ -11,26 +11,25 @@ import { useRouter } from "next/navigation";
 
 export const cairo = Cairo({
   subsets: ["arabic"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["200","300","400","500","600","700"],
   variable: "--font-cairo",
   display: "swap",
 });
-
 export const workSans = Work_Sans({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["200","300","400","500","600","700"],
   variable: "--font-work-sans",
   display: "swap",
 });
-
 export const readexPro = Readex_Pro({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["200","300","400","500","600","700"],
   variable: "--font-readex-pro",
   display: "swap",
 });
 
-export default function AdminClientLayout({ children }: { children: ReactNode }) {
+// ✅ Auth wrapper runs under Providers
+function AuthGate({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
@@ -40,16 +39,15 @@ export default function AdminClientLayout({ children }: { children: ReactNode })
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    // return nothing until redirect happens
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
+  return <>{children}</>;
+}
+
+export default function AdminClientLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}
-      >
+      <body className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}>
         <QueryProvider>
           <Providers>
             <Box display="flex" minH="100vh">
@@ -61,7 +59,8 @@ export default function AdminClientLayout({ children }: { children: ReactNode })
                 bg="gray.50"
                 fontFamily={"var(--font-cairo), serif !important"}
               >
-                {children}
+                {/* ✅ all children pages protected automatically */}
+                <AuthGate>{children}</AuthGate>
               </Box>
             </Box>
           </Providers>
