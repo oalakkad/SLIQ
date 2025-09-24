@@ -161,12 +161,21 @@ export default function Page() {
       {imageGroups.slice(0, 5).map((images, i) => (
         <Box
           key={i}
-          bg={
+          {/* bg={
             [
               "brand.announcement",
               "brand.pink",
               "brand.announcement",
               "brand.border",
+              "brand.blue",
+            ][i]
+          } */}
+          bg={
+            [
+              "brand.pink",
+              "white",
+              "brand.pink",
+              "white",
               "brand.blue",
             ][i]
           }
