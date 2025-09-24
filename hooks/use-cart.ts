@@ -1,7 +1,9 @@
 import { useAppSelector } from "@/redux/hooks";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/components/utils/api";
-import { guestApi } from "@/components/utils/guestApi"; // 👈 import the guest API
+import { guestApi } from "@/components/utils/guestApi";
+import { useToast } from "@chakra-ui/react";
+import { AxiosError } from "axios";
 
 // --- Types ---
 export interface CartProduct {
@@ -41,13 +43,14 @@ export interface AddToCartPayload {
 export const useCart = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // Choose the correct API instance
   const client = isAuthenticated ? api : guestApi;
 
   // Fetch cart
   const cartQuery = useQuery<Cart, Error>({
-    queryKey: ["cart", isAuthenticated], // 👈 separate cache for auth/guest
+    queryKey: ["cart", isAuthenticated],
     queryFn: async () => {
       const { data } = await client.get<Cart>("/cart/");
       return data;
@@ -64,6 +67,32 @@ export const useCart = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
+    onError: (error: AxiosError<any>) => {
+      if (error.response?.data) {
+        const errData = error.response.data;
+        Object.entries(errData).forEach(([field, messages]) => {
+          (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
+            toast({
+              title: field === "non_field_errors" ? "Error" : field,
+              description: msg,
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+              position: "top-right",
+            });
+          });
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top-right",
+        });
+      }
+    },
   });
 
   // Update item
@@ -77,6 +106,16 @@ export const useCart = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
+    onError: (error: AxiosError<any>) => {
+      toast({
+        title: "Update failed",
+        description: error.response?.data?.detail || error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    },
   });
 
   // Remove item
@@ -87,6 +126,16 @@ export const useCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
+    },
+    onError: (error: AxiosError<any>) => {
+      toast({
+        title: "Remove failed",
+        description: error.response?.data?.detail || error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
     },
   });
 
