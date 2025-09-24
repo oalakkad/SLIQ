@@ -1,15 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
-import { Provider as ReduxProvider } from "react-redux";
-import { store } from "@/redux/store";
-import { useAppSelector } from "@/redux/hooks";
-
-import { Box, Spinner, Center } from "@chakra-ui/react";
+import { ReactNode, useEffect } from "react";
+import { Box } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
-import { Providers as UIProviders } from "@/components/ui/provider"; // your Chakra/Query providers
+import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
 import { Cairo, Work_Sans, Readex_Pro } from "next/font/google";
+import { useAppSelector } from "@/redux/hooks";
+import { useRouter } from "next/navigation";
 
 export const cairo = Cairo({
   subsets: ["arabic"],
@@ -17,12 +15,14 @@ export const cairo = Cairo({
   variable: "--font-cairo",
   display: "swap",
 });
+
 export const workSans = Work_Sans({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600", "700"],
   variable: "--font-work-sans",
   display: "swap",
 });
+
 export const readexPro = Readex_Pro({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600", "700"],
@@ -30,42 +30,42 @@ export const readexPro = Readex_Pro({
   display: "swap",
 });
 
-/** Runs ONLY under ReduxProvider */
-function AuthGate({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAppSelector((s) => s.auth);
-  if (!isAuthenticated) {
-    return (
-      <Center minH="100vh" w="100%">
-        <Spinner size="xl" />
-      </Center>
-    );
-  }
-  return <>{children}</>;
-}
-
 export default function AdminClientLayout({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/auth/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    // return nothing until redirect happens
+    return null;
+  }
+
   return (
     <html lang="en">
-      <body className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}>
-        {/* Ensure Redux context exists during any render (SSR/CSR) */}
-        <ReduxProvider store={store}>
-          <QueryProvider>
-            <UIProviders>
-              <Box display="flex" minH="100vh">
-                <AdminSidebar />
-                <Box
-                  flex="1"
-                  display="flex"
-                  p={6}
-                  bg="gray.50"
-                  fontFamily={"var(--font-cairo), serif !important"}
-                >
-                  <AuthGate>{children}</AuthGate>
-                </Box>
+      <body
+        className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}
+      >
+        <QueryProvider>
+          <Providers>
+            <Box display="flex" minH="100vh">
+              <AdminSidebar />
+              <Box
+                flex="1"
+                display="flex"
+                p={6}
+                bg="gray.50"
+                fontFamily={"var(--font-cairo), serif !important"}
+              >
+                {children}
               </Box>
-            </UIProviders>
-          </QueryProvider>
-        </ReduxProvider>
+            </Box>
+          </Providers>
+        </QueryProvider>
       </body>
     </html>
   );
