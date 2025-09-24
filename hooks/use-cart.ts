@@ -68,15 +68,16 @@ export const useCart = () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
     },
     onError: (error: AxiosError<any>) => {
-      if (error.response?.data) {
-        const errData = error.response.data;
+      const errData = error.response?.data;
+
+      if (errData && typeof errData === "object") {
         Object.entries(errData).forEach(([field, messages]) => {
           (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
-            // 👇 override specific backend message
+            // 👇 if backend complains about custom_name, override with friendlier text
             const friendly =
-              msg === "Addon 2 requires custom_name."
+              typeof msg === "string" && msg.includes("requires custom_name")
                 ? "Please fill the custom name."
-                : msg;
+                : String(msg);
 
             toast({
               title: field === "non_field_errors" ? "Error" : field,
