@@ -6,7 +6,7 @@ import { store } from "@/redux/store";
 import { useAppSelector } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 
-import { Box } from "@chakra-ui/react";
+import { Box, Center, Spinner } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
 import { Providers as UIProviders } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
