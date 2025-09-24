@@ -33,16 +33,22 @@ export const readexPro = Readex_Pro({
 
 /** Runs ONLY under ReduxProvider */
 function AuthGate({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAppSelector((s) => s.auth);
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
   const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated && !isAuthenticated) {
       router.replace("/auth/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [hydrated, isAuthenticated, router]);
 
-  if (loading) {
+  if (!hydrated) {
+    // prevent redirect until hydration is complete
     return (
       <Center minH="100vh" w="100%">
         <Spinner size="xl" />
@@ -51,7 +57,7 @@ function AuthGate({ children }: { children: ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return null; // prevent flicker while redirecting
+    return null; // nothing while redirecting
   }
 
   return <>{children}</>;
