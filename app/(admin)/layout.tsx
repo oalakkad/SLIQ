@@ -43,11 +43,7 @@ export default function AdminClientLayout({
       >
         <QueryProvider>
           <Providers>
-            {loading ? (
-              <Center minH="100vh" w="100%">
-                <Spinner size="xl" />
-              </Center>
-            ) : isAuthenticated ? (
+            {isAuthenticated ? (
               <Box display="flex" minH="100vh">
                 <AdminSidebar />
                 <Box
