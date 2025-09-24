@@ -1,5 +1,6 @@
-export const dynamic = "force-dynamic";
 "use client";
+
+export const dynamic = "force-dynamic";
 
 import { ReactNode, useEffect, useState } from "react";
 import { Box, Spinner, Center } from "@chakra-ui/react";
@@ -30,19 +31,11 @@ export const readexPro = Readex_Pro({
   display: "swap",
 });
 
-export default function AdminClientLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function AdminClientLayout({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
 
-  // Ensure code only runs on client
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  useEffect(() => setIsClient(true), []);
 
-  // Prevent store access during SSR
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   if (!isClient) {
