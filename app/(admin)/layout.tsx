@@ -1,29 +1,25 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react"; // <-- useState included here
-import { Provider as ReduxProvider } from "react-redux";
-import { store } from "@/redux/store";
-import { useAppSelector } from "@/redux/hooks";
-import { useRouter } from "next/navigation";
-
-import { Box, Center, Spinner } from "@chakra-ui/react";
+import { ReactNode } from "react";
+import { Box } from "@chakra-ui/react";
 import AdminSidebar from "@/components/admin/Sidebar";
-import { Providers as UIProviders } from "@/components/ui/provider";
+import { Providers } from "@/components/ui/provider";
 import QueryProvider from "@/components/utils/QueryProvider";
-import { Cairo, Work_Sans, Readex_Pro } from "next/font/google";
-
+import { Inter, Cairo, Work_Sans, Readex_Pro } from "next/font/google";
 export const cairo = Cairo({
   subsets: ["arabic"],
   weight: ["200", "300", "400", "500", "600", "700"],
   variable: "--font-cairo",
   display: "swap",
 });
+
 export const workSans = Work_Sans({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600", "700"],
   variable: "--font-work-sans",
   display: "swap",
 });
+
 export const readexPro = Readex_Pro({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600", "700"],
@@ -31,61 +27,37 @@ export const readexPro = Readex_Pro({
   display: "swap",
 });
 
-/** Runs ONLY under ReduxProvider */
-function AuthGate({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAppSelector((s) => s.auth);
-  const router = useRouter();
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (hydrated && !isAuthenticated) {
-      router.replace("/auth/login");
-    }
-  }, [hydrated, isAuthenticated, router]);
-
-  if (!hydrated) {
-    // prevent redirect until hydration is complete
-    return (
-      <Center minH="100vh" w="100%">
-        <Spinner size="xl" />
-      </Center>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null; // nothing while redirecting
-  }
-
-  return <>{children}</>;
-}
-
-export default function AdminClientLayout({ children }: { children: ReactNode }) {
+export default function AdminClientLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}>
-        <ReduxProvider store={store}>
-          <QueryProvider>
-            <UIProviders>
-              <Box display="flex" minH="100vh">
-                <AdminSidebar />
-                <Box
-                  flex="1"
-                  display="flex"
-                  p={6}
-                  bg="gray.50"
-                  fontFamily={"var(--font-cairo), serif !important"}
-                >
-                  <AuthGate>{children}</AuthGate>
-                </Box>
+      <body
+        className={`${cairo.variable} ${workSans.variable} ${readexPro.variable}`}
+      >
+        <QueryProvider>
+          <Providers>
+            <Box display="flex" minH="100vh">
+              <AdminSidebar />
+              <Box
+                flex="1"
+                display="flex"
+                p={6}
+                bg="gray.50"
+                fontFamily={"var(--font-cairo), serif !important"}
+              >
+                {children}
               </Box>
-            </UIProviders>
-          </QueryProvider>
-        </ReduxProvider>
+            </Box>
+          </Providers>
+        </QueryProvider>
       </body>
     </html>
   );
 }
+
+this is the admin layout.tsx
+
+can i add an isAuthenticated (useAppSelector), to check if the user is logged in, otherwise shows a spinner chakrauiv2
