@@ -1,9 +1,7 @@
 import { useAppSelector } from "@/redux/hooks";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/components/utils/api";
-import { guestApi } from "@/components/utils/guestApi";
-import { useToast } from "@chakra-ui/react";
-import { AxiosError } from "axios";
+import { guestApi } from "@/components/utils/guestApi"; // 👈 import the guest API
 
 // --- Types ---
 export interface CartProduct {
@@ -43,42 +41,13 @@ export interface AddToCartPayload {
 export const useCart = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const queryClient = useQueryClient();
-  const toast = useToast();
 
-  // Pick API client depending on auth state
+  // Choose the correct API instance
   const client = isAuthenticated ? api : guestApi;
-
-  // Helper: show toast for backend errors
-  const showErrors = (error: any) => {
-    const errData = error?.response?.data || error;
-    if (errData && typeof errData === "object") {
-      Object.entries(errData).forEach(([field, messages]) => {
-        (Array.isArray(messages) ? messages : [messages]).forEach((msg) => {
-          toast({
-            title: field === "non_field_errors" ? "Error" : field,
-            description: String(msg),
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-            position: "top-right",
-          });
-        });
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: error.message || "Something went wrong",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top-right",
-      });
-    }
-  };
 
   // Fetch cart
   const cartQuery = useQuery<Cart, Error>({
-    queryKey: ["cart", isAuthenticated],
+    queryKey: ["cart", isAuthenticated], // 👈 separate cache for auth/guest
     queryFn: async () => {
       const { data } = await client.get<Cart>("/cart/");
       return data;
@@ -89,57 +58,35 @@ export const useCart = () => {
   // Add item
   const addToCart = useMutation({
     mutationFn: async (payload: AddToCartPayload) => {
-      try {
-        const { data } = await client.post("/cart/items/add/", payload);
-        return data;
-      } catch (error) {
-        throw error;
-      }
+      const { data } = await client.post("/cart/items/add/", payload);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
-    },
-    onError: (error: AxiosError<any>) => {
-      showErrors(error);
     },
   });
 
   // Update item
   const updateCartItem = useMutation({
     mutationFn: async (payload: { id: number; quantity: number }) => {
-      try {
-        const { data } = await client.patch(
-          `/cart/items/${payload.id}/update/`,
-          { quantity: payload.quantity }
-        );
-        return data;
-      } catch (error) {
-        throw error;
-      }
+      const { data } = await client.patch(`/cart/items/${payload.id}/update/`, {
+        quantity: payload.quantity,
+      });
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
-    },
-    onError: (error: AxiosError<any>) => {
-      showErrors(error);
     },
   });
 
   // Remove item
   const removeCartItem = useMutation({
     mutationFn: async (id: number) => {
-      try {
-        const { data } = await client.delete(`/cart/items/${id}/delete/`);
-        return data;
-      } catch (error) {
-        throw error;
-      }
+      const { data } = await client.delete(`/cart/items/${id}/delete/`);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", isAuthenticated] });
-    },
-    onError: (error: AxiosError<any>) => {
-      showErrors(error);
     },
   });
 
