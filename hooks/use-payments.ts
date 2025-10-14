@@ -34,7 +34,7 @@ export type ExecutePaymentResponse = {
  * 🧍 Checkout / Start Payment Intent
  * ────────────────────────────────────────────────────────────────*/
 
-/** GuestAddress structure for shipping/billing */
+/** Guest address structure used on frontend (shipping/billing) */
 export type GuestAddress = {
   name: string;
   email: string;
@@ -45,22 +45,18 @@ export type GuestAddress = {
   country: string;
 };
 
-/** Updated payload for start checkout */
+/**
+ * ✅ Flattened StartCheckoutPayload
+ * Matches backend that expects:
+ * - guest {name,email,phone}
+ * - cart contains address details
+ */
 export type StartCheckoutPayload = {
-  /**
-   * Authenticated users: shipping address
-   */
+  /** Authenticated users: shipping address */
   address_id?: number;
 
-  /**
-   * Authenticated users: billing address
-   */
+  /** Authenticated users: optional billing address */
   billing_address_id?: number;
-
-  /**
-   * Optional cart snapshot
-   */
-  cart?: unknown;
 
   /**
    * Guest flow: shipping and billing info
@@ -69,13 +65,17 @@ export type StartCheckoutPayload = {
     name: string;
     email: string;
     phone?: string;
-    shipping: GuestAddress;
-    billing: GuestAddress;
+    shipping?: GuestAddress;
+    billing?: GuestAddress;
   };
 
   /**
-   * Optional discount code
+   * ✅ Cart can be anything (Cart, object, snapshot)
+   * Use `unknown` here to avoid TS complaints when passing full Cart.
    */
+  cart?: unknown;
+
+  /** Optional discount code */
   discount_code?: string;
 };
 
@@ -158,7 +158,7 @@ export function useSendPayment() {
   });
 }
 
-/** B0) Start checkout intent (now supports billing) */
+/** B0) Start checkout intent (guest flattened or user ids) */
 export function useStartCheckout() {
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const client = isAuthenticated ? api : guestApi;

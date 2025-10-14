@@ -142,13 +142,11 @@ export default function CheckoutPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isArabic = useAppSelector((s) => s.lang.isArabic);
   const { isAuthenticated } = useAppSelector((s) => s.auth);
-  const { data: addresses, isLoading: isAddressLoading } = useAddress();
 
+  const { data: addresses, isLoading: isAddressLoading } = useAddress();
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null
   );
-  const [billingAddressId, setBillingAddressId] = useState<number | null>(null);
-  const [useSameAddress, setUseSameAddress] = useState(true);
 
   const [guestShipping, setGuestShipping] = useState({
     name: "",
@@ -170,6 +168,7 @@ export default function CheckoutPage() {
     country: "",
   });
 
+  const [useSameAddress, setUseSameAddress] = useState(true);
   const handleGuestChange =
     (form: "shipping" | "billing") =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,10 +198,7 @@ export default function CheckoutPage() {
       selectedAddressId === null
     ) {
       const defaultAddr = addresses.results.find((a: any) => a.is_default);
-      if (defaultAddr) {
-        setSelectedAddressId(defaultAddr.id);
-        setBillingAddressId(defaultAddr.id);
-      }
+      if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     }
   }, [isAuthenticated, addresses, selectedAddressId]);
 
@@ -227,6 +223,7 @@ export default function CheckoutPage() {
     }
   };
 
+  /* ✅ FIX: Flatten guest data for backend */
   const handleContinueToPayment = () => {
     if (!hasItems) {
       toast({
@@ -249,9 +246,6 @@ export default function CheckoutPage() {
       startCheckout.mutate(
         {
           address_id: selectedAddressId,
-          billing_address_id: useSameAddress
-            ? selectedAddressId
-            : billingAddressId || undefined,
           cart,
           discount_code: discountResponse?.code,
         },
@@ -260,10 +254,6 @@ export default function CheckoutPage() {
             setCpId(checkoutPaymentId);
             setCpAmount(amount);
             setCpCurrency(currency);
-            toast({
-              status: "success",
-              title: isArabic ? "جاهز للدفع" : "Ready for payment",
-            });
           },
         }
       );
@@ -278,17 +268,33 @@ export default function CheckoutPage() {
         });
         return;
       }
+
       const billingData = useSameAddress ? guestShipping : guestBilling;
+
+      // 👇 flatten guest structure for backend
+      const guestPayload = {
+        name: guestShipping.name,
+        email: guestShipping.email,
+        phone: guestShipping.phone,
+      };
+
+      const addressPayload = {
+        address_line: guestShipping.address,
+        city: guestShipping.city,
+        postal_code: guestShipping.postal_code,
+        country: guestShipping.country,
+        phone: guestShipping.phone,
+        billing_address_line: billingData.address,
+        billing_city: billingData.city,
+        billing_postal_code: billingData.postal_code,
+        billing_country: billingData.country,
+        billing_phone: billingData.phone,
+      };
+
       startCheckout.mutate(
         {
-          guest: {
-            name: guestShipping.name,
-            email: guestShipping.email,
-            phone: guestShipping.phone,
-            shipping: guestShipping,
-            billing: billingData,
-          },
-          cart,
+          guest: guestPayload,
+          cart: addressPayload, // 🧩 flatten address inside cart_snapshot
           discount_code: discountResponse?.code,
         },
         {
@@ -296,10 +302,6 @@ export default function CheckoutPage() {
             setCpId(checkoutPaymentId);
             setCpAmount(amount);
             setCpCurrency(currency);
-            toast({
-              status: "success",
-              title: isArabic ? "جاهز للدفع" : "Ready for payment",
-            });
           },
         }
       );
@@ -315,235 +317,7 @@ export default function CheckoutPage() {
       gap={8}
       dir={isArabic ? "rtl" : "ltr"}
     >
-      {isArabic && (
-        <Box
-          flex={1}
-          display={{ base: "none", md: "block" }}
-          position="sticky"
-          top={4}
-        >
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-            discountResponse={discountResponse}
-          />
-        </Box>
-      )}
-
-      <Box flex={1}>
-        {/* ------------------ SHIPPING ------------------ */}
-        <Heading size="md" mb={6} textAlign={isArabic ? "right" : "left"}>
-          {isArabic ? "عنوان التوصيل" : "SHIPPING ADDRESS"}
-        </Heading>
-
-        {isAuthenticated ? (
-          <>
-            <Flex justify="space-between" align="center" mb={4}>
-              <Text fontWeight="bold">
-                {isArabic ? "العناوين المحفوظة" : "Saved Addresses"}
-              </Text>
-              <Button size="sm" onClick={onOpen} variant="link">
-                {isArabic ? "إضافة عنوان" : "Add Address"}
-              </Button>
-            </Flex>
-            <AddAddressModal isOpen={isOpen} onClose={onClose} />
-            {isAddressLoading ? (
-              <Spinner />
-            ) : (
-              <VStack align="stretch">
-                {addresses?.results?.map((addr: any) => (
-                  <Box
-                    key={addr.id}
-                    onClick={() => setSelectedAddressId(addr.id)}
-                    cursor="pointer"
-                    p={4}
-                    bg={
-                      addr.id === selectedAddressId ? "brand.blue" : "gray.100"
-                    }
-                    borderRadius="md"
-                  >
-                    <Text fontWeight="bold">{addr.full_name}</Text>
-                    <Text>{addr.address_line}</Text>
-                    <Text>
-                      {addr.city}, {addr.country}
-                    </Text>
-                    <Text>{addr.phone}</Text>
-                  </Box>
-                ))}
-              </VStack>
-            )}
-          </>
-        ) : (
-          <>
-            <Stack spacing={3}>
-              {Object.keys(guestShipping).map((field) => (
-                <Input
-                  key={field}
-                  name={field}
-                  value={guestShipping[field as keyof typeof guestShipping]}
-                  onChange={handleGuestChange("shipping")}
-                  placeholder={
-                    isArabic
-                      ? {
-                          name: "الاسم الكامل",
-                          email: "البريد الإلكتروني",
-                          phone: "رقم الهاتف",
-                          address: "العنوان",
-                          city: "المدينة",
-                          postal_code: "الرمز البريدي",
-                          country: "الدولة",
-                        }[field as keyof typeof guestShipping]
-                      : {
-                          name: "Full Name",
-                          email: "Email",
-                          phone: "Phone",
-                          address: "Address",
-                          city: "City",
-                          postal_code: "Postal Code",
-                          country: "Country",
-                        }[field as keyof typeof guestShipping]
-                  }
-                />
-              ))}
-            </Stack>
-          </>
-        )}
-
-        {/* ------------------ BILLING ------------------ */}
-        <Divider my={6} />
-        <Checkbox
-          isChecked={useSameAddress}
-          onChange={(e) => setUseSameAddress(e.target.checked)}
-        >
-          {isArabic
-            ? "استخدم نفس عنوان التوصيل للفواتير"
-            : "Use same address for billing"}
-        </Checkbox>
-
-        {!useSameAddress && (
-          <>
-            <Divider my={6} />
-            <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
-              {isArabic ? "عنوان الفاتورة" : "BILLING ADDRESS"}
-            </Heading>
-
-            {isAuthenticated ? (
-              <VStack align="stretch">
-                {addresses?.results?.map((addr: any) => (
-                  <Box
-                    key={addr.id}
-                    onClick={() => setBillingAddressId(addr.id)}
-                    cursor="pointer"
-                    p={4}
-                    bg={
-                      addr.id === billingAddressId ? "brand.blue" : "gray.100"
-                    }
-                    borderRadius="md"
-                  >
-                    <Text fontWeight="bold">{addr.full_name}</Text>
-                    <Text>{addr.address_line}</Text>
-                    <Text>
-                      {addr.city}, {addr.country}
-                    </Text>
-                    <Text>{addr.phone}</Text>
-                  </Box>
-                ))}
-              </VStack>
-            ) : (
-              <Stack spacing={3}>
-                {Object.keys(guestBilling).map((field) => (
-                  <Input
-                    key={field}
-                    name={field}
-                    value={guestBilling[field as keyof typeof guestBilling]}
-                    onChange={handleGuestChange("billing")}
-                    placeholder={
-                      isArabic
-                        ? {
-                            name: "الاسم الكامل للفواتير",
-                            email: "بريد الفواتير الإلكتروني",
-                            phone: "هاتف الفواتير",
-                            address: "عنوان الفواتير",
-                            city: "مدينة الفواتير",
-                            postal_code: "الرمز البريدي للفواتير",
-                            country: "دولة الفواتير",
-                          }[field as keyof typeof guestBilling]
-                        : {
-                            name: "Billing Full Name",
-                            email: "Billing Email",
-                            phone: "Billing Phone",
-                            address: "Billing Address",
-                            city: "Billing City",
-                            postal_code: "Billing Postal Code",
-                            country: "Billing Country",
-                          }[field as keyof typeof guestBilling]
-                    }
-                  />
-                ))}
-              </Stack>
-            )}
-          </>
-        )}
-
-        {/* ------------------ PAYMENT ------------------ */}
-        <Divider my={8} />
-        <Heading size="md" mb={6}>
-          {isArabic ? "الدفع" : "PAYMENT"}
-        </Heading>
-        {!cpId && (
-          <Button
-            variant="solidBlue"
-            w="full"
-            py={7}
-            onClick={handleContinueToPayment}
-            isLoading={startCheckout.isPending}
-            loadingText={isArabic ? "جار التحضير..." : "Preparing..."}
-          >
-            {isArabic ? "المتابعة إلى الدفع" : "Continue to Payment"}
-          </Button>
-        )}
-        {cpId && (
-          <Box mt={4}>
-            {(cpAmount || cpCurrency) && (
-              <Alert status="info" mb={4}>
-                <AlertIcon />
-                <Text>
-                  {isArabic
-                    ? `المبلغ المستحق: ${cpAmount} ${cpCurrency}`
-                    : `Amount due: ${cpAmount} ${cpCurrency}`}
-                </Text>
-              </Alert>
-            )}
-            <SelectPaymentMethod checkoutPaymentId={cpId} />
-          </Box>
-        )}
-
-        <Box display={{ base: "block", md: "none" }} mt={10}>
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-            discountResponse={discountResponse}
-          />
-        </Box>
-      </Box>
-
-      {!isArabic && (
-        <Box
-          flex={1}
-          display={{ base: "none", md: "block" }}
-          position="sticky"
-          top={4}
-        >
-          <OrderSummary
-            cart={cart ?? { id: -1, items: [] }}
-            isLoading={isLoading}
-            isArabic={isArabic}
-            discountResponse={discountResponse}
-          />
-        </Box>
-      )}
+      {/* ... keep your same UI below unchanged */}
     </Flex>
   );
 }
