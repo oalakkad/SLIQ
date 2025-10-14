@@ -297,10 +297,16 @@ export default function EditOrderModal({
 
         <Divider />
         <ModalFooter>
-          <Button mr={3} onClick={onClose}>
+          <Button mr={3} onClick={onClose} isDisabled={updateOrder.isPending}>
             Cancel
           </Button>
-          <Button colorScheme="brandBlue" onClick={handleSave}>
+
+          <Button
+            colorScheme="brandBlue"
+            onClick={handleSave}
+            isLoading={updateOrder.isPending}
+            loadingText="Saving..."
+          >
             Save
           </Button>
         </ModalFooter>
