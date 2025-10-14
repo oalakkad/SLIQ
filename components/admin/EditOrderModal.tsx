@@ -145,9 +145,9 @@ export default function EditOrderModal({
     updateOrder.mutate(
       { id: order.id, data: updatedOrder },
       {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["adminOrders"] }); // ✅ refetch latest
-          onClose();
+        onSuccess: async () => {
+          await queryClient.invalidateQueries({ queryKey: ["adminOrders"] }); // wait for fresh fetch
+          onClose(); // only close AFTER the data is updated
         },
       }
     );
