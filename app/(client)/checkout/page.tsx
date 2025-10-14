@@ -248,6 +248,7 @@ export default function CheckoutPage() {
     city: "",
     postal_code: "",
     country: "",
+    phone: "",
   });
 
   const handleGuestChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,6 +352,7 @@ export default function CheckoutPage() {
         }
       );
     } else {
+      // ------------------ GUEST FLOW ------------------
       if (!guestForm.name || !guestForm.email || !guestForm.phone) {
         toast({
           status: "warning",
@@ -361,25 +363,40 @@ export default function CheckoutPage() {
         return;
       }
 
-      const payload = {
-        guest: {
-          name: guestForm.name,
-          email: guestForm.email,
-          phone: guestForm.phone,
-          shipping: guestForm,
-          billing: useSameAddress ? guestForm : guestBilling,
-        },
-        cart, // keep actual cart snapshot
-        discount_code: discountResponse?.code,
+      // ✅ Flatten shipping & billing into cart_snapshot for backend
+      const billingData = useSameAddress ? guestForm : guestBilling;
+
+      const cartSnapshot = {
+        address_line: guestForm.address,
+        city: guestForm.city,
+        postal_code: guestForm.postal_code,
+        country: guestForm.country,
+        phone: guestForm.phone,
+        billing_address_line: billingData.address,
+        billing_city: billingData.city,
+        billing_postal_code: billingData.postal_code,
+        billing_country: billingData.country,
+        billing_phone: billingData.phone,
       };
 
-      startCheckout.mutate(payload as any, {
-        onSuccess: ({ checkoutPaymentId, amount, currency }) => {
-          setCpId(checkoutPaymentId);
-          setCpAmount(amount);
-          setCpCurrency(currency);
+      startCheckout.mutate(
+        {
+          guest: {
+            name: guestForm.name,
+            email: guestForm.email,
+            phone: guestForm.phone,
+          },
+          cart: cartSnapshot, // 👈 this is what verify_payment reads from
+          discount_code: discountResponse?.code,
         },
-      });
+        {
+          onSuccess: ({ checkoutPaymentId, amount, currency }) => {
+            setCpId(checkoutPaymentId);
+            setCpAmount(amount);
+            setCpCurrency(currency);
+          },
+        }
+      );
     }
   };
 
