@@ -6,7 +6,9 @@ import { useAppSelector } from "@/redux/hooks";
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-/** ─── Types from MyFatoorah & backend ───────────────────────────────── */
+/** ────────────────────────────────────────────────────────────────
+ * 🧾 MyFatoorah / Payment Gateway Types
+ * ────────────────────────────────────────────────────────────────*/
 
 export type PaymentMethod = {
   PaymentMethodId: number;
@@ -28,10 +30,39 @@ export type ExecutePaymentResponse = {
   invoiceId?: string | number;
 };
 
+/** ────────────────────────────────────────────────────────────────
+ * 🧍 Checkout / Start Payment Intent
+ * ────────────────────────────────────────────────────────────────*/
+
+/** GuestAddress type for shipping/billing fields */
+export type GuestAddress = {
+  name: string;
+  email: string;
+  phone?: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+};
+
+/** Updated payload for start checkout */
 export type StartCheckoutPayload = {
+  /** Authenticated user only */
   address_id?: number;
-  cart?: unknown; // optional snapshot
-  guest?: { name: string; email: string; phone?: string }; // ✅ allow guest info
+
+  /** Optional cart snapshot */
+  cart?: unknown;
+
+  /** Guest info (includes both shipping & billing) */
+  guest?: {
+    name: string;
+    email: string;
+    phone?: string;
+    shipping: GuestAddress;
+    billing: GuestAddress;
+  };
+
+  /** Optional discount code */
   discount_code?: string;
 };
 
@@ -41,24 +72,32 @@ export type StartCheckoutResponse = {
   currency: string;
 };
 
+/** ────────────────────────────────────────────────────────────────
+ * 🧾 Payment & Invoice Types
+ * ────────────────────────────────────────────────────────────────*/
+
 export type SendPaymentResponse = {
   invoiceUrl: string;
   invoiceId: string | number;
 };
 
-/** ─── Order Types (from backend OrderSerializer) ───────────────────────── */
+/** ────────────────────────────────────────────────────────────────
+ * 📦 Order Types (matches backend OrderSerializer)
+ * ────────────────────────────────────────────────────────────────*/
 
 export type OrderItem = {
   id: number;
-  product: any; // Replace with your Product type
+  product: any; // you can refine to your product model later
   quantity: number;
   price_at_purchase: string;
+  addons?: any[];
 };
 
 export type Order = {
   id: number;
   status: string;
   total_price: string;
+  discount_amount?: string;
   created_at: string;
   updated_at: string;
   items: OrderItem[];
@@ -68,7 +107,9 @@ export type VerifyResponse =
   | { paymentStatus: "paid"; order: Order }
   | { paymentStatus: "failed"; order: null };
 
-/** ─── Error helper ────────────────────────────────────────────────────── */
+/** ────────────────────────────────────────────────────────────────
+ * 🧩 Error helper
+ * ────────────────────────────────────────────────────────────────*/
 
 function toError(e: unknown): Error {
   const ax = e as AxiosError<any>;
@@ -81,13 +122,20 @@ function toError(e: unknown): Error {
   return new Error(msg);
 }
 
-/** A) One-step legacy flow (not used now) */
+/** ────────────────────────────────────────────────────────────────
+ * 💳 React Query Hooks
+ * ────────────────────────────────────────────────────────────────*/
+
+/** A) Legacy send-payment (manual flow) */
 export function useSendPayment() {
   return useMutation({
     mutationKey: ["payments", "send"],
     mutationFn: async (payload: { orderId: number }) => {
       try {
-        const { data } = await api.post<SendPaymentResponse>("payments/send/", payload);
+        const { data } = await api.post<SendPaymentResponse>(
+          "payments/send/",
+          payload
+        );
         return data;
       } catch (e) {
         throw toError(e);
@@ -117,13 +165,13 @@ export function useStartCheckout() {
   });
 }
 
-/** B1) List payment methods */
-export function usePaymentMethods<
-  TData = InitiateResponse,
-  TError = Error
->(
+/** B1) List available payment methods */
+export function usePaymentMethods<TData = InitiateResponse, TError = Error>(
   checkoutPaymentId: number | null,
-  options?: Omit<UseQueryOptions<InitiateResponse, TError, TData>, "queryKey" | "queryFn">
+  options?: Omit<
+    UseQueryOptions<InitiateResponse, TError, TData>,
+    "queryKey" | "queryFn"
+  >
 ) {
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const client = isAuthenticated ? api : guestApi;
@@ -132,25 +180,32 @@ export function usePaymentMethods<
     queryKey: ["payments", "initiate", checkoutPaymentId],
     enabled: !!checkoutPaymentId,
     queryFn: async () => {
-      const { data } = await client.post<InitiateResponse>("payments/initiate/", {
-        checkoutPaymentId,
-      });
+      const { data } = await client.post<InitiateResponse>(
+        "payments/initiate/",
+        { checkoutPaymentId }
+      );
       return data;
     },
     ...(options as any),
   });
 }
 
-/** B2) Execute chosen payment method */
+/** B2) Execute selected payment method */
 export function useExecutePayment() {
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const client = isAuthenticated ? api : guestApi;
 
   return useMutation({
     mutationKey: ["payments", "execute"],
-    mutationFn: async (payload: { checkoutPaymentId: number; paymentMethodId: number }) => {
+    mutationFn: async (payload: {
+      checkoutPaymentId: number;
+      paymentMethodId: number;
+    }) => {
       try {
-        const { data } = await client.post<ExecutePaymentResponse>("payments/execute/", payload);
+        const { data } = await client.post<ExecutePaymentResponse>(
+          "payments/execute/",
+          payload
+        );
         return data;
       } catch (e) {
         throw toError(e);
@@ -159,7 +214,7 @@ export function useExecutePayment() {
   });
 }
 
-/** C) Verify after redirect — creates the Order */
+/** C) Verify payment after redirect — finalizes the Order */
 export function useVerifyPayment() {
   return useMutation({
     mutationKey: ["payments", "verify"],
@@ -170,7 +225,7 @@ export function useVerifyPayment() {
       }).toString();
 
       const { data } = await guestApi.get(`/payments/verify/?${params}`, {
-        withCredentials: false, // ✅ always public
+        withCredentials: false,
       });
 
       return data as VerifyResponse;
