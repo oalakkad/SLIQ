@@ -19,6 +19,7 @@ import {
   Divider,
   Center,
   Badge,
+  Stack,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 
@@ -51,6 +52,7 @@ export default function OrdersPage() {
       >
         {isArabic ? "الطلبات" : "ORDERS"}
       </Heading>
+
       <Box>
         {!orders || orders.length === 0 ? (
           <Center>
@@ -158,6 +160,46 @@ export default function OrdersPage() {
                           {isArabic ? "دينار كويتي" : "KWD"}
                         </Text>
                       </Box>
+
+                      {/* 🚚 Shipping Address */}
+                      {order.shipping_line && (
+                        <Box
+                          bg="gray.50"
+                          p={4}
+                          borderRadius="md"
+                          border="1px solid #e2e8f0"
+                        >
+                          <Text fontWeight="bold" mb={2}>
+                            {isArabic ? "عنوان الشحن" : "Shipping Address"}
+                          </Text>
+                          <Stack spacing={1} fontSize="sm" color="gray.700">
+                            <Text>
+                              {isArabic ? "الاسم:" : "Full Name:"}{" "}
+                              {order.shipping_full_name}
+                            </Text>
+                            <Text>
+                              {isArabic ? "العنوان:" : "Address:"}{" "}
+                              {order.shipping_line}
+                            </Text>
+                            <Text>
+                              {isArabic ? "المدينة:" : "City:"}{" "}
+                              {order.shipping_city}
+                            </Text>
+                            <Text>
+                              {isArabic ? "الرمز البريدي:" : "Postal Code:"}{" "}
+                              {order.shipping_postal_code}
+                            </Text>
+                            <Text>
+                              {isArabic ? "الدولة:" : "Country:"}{" "}
+                              {order.shipping_country}
+                            </Text>
+                            <Text>
+                              {isArabic ? "رقم الهاتف:" : "Phone:"}{" "}
+                              {order.shipping_phone}
+                            </Text>
+                          </Stack>
+                        </Box>
+                      )}
 
                       <Divider />
 

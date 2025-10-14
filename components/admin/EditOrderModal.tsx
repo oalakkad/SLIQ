@@ -23,6 +23,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useAdminOrders, AdminOrder } from "@/hooks/use-admin-orders";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditOrderModalProps {
   order: AdminOrder;
@@ -43,6 +44,8 @@ export default function EditOrderModal({
   const [totalPrice, setTotalPrice] = useState(order.total_price);
   const [discount, setDiscount] = useState(order.discount);
   const [discountAmount, setDiscountAmount] = useState(order.discount_amount);
+
+  const queryClient = useQueryClient();
 
   // 🟢 Shipping address state
   const [shipping, setShipping] = useState({
@@ -141,7 +144,12 @@ export default function EditOrderModal({
 
     updateOrder.mutate(
       { id: order.id, data: updatedOrder },
-      { onSuccess: () => onClose() }
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["adminOrders"] }); // ✅ refetch latest
+          onClose();
+        },
+      }
     );
   };
 
