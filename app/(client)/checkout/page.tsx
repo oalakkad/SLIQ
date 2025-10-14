@@ -14,8 +14,6 @@ import {
   useDisclosure,
   Spinner,
   Image,
-  InputLeftAddon,
-  InputGroup,
   useToast,
   Alert,
   AlertIcon,
@@ -144,11 +142,13 @@ export default function CheckoutPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isArabic = useAppSelector((s) => s.lang.isArabic);
   const { isAuthenticated } = useAppSelector((s) => s.auth);
-
   const { data: addresses, isLoading: isAddressLoading } = useAddress();
+
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
     null
   );
+  const [billingAddressId, setBillingAddressId] = useState<number | null>(null);
+  const [useSameAddress, setUseSameAddress] = useState(true);
 
   const [guestShipping, setGuestShipping] = useState({
     name: "",
@@ -170,7 +170,6 @@ export default function CheckoutPage() {
     country: "",
   });
 
-  const [useSameAddress, setUseSameAddress] = useState(true);
   const handleGuestChange =
     (form: "shipping" | "billing") =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,7 +199,10 @@ export default function CheckoutPage() {
       selectedAddressId === null
     ) {
       const defaultAddr = addresses.results.find((a: any) => a.is_default);
-      if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+        setBillingAddressId(defaultAddr.id);
+      }
     }
   }, [isAuthenticated, addresses, selectedAddressId]);
 
@@ -247,6 +249,9 @@ export default function CheckoutPage() {
       startCheckout.mutate(
         {
           address_id: selectedAddressId,
+          billing_address_id: useSameAddress
+            ? selectedAddressId
+            : billingAddressId || undefined,
           cart,
           discount_code: discountResponse?.code,
         },
@@ -327,8 +332,9 @@ export default function CheckoutPage() {
       )}
 
       <Box flex={1}>
+        {/* ------------------ SHIPPING ------------------ */}
         <Heading size="md" mb={6} textAlign={isArabic ? "right" : "left"}>
-          {isArabic ? "بيانات التوصيل" : "SHIPPING ADDRESS"}
+          {isArabic ? "عنوان التوصيل" : "SHIPPING ADDRESS"}
         </Heading>
 
         {isAuthenticated ? (
@@ -360,7 +366,7 @@ export default function CheckoutPage() {
                     <Text fontWeight="bold">{addr.full_name}</Text>
                     <Text>{addr.address_line}</Text>
                     <Text>
-                      {addr.city}, {addr.postal_code}, {addr.country}
+                      {addr.city}, {addr.country}
                     </Text>
                     <Text>{addr.phone}</Text>
                   </Box>
@@ -370,17 +376,8 @@ export default function CheckoutPage() {
           </>
         ) : (
           <>
-            {/* Shipping Fields */}
             <Stack spacing={3}>
-              {[
-                "name",
-                "email",
-                "phone",
-                "address",
-                "city",
-                "postal_code",
-                "country",
-              ].map((field) => (
+              {Object.keys(guestShipping).map((field) => (
                 <Input
                   key={field}
                   name={field}
@@ -410,32 +407,52 @@ export default function CheckoutPage() {
                 />
               ))}
             </Stack>
+          </>
+        )}
 
+        {/* ------------------ BILLING ------------------ */}
+        <Divider my={6} />
+        <Checkbox
+          isChecked={useSameAddress}
+          onChange={(e) => setUseSameAddress(e.target.checked)}
+        >
+          {isArabic
+            ? "استخدم نفس عنوان التوصيل للفواتير"
+            : "Use same address for billing"}
+        </Checkbox>
+
+        {!useSameAddress && (
+          <>
             <Divider my={6} />
+            <Heading size="md" mb={4} textAlign={isArabic ? "right" : "left"}>
+              {isArabic ? "عنوان الفاتورة" : "BILLING ADDRESS"}
+            </Heading>
 
-            {/* Billing Address Section */}
-            <Flex align="center" mb={4}>
-              <Checkbox
-                isChecked={useSameAddress}
-                onChange={(e) => setUseSameAddress(e.target.checked)}
-              >
-                {isArabic
-                  ? "استخدم نفس عنوان التوصيل للفواتير"
-                  : "Use same address for billing"}
-              </Checkbox>
-            </Flex>
-
-            {!useSameAddress && (
+            {isAuthenticated ? (
+              <VStack align="stretch">
+                {addresses?.results?.map((addr: any) => (
+                  <Box
+                    key={addr.id}
+                    onClick={() => setBillingAddressId(addr.id)}
+                    cursor="pointer"
+                    p={4}
+                    bg={
+                      addr.id === billingAddressId ? "brand.blue" : "gray.100"
+                    }
+                    borderRadius="md"
+                  >
+                    <Text fontWeight="bold">{addr.full_name}</Text>
+                    <Text>{addr.address_line}</Text>
+                    <Text>
+                      {addr.city}, {addr.country}
+                    </Text>
+                    <Text>{addr.phone}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
               <Stack spacing={3}>
-                {[
-                  "name",
-                  "email",
-                  "phone",
-                  "address",
-                  "city",
-                  "postal_code",
-                  "country",
-                ].map((field) => (
+                {Object.keys(guestBilling).map((field) => (
                   <Input
                     key={field}
                     name={field}
@@ -469,26 +486,8 @@ export default function CheckoutPage() {
           </>
         )}
 
+        {/* ------------------ PAYMENT ------------------ */}
         <Divider my={8} />
-
-        {/* Discount */}
-        <Heading size="md" mb={4}>
-          {isArabic ? "كود الخصم" : "DISCOUNT CODE"}
-        </Heading>
-        <Flex gap={2}>
-          <Input
-            placeholder={isArabic ? "أدخل كود الخصم" : "Enter discount code"}
-            value={discountCode}
-            onChange={(e) => setDiscountCode(e.target.value)}
-          />
-          <Button onClick={handleApplyDiscount}>
-            {isArabic ? "تطبيق" : "Apply"}
-          </Button>
-        </Flex>
-
-        <Divider my={8} />
-
-        {/* Payment */}
         <Heading size="md" mb={6}>
           {isArabic ? "الدفع" : "PAYMENT"}
         </Heading>

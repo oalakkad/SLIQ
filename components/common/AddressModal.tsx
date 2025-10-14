@@ -157,7 +157,7 @@ export default function AddAddressModal({
           <Button variant="ghost" onClick={onClose}>
             {isArabic ? "إلغاء" : "Cancel"}
           </Button>
-          <Button colorScheme="pink" onClick={handleSubmit} ml={3}>
+          <Button colorScheme="brandBlue" onClick={handleSubmit} ml={3}>
             {isArabic ? "حفظ" : "Save"}
           </Button>
         </ModalFooter>

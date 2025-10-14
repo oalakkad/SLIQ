@@ -6,7 +6,7 @@ import { useAppSelector } from "@/redux/hooks";
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 🧾 MyFatoorah / Payment Gateway Types
  * ────────────────────────────────────────────────────────────────*/
 
@@ -30,11 +30,11 @@ export type ExecutePaymentResponse = {
   invoiceId?: string | number;
 };
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 🧍 Checkout / Start Payment Intent
  * ────────────────────────────────────────────────────────────────*/
 
-/** GuestAddress type for shipping/billing fields */
+/** GuestAddress structure for shipping/billing */
 export type GuestAddress = {
   name: string;
   email: string;
@@ -47,13 +47,24 @@ export type GuestAddress = {
 
 /** Updated payload for start checkout */
 export type StartCheckoutPayload = {
-  /** Authenticated user only */
+  /**
+   * Authenticated users: shipping address
+   */
   address_id?: number;
 
-  /** Optional cart snapshot */
+  /**
+   * Authenticated users: billing address
+   */
+  billing_address_id?: number;
+
+  /**
+   * Optional cart snapshot
+   */
   cart?: unknown;
 
-  /** Guest info (includes both shipping & billing) */
+  /**
+   * Guest flow: shipping and billing info
+   */
   guest?: {
     name: string;
     email: string;
@@ -62,17 +73,20 @@ export type StartCheckoutPayload = {
     billing: GuestAddress;
   };
 
-  /** Optional discount code */
+  /**
+   * Optional discount code
+   */
   discount_code?: string;
 };
 
+/** Response after start checkout */
 export type StartCheckoutResponse = {
   checkoutPaymentId: number;
   amount: string;
   currency: string;
 };
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 🧾 Payment & Invoice Types
  * ────────────────────────────────────────────────────────────────*/
 
@@ -81,13 +95,13 @@ export type SendPaymentResponse = {
   invoiceId: string | number;
 };
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 📦 Order Types (matches backend OrderSerializer)
  * ────────────────────────────────────────────────────────────────*/
 
 export type OrderItem = {
   id: number;
-  product: any; // you can refine to your product model later
+  product: any;
   quantity: number;
   price_at_purchase: string;
   addons?: any[];
@@ -107,7 +121,7 @@ export type VerifyResponse =
   | { paymentStatus: "paid"; order: Order }
   | { paymentStatus: "failed"; order: null };
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 🧩 Error helper
  * ────────────────────────────────────────────────────────────────*/
 
@@ -122,7 +136,7 @@ function toError(e: unknown): Error {
   return new Error(msg);
 }
 
-/** ────────────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────────
  * 💳 React Query Hooks
  * ────────────────────────────────────────────────────────────────*/
 
@@ -144,7 +158,7 @@ export function useSendPayment() {
   });
 }
 
-/** B0) Start checkout intent */
+/** B0) Start checkout intent (now supports billing) */
 export function useStartCheckout() {
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const client = isAuthenticated ? api : guestApi;
