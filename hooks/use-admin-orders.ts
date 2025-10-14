@@ -2,7 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/components/utils/api";
 import { AxiosResponse } from "axios";
 
-// --- Types ---
+/* ───────────────────────────────────────────────
+ * 🧾 Types
+ * ───────────────────────────────────────────────*/
+
 export interface AdminOrderItem {
   id: number;
   quantity: number;
@@ -44,29 +47,71 @@ export interface AdminOrderDiscount {
   discount_type: "percent" | "fixed";
 }
 
+/* 🟢 MAIN ORDER TYPE */
 export interface AdminOrder {
   id: number;
-  user: { id: number; first_name: string; last_name: string; email: string } | null;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
+
   guest_name?: string | null;
   guest_email?: string | null;
   guest_phone?: string | null;
 
   total_price: string;
-  discount?: AdminOrderDiscount | null;   // full object
+  discount?: AdminOrderDiscount | null;
   discount_amount?: string;
 
   status: string;
   created_at: string;
   updated_at?: string;
+
+  // 🟢 Shipping fields (editable in admin)
+  shipping_full_name?: string | null;
+  shipping_line?: string | null;
+  shipping_city?: string | null;
+  shipping_postal_code?: string | null;
+  shipping_country?: string | null;
+  shipping_phone?: string | null;
+
+  // 🟡 Billing fields (not editable)
+  billing_line?: string | null;
+  billing_city?: string | null;
+  billing_postal_code?: string | null;
+  billing_country?: string | null;
+  billing_phone?: string | null;
+
+  // 🟢 Nested address object for display
+  address?: {
+    full_name?: string | null;
+    address_line?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+    phone?: string | null;
+  } | null;
+
   items: AdminOrderItem[];
 }
 
-// Separate type just for update requests
+/* 🔹 Update payload for PATCH */
 export interface AdminOrderUpdatePayload {
   status?: string;
   total_price?: string;
-  discount?: number | null;        // 👈 only the ID here
+  discount?: number | null; // only the ID
   discount_amount?: string;
+
+  // 🟢 Allow updating shipping info
+  shipping_full_name?: string | null;
+  shipping_line?: string | null;
+  shipping_city?: string | null;
+  shipping_postal_code?: string | null;
+  shipping_country?: string | null;
+  shipping_phone?: string | null;
+
   items_write?: {
     id: number;
     product: number;
@@ -81,7 +126,6 @@ export interface AdminOrderUpdatePayload {
   }[];
 }
 
-
 interface AdminOrdersResponse {
   count: number;
   next: string | null;
@@ -89,23 +133,24 @@ interface AdminOrdersResponse {
   results: AdminOrder[];
 }
 
-// --- API Requests ---
-// ✅ Fetch ALL pages of orders
+/* ───────────────────────────────────────────────
+ * 🔗 API Requests
+ * ───────────────────────────────────────────────*/
+
 const fetchAllAdminOrders = async (
   params?: Record<string, string>,
   signal?: AbortSignal
 ): Promise<AdminOrder[]> => {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   const url = `/admin/orders/${qs}`;
+  const { data } = await api.get<AdminOrder[] | AdminOrdersResponse>(url, {
+    signal,
+  });
 
-  const { data } = await api.get<AdminOrder[] | AdminOrdersResponse>(url, { signal });
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray((data as AdminOrdersResponse).results))
+    return (data as AdminOrdersResponse).results;
 
-  if (Array.isArray(data)) {
-    return data;                 // non-paginated backend
-  }
-  if (data && Array.isArray((data as AdminOrdersResponse).results)) {
-    return (data as AdminOrdersResponse).results; // paginated backend
-  }
   throw new Error("Unexpected orders response shape");
 };
 
@@ -128,19 +173,19 @@ const deleteOrderRequest = async (id: number) => {
   return res.data;
 };
 
-// --- Hook ---
+/* ───────────────────────────────────────────────
+ * 🧩 Hook
+ * ───────────────────────────────────────────────*/
+
 export const useAdminOrders = (
   search?: string,
   filters?: Record<string, string>
 ) => {
   const queryClient = useQueryClient();
-
-  // Build query params
   const queryParams: Record<string, string> = {};
   if (search) queryParams.search = search;
   if (filters) Object.assign(queryParams, filters);
 
-  // Fetch ALL Orders (no pagination on frontend)
   const ordersQuery = useQuery<AdminOrder[], Error>({
     queryKey: ["adminOrders", search, filters],
     queryFn: () =>
@@ -148,11 +193,10 @@ export const useAdminOrders = (
         Object.keys(queryParams).length ? queryParams : undefined
       ),
     staleTime: 60_000,
-    refetchOnWindowFocus: true, // ✅ Auto refetch after idle
-    retry: 1, // Retry once after refresh
+    refetchOnWindowFocus: true,
+    retry: 1,
   });
 
-  // Update order
   const updateOrder = useMutation({
     mutationFn: updateOrderRequest,
     onSuccess: () => {
@@ -160,7 +204,6 @@ export const useAdminOrders = (
     },
   });
 
-  // Delete order
   const deleteOrder = useMutation({
     mutationFn: deleteOrderRequest,
     onSuccess: () => {

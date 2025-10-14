@@ -37,11 +37,27 @@ export default function EditOrderModal({
 }: EditOrderModalProps) {
   const { updateOrder } = useAdminOrders();
 
+  // Base data
   const [status, setStatus] = useState(order.status);
   const [items, setItems] = useState(order.items);
   const [totalPrice, setTotalPrice] = useState(order.total_price);
   const [discount, setDiscount] = useState(order.discount);
   const [discountAmount, setDiscountAmount] = useState(order.discount_amount);
+
+  // 🟢 Shipping address state
+  const [shipping, setShipping] = useState({
+    full_name:
+      order.shipping_full_name ||
+      order.address?.full_name ||
+      order.guest_name ||
+      "",
+    address_line: order.shipping_line || order.address?.address_line || "",
+    city: order.shipping_city || order.address?.city || "",
+    postal_code: order.shipping_postal_code || order.address?.postal_code || "",
+    country: order.shipping_country || order.address?.country || "",
+    phone:
+      order.shipping_phone || order.address?.phone || order.guest_phone || "",
+  });
 
   // 🔹 Recalculate total including discount
   useEffect(() => {
@@ -54,7 +70,7 @@ export default function EditOrderModal({
     setTotalPrice(newTotal);
   }, [items, discountAmount]);
 
-  // 🔹 Update quantity
+  // 🔹 Handle quantity update
   const handleQuantityChange = (
     index: number,
     valueAsString: string,
@@ -67,7 +83,7 @@ export default function EditOrderModal({
     });
   };
 
-  // 🔹 Update addon custom name
+  // 🔹 Handle addon custom name change
   const handleCustomNameChange = (
     itemIndex: number,
     addonIndex: number,
@@ -90,7 +106,13 @@ export default function EditOrderModal({
     });
   };
 
-  // 🔹 Save
+  // 🔹 Handle shipping address change
+  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setShipping((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 🔹 Save all updates
   const handleSave = () => {
     const updatedOrder = {
       status,
@@ -109,6 +131,12 @@ export default function EditOrderModal({
           custom_name: a.addon?.custom_name ?? null,
         })),
       })),
+      shipping_full_name: shipping.full_name,
+      shipping_line: shipping.address_line,
+      shipping_city: shipping.city,
+      shipping_postal_code: shipping.postal_code,
+      shipping_country: shipping.country,
+      shipping_phone: shipping.phone,
     };
 
     updateOrder.mutate(
@@ -118,7 +146,7 @@ export default function EditOrderModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered size="5xl">
       <ModalOverlay />
       <ModalContent maxW="900px">
         <ModalHeader>Edit Order #{order.id}</ModalHeader>
@@ -134,6 +162,53 @@ export default function EditOrderModal({
               <option value="cancelled">Cancelled</option>
             </Select>
 
+            {/* Shipping Address */}
+            <Box>
+              <Text fontWeight="bold" mb={2}>
+                Shipping Address
+              </Text>
+              <VStack spacing={2} align="stretch">
+                <Input
+                  name="full_name"
+                  placeholder="Full Name"
+                  value={shipping.full_name}
+                  onChange={handleShippingChange}
+                />
+                <Input
+                  name="address_line"
+                  placeholder="Address Line"
+                  value={shipping.address_line}
+                  onChange={handleShippingChange}
+                />
+                <HStack>
+                  <Input
+                    name="city"
+                    placeholder="City"
+                    value={shipping.city}
+                    onChange={handleShippingChange}
+                  />
+                  <Input
+                    name="postal_code"
+                    placeholder="Postal Code"
+                    value={shipping.postal_code}
+                    onChange={handleShippingChange}
+                  />
+                </HStack>
+                <Input
+                  name="country"
+                  placeholder="Country"
+                  value={shipping.country}
+                  onChange={handleShippingChange}
+                />
+                <Input
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={shipping.phone}
+                  onChange={handleShippingChange}
+                />
+              </VStack>
+            </Box>
+
             {/* Totals */}
             <Box>
               <Text fontWeight="bold" mb={2}>
@@ -143,8 +218,8 @@ export default function EditOrderModal({
               {discount && (
                 <Box fontSize="sm" color="green.600">
                   <Text>
-                    Discount ({discount.code}): -{Number(discountAmount).toFixed(3)}{" "}
-                    KWD
+                    Discount ({discount.code}): -
+                    {Number(discountAmount).toFixed(3)} KWD
                   </Text>
                 </Box>
               )}
@@ -211,9 +286,12 @@ export default function EditOrderModal({
             ))}
           </VStack>
         </ModalBody>
+
         <Divider />
         <ModalFooter>
-          <Button mr={3} onClick={onClose}>Cancel</Button>
+          <Button mr={3} onClick={onClose}>
+            Cancel
+          </Button>
           <Button colorScheme="brandBlue" onClick={handleSave}>
             Save
           </Button>
