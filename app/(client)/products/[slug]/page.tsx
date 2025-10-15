@@ -121,7 +121,7 @@ export default function ProductPage() {
       fontFamily={bodyFont}
       dir={isArabic ? "rtl" : "ltr"}
     >
-      {/* 🖼️ Image Section */}
+      {/* 🖼️ Image */}
       <VStack flex={1} spacing={4} align="center">
         <Image
           src={image}
