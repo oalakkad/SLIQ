@@ -127,6 +127,7 @@ export default function ProductPage() {
           src={image}
           alt={product?.name}
           maxW={isMobile ? "100%" : "400px"}
+          minW={"400px"}
           h={"400px"}
           objectFit={"contain"}
           borderRadius="md"
