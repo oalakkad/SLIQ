@@ -80,7 +80,6 @@ const strings = (ar: boolean) => ({
   customName: ar ? "اسم مخصص" : "Custom name",
   customNamePlaceholder: ar ? "اكتبي اسمًا مخصصًا" : "Type a custom name",
   noOptions: ar ? "لا توجد خيارات لهذا الإضافة." : "No options for this addon.",
-  errorPrefix: ar ? "خطأ:" : "Error:",
 });
 
 export default function AddonsSelector({
@@ -220,8 +219,8 @@ export default function AddonsSelector({
 
             {/* 🔴 Inline error for this category */}
             {catError && (
-              <Text fontSize="sm" color="red.500" mb={2}>
-                {t.errorPrefix} {catError}
+              <Text fontSize="sm" color="brandPink" mb={2}>
+                {catError}
               </Text>
             )}
 

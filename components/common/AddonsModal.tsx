@@ -52,8 +52,8 @@ export default function AddonsModal({
   const [errors, setErrors] = useState<Record<number, string>>({}); // categoryId -> error
 
   // Map API response into UI shape based on language (memoized)
-  const uiCategories: UIAddonCategory[] = useMemo(
-    () =>
+  const uiCategories: UIAddonCategory[] = useMemo(() => {
+    const mapped =
       (data || []).map((cat) => ({
         id: cat.id,
         name: isArabic && cat.name_ar ? cat.name_ar : cat.name,
@@ -72,9 +72,21 @@ export default function AddonsModal({
             price: Number(o.price || "0"),
           })),
         })),
-      })) || [],
-    [data, isArabic]
-  );
+      })) || [];
+
+    // 🔸 Move Delivery category (any language) to the end
+    return mapped.sort((a, b) => {
+      const aIsDelivery =
+        a.name?.toLowerCase().includes("delivery") ||
+        a.name_ar?.includes("التوصيل");
+      const bIsDelivery =
+        b.name?.toLowerCase().includes("delivery") ||
+        b.name_ar?.includes("التوصيل");
+      if (aIsDelivery && !bIsDelivery) return 1;
+      if (!aIsDelivery && bIsDelivery) return -1;
+      return 0;
+    });
+  }, [data, isArabic]);
 
   // 🔄 Always start with a fresh selection on open or when switching product
   useEffect(() => {
