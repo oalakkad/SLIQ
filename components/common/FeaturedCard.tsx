@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from "react";
 import { FiHeart } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { Product } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
@@ -43,6 +43,8 @@ export default function FeaturedCard({
 
   const { addToCart, data: cart } = useCart();
   const { addToWishlist, removeFromWishlist } = useWishlist();
+
+  const MotionText = motion(Text);
 
   const isArabic = useAppSelector((state) => state.lang.isArabic);
   const headingFont = isArabic
@@ -261,7 +263,18 @@ export default function FeaturedCard({
           }
           cursor={product?.stock_quantity === 0 ? "not-allowed" : "pointer"}
         >
-          {buttonLabel}
+          <AnimatePresence mode="wait" initial={false}>
+            <MotionText
+              key={buttonLabel} // key triggers animation when text changes
+              initial={{ opacity: 0, y: 5, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -5, scale: 0.95 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              fontFamily={headingFont}
+            >
+              {buttonLabel}
+            </MotionText>
+          </AnimatePresence>
         </Button>
       </Box>
     </MotionBox>
