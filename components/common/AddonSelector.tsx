@@ -219,7 +219,7 @@ export default function AddonsSelector({
 
             {/* 🔴 Inline error for this category */}
             {catError && (
-              <Text fontSize="sm" color="brand.blue" mb={2}>
+              <Text fontSize="sm" color="#e6a1a8" mb={2}>
                 {catError}
               </Text>
             )}
