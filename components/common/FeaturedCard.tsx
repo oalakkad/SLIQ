@@ -39,6 +39,7 @@ export default function FeaturedCard({
   onCustomize,
 }: FeaturedCardProps) {
   const [isImageHovered, setIsImageHovered] = useState(false);
+  const [isHoveringButton, setIsHoveringButton] = useState(false);
 
   const { addToCart, data: cart } = useCart();
   const { addToWishlist, removeFromWishlist } = useWishlist();
@@ -87,6 +88,23 @@ export default function FeaturedCard({
         ? "أكثر مبيعتاً"
         : "Best Seller"
       : null;
+
+  // 🟣 Dynamic button label
+  const buttonLabel = (() => {
+    if (product?.stock_quantity === 0)
+      return isArabic ? "غير متوفر" : "OUT OF STOCK";
+
+    if (isInCart)
+      return isHoveringButton
+        ? isArabic
+          ? "أضف المزيد"
+          : "ADD MORE"
+        : isArabic
+        ? "في السلة"
+        : "IN CART";
+
+    return isArabic ? "أضف إلى الحقيبة" : "ADD TO BAG";
+  })();
 
   return (
     <MotionBox
@@ -220,7 +238,6 @@ export default function FeaturedCard({
               : "transparent"
           }
           fontFamily={headingFont}
-          disabled={isInCart || product?.stock_quantity === 0}
           color={
             product?.stock_quantity === 0
               ? "gray.600"
@@ -228,11 +245,12 @@ export default function FeaturedCard({
               ? "black"
               : "gray.600"
           }
+          onMouseEnter={() => setIsHoveringButton(true)}
+          onMouseLeave={() => setIsHoveringButton(false)}
           onClick={(e) => {
-            if (isInCart || product?.stock_quantity === 0) return;
-            e.stopPropagation(); // don't trigger card navigation
+            if (product?.stock_quantity === 0) return;
+            e.stopPropagation();
             onCustomize?.();
-            // Or use addToCart.mutate here if needed
           }}
           _hover={
             product?.stock_quantity === 0
@@ -241,23 +259,9 @@ export default function FeaturedCard({
               ? { backgroundColor: "brand.pink" }
               : { backgroundColor: "gray.500", color: "white" }
           }
-          cursor={
-            isInCart || product?.stock_quantity === 0
-              ? "not-allowed"
-              : "pointer"
-          }
+          cursor={product?.stock_quantity === 0 ? "not-allowed" : "pointer"}
         >
-          {product?.stock_quantity === 0
-            ? isArabic
-              ? "غير متوفر"
-              : "OUT OF STOCK"
-            : isArabic
-            ? isInCart
-              ? "في السلة"
-              : "أضف إلى الحقيبة"
-            : isInCart
-            ? "IN CART"
-            : "ADD TO BAG"}
+          {buttonLabel}
         </Button>
       </Box>
     </MotionBox>
