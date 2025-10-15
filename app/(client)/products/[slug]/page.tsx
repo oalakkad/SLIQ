@@ -14,6 +14,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiHeart } from "react-icons/fi";
+import { AnimatePresence, motion } from "framer-motion";
 import { useProduct } from "@/hooks/use-products";
 import { useParams } from "next/navigation";
 import { useCart } from "@/hooks/use-cart";
@@ -21,6 +22,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import AddonsModal from "@/components/common/AddonsModal";
 import { useWishlist } from "@/hooks/use-wishlist";
+
+const MotionText = motion(Text);
 
 export default function ProductPage() {
   const params = useParams();
@@ -44,6 +47,7 @@ export default function ProductPage() {
     slug: string;
     name: string;
   }>(null);
+
   const openAddons = (p: { id: number; slug: string; name: string }) => {
     setSelectedProduct(p);
     onAddonOpen();
@@ -58,25 +62,46 @@ export default function ProductPage() {
     : "var(--font-work-sans), serif";
 
   useEffect(() => {
-    if (product?.image) {
-      setImage(product.image);
-    }
+    if (product?.image) setImage(product.image);
   }, [product]);
 
   const { data: wishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
-  const isInCart = useMemo(() => {
-    return cart?.items?.some((item) => item.product?.id === product?.id);
-  }, [cart, product]);
+  const isInCart = useMemo(
+    () => cart?.items?.some((item) => item.product?.id === product?.id),
+    [cart, product]
+  );
 
-  const isInWishlist = useMemo(() => {
-    return wishlist?.results?.some((item) => item.product?.id === product?.id);
-  }, [wishlist, product]);
+  const isInWishlist = useMemo(
+    () => wishlist?.results?.some((item) => item.product?.id === product?.id),
+    [wishlist, product]
+  );
 
-  const wishlistId = useMemo(() => {
-    return wishlist?.results.find((item) => item.product?.id === product?.id)
-      ?.id;
-  }, [wishlist, product]);
+  const wishlistId = useMemo(
+    () =>
+      wishlist?.results.find((item) => item.product?.id === product?.id)?.id,
+    [wishlist, product]
+  );
+
+  // 🟢 Hover state for animated button
+  const [isHoveringButton, setIsHoveringButton] = useState(false);
+
+  // 🟣 Dynamic button label (Arabic + English)
+  const buttonLabel = useMemo(() => {
+    if (product?.stock_quantity === 0)
+      return isArabic ? "غير متوفر" : "OUT OF STOCK";
+
+    if (isInCart)
+      return isHoveringButton
+        ? isArabic
+          ? "أضف المزيد"
+          : "ADD MORE"
+        : isArabic
+        ? "في السلة"
+        : "IN CART";
+
+    return isArabic ? "أضف إلى الحقيبة" : "ADD TO BAG";
+  }, [isArabic, isInCart, isHoveringButton, product?.stock_quantity]);
 
   if (isLoading) {
     return (
@@ -96,7 +121,7 @@ export default function ProductPage() {
       fontFamily={bodyFont}
       dir={isArabic ? "rtl" : "ltr"}
     >
-      {/* Image Section */}
+      {/* 🖼️ Image Section */}
       <VStack flex={1} spacing={4} align="center">
         <Image
           src={image}
@@ -114,7 +139,7 @@ export default function ProductPage() {
               onClick={() => setImage(img.image)}
               src={img.image}
               alt={`thumb-${index}`}
-              _hover={{ filter: "brightness(1.05);" }}
+              _hover={{ filter: "brightness(1.05)" }}
               cursor={"pointer"}
               boxSize="60px"
               borderRadius="md"
@@ -124,7 +149,7 @@ export default function ProductPage() {
         </HStack>
       </VStack>
 
-      {/* Details Section */}
+      {/* 🧾 Details Section */}
       <Box flex={1}>
         <Text fontSize="sm" color="gray.600" fontWeight="bold">
           {isArabic ? "إصدار محدود" : "LIMITED EDITION"}
@@ -139,6 +164,7 @@ export default function ProductPage() {
           </Text>
         </HStack>
 
+        {/* Quantity */}
         <Text mt={6} fontWeight="medium">
           {isArabic ? "الكمية" : "QUANTITY"}
         </Text>
@@ -149,67 +175,74 @@ export default function ProductPage() {
         >
           <Button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            variant={"ghost"}
+            variant="ghost"
           >
             -
           </Button>
           <Text>{quantity}</Text>
-          <Button onClick={() => setQuantity((q) => q + 1)} variant={"ghost"}>
+          <Button onClick={() => setQuantity((q) => q + 1)} variant="ghost">
             +
           </Button>
         </HStack>
 
-        <Button
+        {/* 🛍️ Add to Cart Button with Animation */}
+        <Box
           mt={6}
-          w="full"
-          bg={
-            product?.stock_quantity === 0
-              ? "gray.400"
-              : isInCart
-              ? "gray.400"
-              : "gray.700"
-          }
-          color="white"
-          _hover={{
-            bg:
+          onMouseEnter={() => setIsHoveringButton(true)}
+          onMouseLeave={() => setIsHoveringButton(false)}
+        >
+          <Button
+            w="full"
+            bg={
               product?.stock_quantity === 0
                 ? "gray.400"
                 : isInCart
-                ? "gray.400"
-                : "gray.800",
-          }}
-          onClick={() => {
-            if (product?.stock_quantity === 0 || isInCart) return; // block clicks
-            openAddons({
-              id: product?.id ?? -1,
-              slug: product?.slug ?? "",
-              name: product?.name ?? "",
-            });
-          }}
-          disabled={isInCart || product?.stock_quantity === 0}
-          py={6}
-          fontSize="sm"
-        >
-          {product?.stock_quantity === 0
-            ? isArabic
-              ? "غير متوفر"
-              : "OUT OF STOCK"
-            : isArabic
-            ? isInCart
-              ? "في السلة"
-              : "أضف إلى الحقيبة"
-            : isInCart
-            ? "IN CART"
-            : "ADD TO BAG"}
-        </Button>
+                ? "gray.500"
+                : "gray.700"
+            }
+            color="white"
+            _hover={{
+              bg:
+                product?.stock_quantity === 0
+                  ? "gray.400"
+                  : isInCart
+                  ? "gray.500"
+                  : "gray.800",
+            }}
+            onClick={() => {
+              if (product?.stock_quantity === 0) return;
+              openAddons({
+                id: product?.id ?? -1,
+                slug: product?.slug ?? "",
+                name: product?.name ?? "",
+              });
+            }}
+            py={6}
+            fontSize="sm"
+            fontFamily={headingFont}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <MotionText
+                key={buttonLabel}
+                initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              >
+                {buttonLabel}
+              </MotionText>
+            </AnimatePresence>
+          </Button>
+        </Box>
 
+        {/* ❤️ Wishlist */}
         <Button
           leftIcon={<FiHeart />}
           variant="ghost"
           bg={isInWishlist ? "brand.pink" : "transparent"}
           _hover={{ bg: "brandPink.600", color: "gray.700" }}
           mt={2}
-          w={"full"}
+          w="full"
           onClick={
             isInWishlist
               ? () => removeFromWishlist.mutate(wishlistId ?? -1)
@@ -225,6 +258,7 @@ export default function ProductPage() {
             : "Add to Wishlist"}
         </Button>
 
+        {/* 📜 Description */}
         <Text mt={6} fontSize="sm" color="gray.700">
           {isArabic
             ? "امنح شعرك لمسة ساحرة. زيني تسريحاتك أثناء التنقل بأكثر القطع المطلوبة سهولة وجمالاً."
@@ -235,18 +269,19 @@ export default function ProductPage() {
           <Text fontWeight="bold">{isArabic ? "الوصف" : "Description"}</Text>
         </VStack>
       </Box>
+
+      {/* Addons Modal */}
       <AddonsModal
         isOpen={isAddonOpen}
         onClose={onAddonClose}
-        productSlug={selectedProduct !== null ? selectedProduct.slug : ""}
+        productSlug={selectedProduct?.slug ?? ""}
         onConfirm={(selection) => {
-          // shape 'selection' per your API (addonId, optionIds, customName, etc.)
           addToCart.mutate({
-            product_id: selectedProduct !== null ? selectedProduct.id : -1,
-            quantity: 1,
+            product_id: selectedProduct?.id ?? -1,
+            quantity,
             addons: selection.map((s) => ({
               category_id: s.categoryId,
-              addon_id: s.addonId!, // you’ll have ensured one is chosen
+              addon_id: s.addonId!,
               option_ids: s.optionIds,
               custom_name: s.customName ?? null,
             })),

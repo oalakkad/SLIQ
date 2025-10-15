@@ -22,13 +22,14 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAppSelector } from "@/redux/hooks";
 
 const MotionBox = motion(Box);
+const MotionText = motion(Text);
 
 export interface FeaturedCardProps {
   product: Product;
   height: number;
   isWishlist: boolean;
   wishlistItemId: number;
-  onCustomize?: () => void; // NEW
+  onCustomize?: () => void;
 }
 
 export default function FeaturedCard({
@@ -41,10 +42,9 @@ export default function FeaturedCard({
   const [isImageHovered, setIsImageHovered] = useState(false);
   const [isHoveringButton, setIsHoveringButton] = useState(false);
 
-  const { addToCart, data: cart } = useCart();
+  const { data: cart } = useCart();
   const { addToWishlist, removeFromWishlist } = useWishlist();
-
-  const MotionText = motion(Text);
+  const router = useRouter();
 
   const isArabic = useAppSelector((state) => state.lang.isArabic);
   const headingFont = isArabic
@@ -54,17 +54,12 @@ export default function FeaturedCard({
     ? "var(--font-cairo), serif"
     : "var(--font-work-sans), serif";
 
-  const router = useRouter();
+  const isInCart = useMemo(
+    () => cart?.items?.some((item) => item.product.id === product.id),
+    [cart, product.id]
+  );
 
-  const isInCart = useMemo(() => {
-    return cart?.items?.some((item) => item.product.id === product.id);
-  }, [cart, product.id]);
-
-  const { ref, inView } = useInView({
-    threshold: 0.2,
-    triggerOnce: true,
-  });
-
+  const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
   const [isMobile] = useMediaQuery("(max-width: 768px)");
   const [isTablet] = useMediaQuery("(max-width: 1200px)");
 
@@ -91,11 +86,9 @@ export default function FeaturedCard({
         : "Best Seller"
       : null;
 
-  // 🟣 Dynamic button label
-  const buttonLabel = (() => {
+  const buttonLabel = useMemo(() => {
     if (product?.stock_quantity === 0)
       return isArabic ? "غير متوفر" : "OUT OF STOCK";
-
     if (isInCart)
       return isHoveringButton
         ? isArabic
@@ -104,9 +97,8 @@ export default function FeaturedCard({
         : isArabic
         ? "في السلة"
         : "IN CART";
-
     return isArabic ? "أضف إلى الحقيبة" : "ADD TO BAG";
-  })();
+  }, [isArabic, isInCart, isHoveringButton, product?.stock_quantity]);
 
   return (
     <MotionBox
@@ -121,8 +113,9 @@ export default function FeaturedCard({
       overflow="hidden"
       textAlign="center"
       borderRadius={6}
-      fontFamily={"'Readex Pro', sans-serif"}
+      fontFamily={headingFont}
     >
+      {/* Badge + Wishlist */}
       <Flex
         position="absolute"
         alignItems="center"
@@ -131,22 +124,20 @@ export default function FeaturedCard({
         top={0}
         p={2}
       >
-        <Box h="100%">
-          {badge && !isImageHovered && (
-            <Text
-              fontSize={isMobile ? "0.5rem" : "xs"}
-              fontWeight="bold"
-              color="gray.600"
-              zIndex={2}
-              position="absolute"
-              pointerEvents="none"
-              fontFamily={headingFont}
-              ml={3}
-            >
-              {badge}
-            </Text>
-          )}
-        </Box>
+        {badge && !isImageHovered && (
+          <Text
+            fontSize={isMobile ? "0.5rem" : "xs"}
+            fontWeight="bold"
+            color="gray.600"
+            zIndex={2}
+            position="absolute"
+            pointerEvents="none"
+            fontFamily={headingFont}
+            ml={3}
+          >
+            {badge}
+          </Text>
+        )}
 
         <IconButton
           aria-label="wishlist"
@@ -164,20 +155,19 @@ export default function FeaturedCard({
         />
       </Flex>
 
-      {/* Image area */}
+      {/* Image Area */}
       <Box
         position="relative"
         h={adjustedHeight}
         onMouseEnter={() => setIsImageHovered(true)}
         onMouseLeave={() => setIsImageHovered(false)}
         onClick={() => router.push(productLink)}
-        cursor={"pointer"}
+        cursor="pointer"
       >
         <Image
           src={product.image}
           alt={product.name}
           height={adjustedHeight}
-          bgPosition={"bottom"}
           w="100%"
           objectFit="cover"
           opacity={isImageHovered ? 0 : 1}
@@ -200,16 +190,15 @@ export default function FeaturedCard({
         />
       </Box>
 
-      {/* Content area */}
+      {/* Content Area */}
       <Box px={4} py={3}>
         <Text
           fontWeight="bold"
           fontSize={isMobile ? "0.6rem" : isTablet ? "0.7rem" : "sm"}
           color="gray.800"
           h="45px"
-          cursor={"pointer"}
+          cursor="pointer"
           onClick={() => router.push(productLink)}
-          fontFamily={headingFont}
         >
           {isArabic ? product.name_ar : product.name}
         </Text>
@@ -224,58 +213,61 @@ export default function FeaturedCard({
           </Text>
         </Stack>
 
-        <Button
-          variant="outline"
-          size="sm"
-          borderRadius="none"
-          fontWeight="medium"
-          fontSize={isMobile ? "0.5rem" : "xs"}
-          w="100%"
-          py={6}
-          bg={
-            product?.stock_quantity === 0
-              ? "gray.300"
-              : isInCart
-              ? "brand.pink"
-              : "transparent"
-          }
-          fontFamily={headingFont}
-          color={
-            product?.stock_quantity === 0
-              ? "gray.600"
-              : isInCart
-              ? "black"
-              : "gray.600"
-          }
+        {/* Button */}
+        <Box
           onMouseEnter={() => setIsHoveringButton(true)}
           onMouseLeave={() => setIsHoveringButton(false)}
-          onClick={(e) => {
-            if (product?.stock_quantity === 0) return;
-            e.stopPropagation();
-            onCustomize?.();
-          }}
-          _hover={
-            product?.stock_quantity === 0
-              ? { backgroundColor: "gray.300" }
-              : isInCart
-              ? { backgroundColor: "brand.pink" }
-              : { backgroundColor: "gray.500", color: "white" }
-          }
-          cursor={product?.stock_quantity === 0 ? "not-allowed" : "pointer"}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            <MotionText
-              key={buttonLabel} // key triggers animation when text changes
-              initial={{ opacity: 0, y: 5, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -5, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              fontFamily={headingFont}
-            >
-              {buttonLabel}
-            </MotionText>
-          </AnimatePresence>
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            borderRadius="none"
+            fontWeight="medium"
+            fontSize={isMobile ? "0.5rem" : "xs"}
+            w="100%"
+            py={6}
+            bg={
+              product?.stock_quantity === 0
+                ? "gray.300"
+                : isInCart
+                ? "brand.pink"
+                : "transparent"
+            }
+            fontFamily={headingFont}
+            color={
+              product?.stock_quantity === 0
+                ? "gray.600"
+                : isInCart
+                ? "black"
+                : "gray.600"
+            }
+            onClick={(e) => {
+              if (product?.stock_quantity === 0) return;
+              e.stopPropagation();
+              onCustomize?.();
+            }}
+            _hover={
+              product?.stock_quantity === 0
+                ? { backgroundColor: "gray.300" }
+                : isInCart
+                ? { backgroundColor: "brand.pink" }
+                : { backgroundColor: "gray.500", color: "white" }
+            }
+            cursor={product?.stock_quantity === 0 ? "not-allowed" : "pointer"}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <MotionText
+                key={buttonLabel}
+                initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              >
+                {buttonLabel}
+              </MotionText>
+            </AnimatePresence>
+          </Button>
+        </Box>
       </Box>
     </MotionBox>
   );
