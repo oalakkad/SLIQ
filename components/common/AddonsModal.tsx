@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import {
   Modal,
   ModalOverlay,
@@ -43,6 +49,7 @@ export default function AddonsModal({
   const { data, isLoading, isError } = useProductAddons(productSlug);
 
   const [selection, setSelection] = useState<SelectedAddonForCategory[]>([]);
+  const [errors, setErrors] = useState<Record<number, string>>({}); // categoryId -> error
 
   // Map API response into UI shape based on language (memoized)
   const uiCategories: UIAddonCategory[] = useMemo(
@@ -73,6 +80,7 @@ export default function AddonsModal({
   useEffect(() => {
     if (isOpen) {
       setSelection([]);
+      setErrors({});
     }
   }, [isOpen, productSlug]);
 
@@ -80,6 +88,7 @@ export default function AddonsModal({
   useEffect(() => {
     if (!isOpen) {
       setSelection([]);
+      setErrors({});
     }
   }, [isOpen]);
 
@@ -105,11 +114,85 @@ export default function AddonsModal({
       onConfirm([]);
       onClose();
     }
-    // We intentionally avoid adding onConfirm/onClose/selection to deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isLoading, isError, uiCategories.length]);
 
+  // 🛡️ Validation
+  const buildErrors = useCallback((): Record<number, string> => {
+    const errs: Record<number, string> = {};
+    for (const cat of uiCategories) {
+      const sel =
+        selection.find((s) => s.categoryId === cat.id) ??
+        ({
+          categoryId: cat.id,
+          addonId: null,
+          optionIds: [],
+          customName: null,
+        } as SelectedAddonForCategory);
+
+      // 1) Require an addon for each category
+      if (!sel.addonId) {
+        errs[cat.id] = isArabic
+          ? "يرجى اختيار إضافة لهذا القسم."
+          : "Please select an addon for this category.";
+        continue;
+      }
+
+      const addon = cat.addons.find((a) => a.id === sel.addonId);
+      if (!addon) {
+        errs[cat.id] = isArabic
+          ? "الإضافة المحددة غير صالحة."
+          : "Selected addon is invalid.";
+        continue;
+      }
+
+      // 2) Custom name if required
+      if (addon.requires_custom_name) {
+        if (!sel.customName || !sel.customName.trim()) {
+          errs[cat.id] = isArabic
+            ? "هذا الخيار يتطلب اسمًا مخصصًا."
+            : "This addon requires a custom name.";
+          continue;
+        }
+      }
+
+      // 3) Options validation
+      if (addon.options.length > 0) {
+        if (addon.allow_multiple_options) {
+          // require at least 1
+          if (!sel.optionIds || sel.optionIds.length < 1) {
+            errs[cat.id] = isArabic
+              ? "يرجى اختيار خيار واحد على الأقل."
+              : "Please choose at least one option.";
+            continue;
+          }
+        } else {
+          // radio → exactly 1
+          if (!sel.optionIds || sel.optionIds.length !== 1) {
+            errs[cat.id] = isArabic
+              ? "يرجى اختيار خيار واحد فقط."
+              : "Please choose exactly one option.";
+            continue;
+          }
+        }
+      }
+      // else: no options -> no option validation
+    }
+    return errs;
+  }, [selection, uiCategories, isArabic]);
+
+  // Validate live whenever selection/categories change
+  useEffect(() => {
+    setErrors(buildErrors());
+  }, [buildErrors]);
+
   const handleConfirm = () => {
+    const currentErrors = buildErrors();
+    setErrors(currentErrors);
+    if (Object.keys(currentErrors).length > 0) {
+      // Don't close; show inline errors
+      return;
+    }
     onConfirm(selection);
     onClose();
   };
@@ -148,6 +231,7 @@ export default function AddonsModal({
               showPrices
               onChange={setSelection}
               isArabic={isArabic}
+              errors={errors} // 🔴 show per-category errors
             />
           )}
         </ModalBody>
@@ -168,7 +252,7 @@ export default function AddonsModal({
             fontFamily={headingFont}
             px={10}
             py={6}
-            isDisabled={isError}
+            isDisabled={isError || Object.keys(errors).length > 0} // 🧷 block if invalid
           >
             {t.confirm}
           </Button>

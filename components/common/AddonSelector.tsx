@@ -17,7 +17,6 @@ import {
   Checkbox,
   Input,
   Divider,
-  Stack,
 } from "@chakra-ui/react";
 
 // ----- Types -----
@@ -58,6 +57,8 @@ interface AddonsSelectorProps {
   onChange?: (selection: SelectedAddonForCategory[]) => void;
   showPrices?: boolean;
   isArabic?: boolean;
+  /** Per-category error messages (from parent validation) */
+  errors?: Record<number, string>;
 }
 
 // ----- Helpers -----
@@ -79,7 +80,7 @@ const strings = (ar: boolean) => ({
   customName: ar ? "اسم مخصص" : "Custom name",
   customNamePlaceholder: ar ? "اكتبي اسمًا مخصصًا" : "Type a custom name",
   noOptions: ar ? "لا توجد خيارات لهذا الإضافة." : "No options for this addon.",
-  subtotal: ar ? "المجموع الفرعي لهذه الإضافة" : "Subtotal for this addon",
+  errorPrefix: ar ? "خطأ:" : "Error:",
 });
 
 export default function AddonsSelector({
@@ -88,6 +89,7 @@ export default function AddonsSelector({
   onChange,
   showPrices = true,
   isArabic = false,
+  errors = {},
 }: AddonsSelectorProps) {
   const t = strings(isArabic);
 
@@ -105,6 +107,20 @@ export default function AddonsSelector({
   useEffect(() => {
     if (value) setSelection(value);
   }, [value]);
+
+  // If categories change (e.g., different product), reset shape
+  useEffect(() => {
+    if (!value) {
+      setSelection(
+        categories.map((c) => ({
+          categoryId: c.id,
+          addonId: null,
+          optionIds: [],
+          customName: null,
+        }))
+      );
+    }
+  }, [categories, value]);
 
   const emit = (next: SelectedAddonForCategory[]) => {
     setSelection(next);
@@ -173,10 +189,11 @@ export default function AddonsSelector({
         };
 
         const selectedAddon = cat.addons.find((a) => a.id === sel.addonId);
+        const catError = errors[cat.id];
 
         return (
           <Box key={cat.id} borderWidth="1px" borderRadius="md" p={4}>
-            <HStack justify="space-between" mb={3} wrap="wrap">
+            <HStack justify="space-between" mb={2} wrap="wrap">
               <Text fontSize="lg" fontWeight="bold">
                 {catDisplayName}
               </Text>
@@ -201,6 +218,13 @@ export default function AddonsSelector({
               )}
             </HStack>
 
+            {/* 🔴 Inline error for this category */}
+            {catError && (
+              <Text fontSize="sm" color="red.500" mb={2}>
+                {t.errorPrefix} {catError}
+              </Text>
+            )}
+
             <RadioGroup
               value={sel.addonId ? String(sel.addonId) : ""}
               onChange={(val) => handleSelectAddon(cat.id, val)}
@@ -218,11 +242,22 @@ export default function AddonsSelector({
                     : addon.price || 0;
 
                   return (
-                    <Box key={addon.id} borderWidth="1px" borderRadius="md" p={3}>
+                    <Box
+                      key={addon.id}
+                      borderWidth="1px"
+                      borderRadius="md"
+                      p={3}
+                    >
                       <HStack justify="space-between" align="center">
                         <HStack>
-                          <Radio value={String(addon.id)} colorScheme="brandBlue" />
-                          <VStack align={isArabic ? "end" : "start"} spacing={0}>
+                          <Radio
+                            value={String(addon.id)}
+                            colorScheme="brandBlue"
+                          />
+                          <VStack
+                            align={isArabic ? "end" : "start"}
+                            spacing={0}
+                          >
                             <Text fontWeight="semibold">{addonName}</Text>
                           </VStack>
                         </HStack>
@@ -235,13 +270,25 @@ export default function AddonsSelector({
                       </HStack>
 
                       {/* Accordion if addon has options OR requires custom name */}
-                      <Accordion allowToggle index={isSelected ? 0 : undefined} mt={2}>
-                        {(addon.requires_custom_name || addon.options.length > 0) && (
+                      {(addon.requires_custom_name ||
+                        addon.options.length > 0) && (
+                        <Accordion
+                          allowToggle
+                          index={isSelected ? 0 : undefined}
+                          mt={2}
+                        >
                           <AccordionItem isDisabled={!isSelected}>
                             <h2>
                               <AccordionButton>
-                                <Box as="span" flex="1" textAlign={isArabic ? "right" : "left"}>
-                                  {t.configure}
+                                <Box
+                                  as="span"
+                                  flex="1"
+                                  textAlign={isArabic ? "right" : "left"}
+                                >
+                                  {/* a11y hint: configure */}
+                                  {isArabic
+                                    ? "إعداد الخيارات"
+                                    : "Configure options"}
                                 </Box>
                                 <AccordionIcon />
                               </AccordionButton>
@@ -252,10 +299,14 @@ export default function AddonsSelector({
                                 {addon.requires_custom_name && (
                                   <Box>
                                     <Text fontSize="sm" mb={1}>
-                                      {t.customName}
+                                      {isArabic ? "اسم مخصص" : "Custom name"}
                                     </Text>
                                     <Input
-                                      placeholder={t.customNamePlaceholder}
+                                      placeholder={
+                                        isArabic
+                                          ? "اكتبي اسمًا مخصصًا"
+                                          : "Type a custom name"
+                                      }
                                       dir={isArabic ? "rtl" : "ltr"}
                                       value={sel.customName ?? ""}
                                       onChange={(e) =>
@@ -286,13 +337,19 @@ export default function AddonsSelector({
                                             opt.name_ar
                                           );
                                           return (
-                                            <HStack key={opt.id} justify="space-between">
+                                            <HStack
+                                              key={opt.id}
+                                              justify="space-between"
+                                            >
                                               <Checkbox value={String(opt.id)}>
                                                 <Text>{optName}</Text>
                                               </Checkbox>
                                               {showPrices && (
                                                 <Text fontSize="sm">
-                                                  + {formatKwd(Number(opt.price || 0))}
+                                                  +{" "}
+                                                  {formatKwd(
+                                                    Number(opt.price || 0)
+                                                  )}
                                                 </Text>
                                               )}
                                             </HStack>
@@ -302,9 +359,15 @@ export default function AddonsSelector({
                                     </CheckboxGroup>
                                   ) : (
                                     <RadioGroup
-                                      value={sel.optionIds[0] ? String(sel.optionIds[0]) : ""}
+                                      value={
+                                        sel.optionIds[0]
+                                          ? String(sel.optionIds[0])
+                                          : ""
+                                      }
                                       onChange={(val) =>
-                                        handleToggleOption(cat.id, addon, [Number(val)])
+                                        handleToggleOption(cat.id, addon, [
+                                          Number(val),
+                                        ])
                                       }
                                     >
                                       <VStack align="stretch" spacing={2}>
@@ -315,13 +378,19 @@ export default function AddonsSelector({
                                             opt.name_ar
                                           );
                                           return (
-                                            <HStack key={opt.id} justify="space-between">
+                                            <HStack
+                                              key={opt.id}
+                                              justify="space-between"
+                                            >
                                               <Radio value={String(opt.id)}>
                                                 <Text>{optName}</Text>
                                               </Radio>
                                               {showPrices && (
                                                 <Text fontSize="sm">
-                                                  + {formatKwd(Number(opt.price || 0))}
+                                                  +{" "}
+                                                  {formatKwd(
+                                                    Number(opt.price || 0)
+                                                  )}
                                                 </Text>
                                               )}
                                             </HStack>
@@ -333,7 +402,9 @@ export default function AddonsSelector({
                                 ) : (
                                   !addon.requires_custom_name && (
                                     <Text fontSize="sm" color="gray.500">
-                                      {t.noOptions}
+                                      {isArabic
+                                        ? "لا توجد خيارات لهذا الإضافة."
+                                        : "No options for this addon."}
                                     </Text>
                                   )
                                 )}
@@ -344,7 +415,9 @@ export default function AddonsSelector({
                                     <Divider />
                                     <HStack justify="space-between">
                                       <Text fontSize="sm" color="gray.600">
-                                        {t.subtotal}
+                                        {isArabic
+                                          ? "المجموع الفرعي لهذه الإضافة"
+                                          : "Subtotal for this addon"}
                                       </Text>
                                       <Text fontWeight="semibold">
                                         {formatKwd(Number(chosenTotal))}
@@ -355,8 +428,8 @@ export default function AddonsSelector({
                               </VStack>
                             </AccordionPanel>
                           </AccordionItem>
-                        )}
-                      </Accordion>
+                        </Accordion>
+                      )}
                     </Box>
                   );
                 })}
