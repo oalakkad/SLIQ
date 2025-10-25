@@ -50,22 +50,22 @@ export default function Page() {
   const categories: CategoryCardProps[] = [
     {
       title: isArabic ? "مشابك الشعر" : "HAIR CLIPS",
-      imageUrl: `${API_URL}/media/product-images/cotton-candy-gallery.jpg`,
+      imageUrl: `${API_URL}/media/home/hair-clips.jpg`,
       href: "/category/hair-clips",
     },
     {
       title: isArabic ? "فرش الشعر" : "HAIR BRUSHES",
-      imageUrl: `${API_URL}/media/product-images/crushed-ice-brush-gallery.jpg`,
+      imageUrl: `${API_URL}/media/home/hair-brushes.jpg`,
       href: "/category/hair-brushes",
     },
     {
       title: isArabic ? "مشابك جاهزة" : "PRE-MADE CLIPS",
-      imageUrl: `${API_URL}/media/product-images/starfish-clip-gallery.jpg`,
+      imageUrl: `${API_URL}/media/home/premade-clips.png`,
       href: "/category/pre-made-clips",
     },
     {
-      title: isArabic ? "حقائب المكياج" : "MAKEUP POUCHES",
-      imageUrl: `${API_URL}/media/product-images/makeup-bags-gallery.jpg`,
+      title: isArabic ? "حقائب المكياج" : "MAKEUP BAGS",
+      imageUrl: `${API_URL}/media/home/makeup-bags.png`,
       href: "/category/makeup-pouches",
     },
   ];
@@ -73,7 +73,7 @@ export default function Page() {
   const kidsProducts: CategoryCardProps[] = [
     {
       title: isArabic ? "الأخضر السعيد" : "HAPPY GREEN",
-      imageUrl: `${API_URL}/media/product-images/happy-green_SwXvMVa.png`,
+      imageUrl: `${API_URL}/media/home/happy-green_SwXvMVa.png`,
       href: "/products/happy-green",
     },
     {
@@ -95,7 +95,7 @@ export default function Page() {
 
   const t = {
     shopNow: isArabic ? "تسوقي الآن" : "SHOP NOW",
-    hairClipsTitle: isArabic ? "مشابك شعر عصرية" : "TRENDY HAIR CLIPS",
+    hairClipsTitle: isArabic ? "مشابك شعر عصرية" : "CLAW CLIPS",
     hairClipsDesc: isArabic
       ? "أضيفي لمسة فورية لإطلالتكِ مع مشابك أنيقة تناسب كل المناسبات."
       : "Elevate your look instantly with stylish hair clips made for every occasion.",
@@ -105,7 +105,7 @@ export default function Page() {
       ? "اعتني بشعركِ مع مجموعة فرش عالية الجودة للتسريح اليومي والتصفيف المثالي."
       : "Care for your hair with premium brushes designed for everyday detangling and flawless styling.",
 
-    makeupBagsTitle: isArabic ? "حقيبة مكياج أنيقة" : "CHIC MAKEUP BAGS",
+    makeupBagsTitle: isArabic ? "حقيبة مكياج أنيقة" : "MAKEUP BAGS",
     makeupBagsDesc: isArabic
       ? "احملي مستحضراتكِ المفضلة بأناقة مع حقائب عملية للسفر والاستخدام اليومي."
       : "Carry your beauty essentials in style with versatile makeup bags, perfect for travel or daily use.",
