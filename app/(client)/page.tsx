@@ -73,7 +73,7 @@ export default function Page() {
   const kidsProducts: CategoryCardProps[] = [
     {
       title: isArabic ? "الأخضر السعيد" : "HAPPY GREEN",
-      imageUrl: `${API_URL}/media/home/happy-green_SwXvMVa.png`,
+      imageUrl: `${API_URL}/media/product-images/happy-green_SwXvMVa.png`,
       href: "/products/happy-green",
     },
     {
