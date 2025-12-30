@@ -4,14 +4,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const productsRes = await fetch(`${API_URL}/api/products/sitemap/`);
+  const productsRes = await fetch(`${API_URL}/products/sitemap/`);
   console.log(
     "PRODUCTS STATUS",
     productsRes.status,
     productsRes.headers.get("content-type")
   );
 
-  const categoriesRes = await fetch(`${API_URL}/api/categories/sitemap/`);
+  const categoriesRes = await fetch(`${API_URL}/categories/sitemap/`);
   console.log(
     "CATEGORIES STATUS",
     categoriesRes.status,
