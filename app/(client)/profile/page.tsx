@@ -3,6 +3,7 @@
 import AccountMenu from "@/components/common/AccountMenu";
 import AddAddressModal from "@/components/common/AddressModal";
 import EditProfileModal from "@/components/common/EditProfileModal";
+import ChangePasswordModal from "@/components/common/ChangePasswordModal";
 import { Address, useAddress } from "@/hooks/use-address";
 import {
   useRetrieveUserQuery,
@@ -21,7 +22,7 @@ import {
   Spinner,
   HStack,
 } from "@chakra-ui/react";
-import { FiPlus, FiInfo } from "react-icons/fi";
+import { FiPlus, FiInfo, FiLock } from "react-icons/fi";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { useSelector } from "react-redux";
 
@@ -54,6 +55,12 @@ export default function ProfilePage() {
   } = useDisclosure();
 
   const {
+    isOpen: isPasswordOpen,
+    onOpen: onPasswordOpen,
+    onClose: onPasswordClose,
+  } = useDisclosure();
+
+  const {
     data: addresses,
     isLoading,
     deleteAddress,
@@ -78,13 +85,12 @@ export default function ProfilePage() {
         borderRadius="md"
         boxShadow="sm"
       >
-        <Flex justify="space-between" align="center" flexWrap="wrap">
+        <Flex justify="space-between" align="center">
           <Text
             fontSize="xl"
             fontWeight="bold"
             color="gray.600"
-            textAlign={isArabic ? "right" : "left"}
-            fontStyle={headingFont}
+            fontFamily={headingFont}
           >
             {isArabic ? "الملف الشخصي" : "PROFILE"}
           </Text>
@@ -97,7 +103,6 @@ export default function ProfilePage() {
               p={6}
               bg="#ebf3fc"
               boxShadow="xs"
-              w="full"
               position="relative"
             >
               <IconButton
@@ -109,29 +114,37 @@ export default function ProfilePage() {
                 right={isArabic ? undefined : 4}
                 left={isArabic ? 4 : undefined}
                 variant="outlineBlue"
-                _hover={{ bg: "#c4d9f0", color: "gray.500" }}
-                border={"none"}
+                border="none"
+                borderRadius="50%"
                 onClick={onEditOpen}
-                borderRadius={"50%"}
               />
-              <VStack
-                spacing={3}
-                align="start"
-                textAlign={isArabic ? "right" : "left"}
-              >
+
+              <VStack spacing={4} align="start">
                 <Box>
                   <Text fontWeight="medium" color="gray.500">
                     {isArabic ? "الاسم" : "Name"}
                   </Text>
                   <Text fontWeight="semibold">
-                    {user?.first_name} {user?.last_name}
+                    {user.first_name} {user.last_name}
                   </Text>
                 </Box>
-                <Box>
+
+                <Box w="100%">
                   <Text fontWeight="medium" color="gray.500">
                     {isArabic ? "البريد الإلكتروني" : "Email"}
                   </Text>
-                  <Text fontWeight="semibold">{user?.email}</Text>
+                  <Text fontWeight="semibold">{user.email}</Text>
+
+                  <Button
+                    mt={2}
+                    size="sm"
+                    leftIcon={<FiLock />}
+                    variant="link"
+                    colorScheme="blue"
+                    onClick={onPasswordOpen}
+                  >
+                    {isArabic ? "تغيير كلمة المرور" : "Change Password"}
+                  </Button>
                 </Box>
               </VStack>
             </Box>
@@ -140,9 +153,12 @@ export default function ProfilePage() {
               isOpen={isEditOpen}
               onClose={onEditClose}
               user={user}
-              onSave={(data) => {
-                updateUser(data).then(() => refetch());
-              }}
+              onSave={(data) => updateUser(data).then(() => refetch())}
+            />
+
+            <ChangePasswordModal
+              isOpen={isPasswordOpen}
+              onClose={onPasswordClose}
             />
 
             <AddAddressModal isOpen={isOpen} onClose={onClose} />
