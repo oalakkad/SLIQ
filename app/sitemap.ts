@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
-const API_URL = process.env.NEXT_PUBLIC_HOST!;
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const productsRes = await fetch(`${API_URL}/api/products/sitemap/`);
