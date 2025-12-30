@@ -124,7 +124,8 @@ export default function ChangePasswordModal({ isOpen, onClose }: Props) {
           </Button>
           <Button
             colorScheme="brandBlue"
-            ml={3}
+            ml={isArabic ? 0 : 3}
+            mr={isArabic ? 3 : 0}
             onClick={handleSubmit}
             isLoading={isLoading}
           >
