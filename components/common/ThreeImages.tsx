@@ -59,6 +59,8 @@ export default function ThreeImages({ images }: Props) {
                 alt={image.alt}
                 width="100%"
                 height="auto"
+                maxH={"65vh"}
+                minH={"300px"}
                 objectFit="cover"
                 borderRadius="md"
               />
