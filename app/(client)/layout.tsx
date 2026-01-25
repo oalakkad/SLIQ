@@ -37,6 +37,14 @@ export const readexPro = Readex_Pro({
   display: "swap",
 });
 
+export const metadata = {
+  title: {
+    default: "SAIE Clips",
+    template: "%s | SAIE",
+  },
+  description: "The first local customized clips & brushes brand in Kuwait!",
+};
+
 export default function RootLayout({
   children,
 }: {
