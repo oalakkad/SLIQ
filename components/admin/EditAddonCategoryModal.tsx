@@ -18,6 +18,7 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import Select, { MultiValue } from "react-select";
+
 import {
   AdminAddonCategory,
   useAdminAddonCategories,
@@ -25,6 +26,13 @@ import {
   useLinkedProductCategories,
   CategoryItem,
 } from "@/hooks/use-admin-addon-categories";
+
+// Products
+import {
+  useAllProducts,
+  useLinkedProducts,
+  useSetLinkedProducts,
+} from "@/hooks/use-admin-addon-products";
 
 interface Props {
   category?: AdminAddonCategory | null;
@@ -45,63 +53,69 @@ export default function EditAddonCategoryModal({
     setLinkedProductCategories,
   } = useAdminAddonCategories();
 
-  // All available product categories
+  const { mutateAsync: setLinkedProducts } = useSetLinkedProducts();
+
+  // ---------- Categories ----------
+
   const { data: allCats = [], isLoading: catsLoading } =
     useAllProductCategories();
 
-  // Linked product categories for this addon category (only if editing)
   const { data: linkedCats = [], isLoading: linkedLoading } =
     useLinkedProductCategories(category?.id);
 
-  // Local multiselect state
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
-  // Build options for react-select
   const categoryOptions: Option[] = useMemo(
     () =>
       allCats.map((c) => ({
         value: c.id,
         label: c.name_ar ? `${c.name} / ${c.name_ar}` : c.name,
       })),
-    [allCats]
+    [allCats],
   );
 
-  // ----- Stable keys to prevent infinite loops -----
-  const linkedDefaultIds: string[] = useMemo(
+  // ---------- Products ----------
+
+  const { data: allProducts = [], isLoading: productsLoading } =
+    useAllProducts();
+
+  const { data: linkedProducts = [], isLoading: linkedProductsLoading } =
+    useLinkedProducts(category?.id);
+
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  const productOptions: Option[] = useMemo(
     () =>
-      category?.id
-        ? (linkedCats ?? []).map((c: CategoryItem) => String(c.id))
-        : [],
-    [category?.id, linkedCats]
-  );
-  const linkedDefaultsKey = useMemo(
-    () => linkedDefaultIds.slice().sort().join(","),
-    [linkedDefaultIds]
-  );
-  const selectedKey = useMemo(
-    () => selectedIds.slice().sort().join(","),
-    [selectedIds]
+      allProducts.map((p) => ({
+        value: p.id,
+        label: p.name_ar ? `${p.name} / ${p.name_ar}` : p.name,
+      })),
+    [allProducts],
   );
 
-  // Prefill only when:
-  // - modal is open
-  // - editing (has id)
-  // - linkedCats finished loading
-  // - current selection differs from linked defaults
+  // ---------- Prefill Logic ----------
+
   useEffect(() => {
-    if (!isOpen) return;
-    if (!category?.id) return; // add mode -> don't prefill
+    if (!isOpen || !category?.id) return;
     if (catsLoading || linkedLoading) return;
-    if (selectedKey === linkedDefaultsKey) return; // already in sync
-    setSelectedIds(linkedDefaultIds);
+
+    setSelectedCategoryIds(linkedCats.map((c: CategoryItem) => String(c.id)));
+  }, [isOpen, category?.id, catsLoading, linkedLoading, linkedCats]);
+
+  useEffect(() => {
+    if (!isOpen || !category?.id) return;
+    if (productsLoading || linkedProductsLoading) return;
+
+    setSelectedProductIds(linkedProducts.map((p: any) => String(p.id)));
   }, [
     isOpen,
     category?.id,
-    catsLoading,
-    linkedLoading,
-    linkedDefaultsKey, // changes only when linked data actually changes
-    // intentionally NOT including selectedKey to avoid re-running after user edits
+    productsLoading,
+    linkedProductsLoading,
+    linkedProducts,
   ]);
+
+  // ---------- Form ----------
 
   const formik = useFormik({
     initialValues: {
@@ -115,21 +129,22 @@ export default function EditAddonCategoryModal({
     onSubmit: async (values) => {
       let id = category?.id;
 
-      // Create or update
       if (id) {
         await updateAddonCategory.mutateAsync({ id, data: values });
       } else {
         const created = await createAddonCategory.mutateAsync(values);
-        // adjust if your API nests id differently
-        id = (created as any)?.id ?? (created as any)?.data?.id ?? null;
+        id = (created as any)?.id ?? null;
       }
 
-      // Assign product categories
       if (id) {
-        const ids = selectedIds.map(Number);
         await setLinkedProductCategories.mutateAsync({
           addonCategoryId: id,
-          categoryIds: ids,
+          categoryIds: selectedCategoryIds.map(Number),
+        });
+
+        await setLinkedProducts({
+          addonCategoryId: id,
+          productIds: selectedProductIds.map(Number),
         });
       }
 
@@ -139,22 +154,11 @@ export default function EditAddonCategoryModal({
 
   const isEdit = !!category?.id;
 
-  // all booleans now ✅
-  const inputsDisabled = catsLoading || (isEdit && linkedLoading);
-  const selectDisabled = catsLoading || (isEdit && linkedLoading);
   const isSaving =
     createAddonCategory.isPending ||
     updateAddonCategory.isPending ||
     setLinkedProductCategories.isPending;
 
-  // Value for react-select from selectedIds
-  const selectedOptions: Option[] = useMemo(
-    () =>
-      categoryOptions.filter((opt) => selectedIds.includes(String(opt.value))),
-    [categoryOptions, selectedIds]
-  );
-
-  // Portal react-select menu INSIDE the modal to avoid focus/overlay issues
   const contentRef = useRef<HTMLDivElement | null>(null);
 
   return (
@@ -167,7 +171,7 @@ export default function EditAddonCategoryModal({
         <ModalCloseButton />
         <ModalBody>
           <form onSubmit={formik.handleSubmit}>
-            <FormControl mb={3} isDisabled={inputsDisabled}>
+            <FormControl mb={3}>
               <FormLabel>Name</FormLabel>
               <Input
                 name="name"
@@ -176,7 +180,7 @@ export default function EditAddonCategoryModal({
               />
             </FormControl>
 
-            <FormControl mb={3} isDisabled={inputsDisabled}>
+            <FormControl mb={3}>
               <FormLabel>Name (Arabic)</FormLabel>
               <Input
                 name="name_ar"
@@ -185,23 +189,45 @@ export default function EditAddonCategoryModal({
               />
             </FormControl>
 
-            {/* Do NOT disable this FormControl to avoid pointer-events:none on react-select */}
-            <FormControl mb={1}>
+            {/* Categories */}
+            <FormControl mb={3}>
               <FormLabel>Linked Product Categories</FormLabel>
-              {selectDisabled ? (
+              {catsLoading || linkedLoading ? (
                 <Spinner size="sm" />
               ) : (
                 <Select
                   isMulti
                   options={categoryOptions}
-                  value={selectedOptions}
+                  value={categoryOptions.filter((opt) =>
+                    selectedCategoryIds.includes(String(opt.value)),
+                  )}
                   onChange={(vals: MultiValue<Option>) =>
-                    setSelectedIds(vals.map((v) => String(v.value)))
+                    setSelectedCategoryIds(vals.map((v) => String(v.value)))
                   }
-                  placeholder="Select categories..."
-                  // keep it interactive
-                  isDisabled={false}
-                  // Portal menu inside modal content (avoid focus trap issues)
+                  menuPortalTarget={contentRef.current ?? undefined}
+                  menuPosition="fixed"
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                  }}
+                />
+              )}
+            </FormControl>
+
+            {/* Products */}
+            <FormControl mb={1}>
+              <FormLabel>Linked Products</FormLabel>
+              {productsLoading || linkedProductsLoading ? (
+                <Spinner size="sm" />
+              ) : (
+                <Select
+                  isMulti
+                  options={productOptions}
+                  value={productOptions.filter((opt) =>
+                    selectedProductIds.includes(String(opt.value)),
+                  )}
+                  onChange={(vals: MultiValue<Option>) =>
+                    setSelectedProductIds(vals.map((v) => String(v.value)))
+                  }
                   menuPortalTarget={contentRef.current ?? undefined}
                   menuPosition="fixed"
                   styles={{
@@ -212,6 +238,7 @@ export default function EditAddonCategoryModal({
             </FormControl>
           </form>
         </ModalBody>
+
         <ModalFooter>
           <Button mr={3} onClick={onClose}>
             Cancel
@@ -219,12 +246,7 @@ export default function EditAddonCategoryModal({
           <Button
             colorScheme="brandBlue"
             onClick={() => formik.handleSubmit()}
-            isLoading={
-              createAddonCategory.isPending ||
-              updateAddonCategory.isPending ||
-              setLinkedProductCategories.isPending
-            }
-            isDisabled={inputsDisabled || isSaving}
+            isLoading={isSaving}
           >
             {category ? "Save Changes" : "Add"}
           </Button>
