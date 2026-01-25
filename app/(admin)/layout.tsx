@@ -27,13 +27,6 @@ export const readexPro = Readex_Pro({
   display: "swap",
 });
 
-export const metadata = {
-  title: {
-    default: "Admin Dashboard | SAIE Clips",
-    template: "%s | SAIE",
-  },
-};
-
 export default function AdminClientLayout({
   children,
 }: {
