@@ -17,12 +17,11 @@ import {
   VStack,
   HStack,
   IconButton,
-  // ⛔ remove Chakra's Select import to avoid name clash
-  // Select,
 } from "@chakra-ui/react";
 import { Formik, Form, FieldArray } from "formik";
 import * as Yup from "yup";
 import { useAdminAddonCategories } from "@/hooks/use-admin-addon-categories";
+import { useAdminProducts } from "@/hooks/use-admin-products"; // ✅ NEW
 import ReactSelect, { MultiValue } from "react-select";
 import { FaTrash } from "react-icons/fa";
 import theme from "@/theme";
@@ -32,11 +31,12 @@ const AddonSchema = Yup.object().shape({
   name: Yup.string().required("Required"),
   price: Yup.number().min(0, "Must be >= 0").required("Required"),
   category_ids: Yup.array().of(Yup.number()).nullable().default([]),
+  specific_product_ids: Yup.array().of(Yup.number()).nullable().default([]), // ✅ NEW
   options: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required("Required"),
       price: Yup.number().min(0, "Must be >= 0"),
-    })
+    }),
   ),
 });
 
@@ -57,6 +57,9 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
 }) => {
   const { categories, isLoading } = useAdminAddonCategories();
 
+  // ✅ NEW: products for specific product targeting
+  const { products, isLoading: productsLoading } = useAdminProducts();
+
   const initialValues = {
     name: addon?.name || "",
     name_ar: addon?.name_ar || "",
@@ -65,17 +68,31 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
     allow_multiple_options: addon?.allow_multiple_options || false,
     category_ids:
       addon?.category_ids ?? addon?.categories?.map((c: any) => c.id) ?? [],
+    specific_product_ids:
+      addon?.specific_product_ids ??
+      addon?.specific_products?.map((p: any) => p.id) ??
+      [],
     options: addon?.options || [],
   };
 
-  // Build options once from categories
+  // Build category options
   const categoryOptions: Option[] = useMemo(
     () =>
       (categories ?? []).map((cat: any) => ({
         value: cat.id,
         label: cat.name_ar ? `${cat.name} / ${cat.name_ar}` : cat.name,
       })),
-    [categories]
+    [categories],
+  );
+
+  // ✅ NEW: Build product options
+  const productOptions: Option[] = useMemo(
+    () =>
+      (products ?? []).map((p: any) => ({
+        value: p.id,
+        label: p.name_ar ? `${p.name} / ${p.name_ar}` : p.name,
+      })),
+    [products],
   );
 
   return (
@@ -95,9 +112,14 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
           enableReinitialize
         >
           {({ values, errors, handleChange, handleBlur, setFieldValue }) => {
-            // Map current numeric ids -> react-select options
+            // Selected category options
             const selectedOptions: Option[] = categoryOptions.filter((opt) =>
-              values.category_ids.includes(opt.value)
+              values.category_ids.includes(opt.value),
+            );
+
+            // ✅ NEW: Selected product options
+            const selectedProductOptions: Option[] = productOptions.filter(
+              (opt) => values.specific_product_ids.includes(opt.value),
             );
 
             return (
@@ -138,7 +160,7 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                       </NumberInput>
                     </FormControl>
 
-                    {/* Categories (react-select multi) */}
+                    {/* Categories */}
                     <FormControl isInvalid={!!errors.category_ids}>
                       <FormLabel>Categories</FormLabel>
                       <ReactSelect
@@ -152,22 +174,20 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                         onChange={(opts: MultiValue<Option>) =>
                           setFieldValue(
                             "category_ids",
-                            (opts as Option[]).map((o) => o.value)
+                            (opts as Option[]).map((o) => o.value),
                           )
                         }
                         placeholder="Select categories..."
                         isLoading={isLoading}
-                        // Make sure the menu renders above Chakra Modal
                         menuPortalTarget={
                           typeof document !== "undefined"
                             ? document.body
                             : undefined
                         }
                         styles={{
-                          // 🔹 merge both control customizations
                           control: (base, state) => ({
                             ...base,
-                            minHeight: 42, // from second config
+                            minHeight: 42,
                             borderColor: state.isFocused
                               ? theme.colors.brandBlue[500]
                               : theme.colors.gray[300],
@@ -178,20 +198,15 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                               borderColor: theme.colors.brandBlue[400],
                             },
                           }),
-
-                          // 🔹 option styling (from first config)
                           option: (base, state) => ({
                             ...base,
                             backgroundColor: state.isSelected
                               ? theme.colors.brandBlue[500]
                               : state.isFocused
-                              ? theme.colors.brandBlue[100]
-                              : "white",
+                                ? theme.colors.brandBlue[100]
+                                : "white",
                             color: state.isSelected ? "white" : "black",
-                            cursor: "pointer",
                           }),
-
-                          // 🔹 multi-value styles (from first config)
                           multiValue: (base) => ({
                             ...base,
                             backgroundColor: theme.colors.brandBlue[100],
@@ -208,18 +223,49 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                               color: "white",
                             },
                           }),
-
-                          // 🔹 menuPortal (from second config)
                           menuPortal: (base) => ({
                             ...base,
                             zIndex: 9999,
                           }),
-
-                          // 🔹 valueContainer (from second config)
                           valueContainer: (base) => ({
                             ...base,
                             paddingTop: 6,
                             paddingBottom: 6,
+                          }),
+                        }}
+                      />
+                    </FormControl>
+
+                    {/* ✅ NEW: Specific Products Selector */}
+                    <FormControl>
+                      <FormLabel>
+                        Specific Products (Optional — overrides categories)
+                      </FormLabel>
+                      <ReactSelect
+                        classNamePrefix="rs"
+                        isMulti
+                        isSearchable
+                        isClearable
+                        closeMenuOnSelect={false}
+                        options={productOptions}
+                        value={selectedProductOptions}
+                        onChange={(opts: MultiValue<Option>) =>
+                          setFieldValue(
+                            "specific_product_ids",
+                            (opts as Option[]).map((o) => o.value),
+                          )
+                        }
+                        placeholder="Select specific products..."
+                        isLoading={productsLoading}
+                        menuPortalTarget={
+                          typeof document !== "undefined"
+                            ? document.body
+                            : undefined
+                        }
+                        styles={{
+                          menuPortal: (base) => ({
+                            ...base,
+                            zIndex: 9999,
                           }),
                         }}
                       />
@@ -232,18 +278,19 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                         onChange={(e) =>
                           setFieldValue(
                             "requires_custom_name",
-                            e.target.checked
+                            e.target.checked,
                           )
                         }
                       >
                         Requires Custom Name
                       </Checkbox>
+
                       <Checkbox
                         isChecked={values.allow_multiple_options}
                         onChange={(e) =>
                           setFieldValue(
                             "allow_multiple_options",
-                            e.target.checked
+                            e.target.checked,
                           )
                         }
                       >
@@ -287,9 +334,7 @@ export const EditAddonModal: React.FC<EditAddonModalProps> = ({
                                   colorScheme="red"
                                   icon={<FaTrash />}
                                   onClick={() => remove(i)}
-                                >
-                                  Remove
-                                </IconButton>
+                                />
                               </HStack>
                             ))}
                             <Button
