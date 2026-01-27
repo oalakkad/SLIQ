@@ -130,7 +130,7 @@ export default function FeaturedCard({
             fontWeight="bold"
             color="gray.600"
             zIndex={2}
-            position="absolute"
+            position="relative"
             pointerEvents="none"
             fontFamily={headingFont}
             ml={3}
