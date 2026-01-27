@@ -52,8 +52,9 @@ const OrderSummary = ({
       return sum + unit * (item?.quantity ?? 0);
     }, 0) ?? 0;
 
+  const DELIVERY_FEE = 2;
   const discountAmount = discountResponse ? Number(discountResponse.amount) : 0;
-  const total = subtotal - discountAmount;
+  const total = subtotal - discountAmount + DELIVERY_FEE;
 
   return (
     <Box bg="brand.yellow" borderRadius="md" p={6} minW="300px">
@@ -127,7 +128,7 @@ const OrderSummary = ({
                         ? sel.addon?.name_ar || sel.addon?.name
                         : sel.addon?.name;
                       const selectionSubtotal = parseMoney(
-                        sel.selection_subtotal
+                        sel.selection_subtotal,
                       );
 
                       return (
@@ -204,6 +205,12 @@ const OrderSummary = ({
         )}
 
         <Divider />
+        <Flex justify="space-between">
+          <Text>{isArabic ? "رسوم التوصيل:" : "Delivery:"}</Text>
+          <Text>{kwd(DELIVERY_FEE)}</Text>
+        </Flex>
+
+        <Divider />
 
         <Flex justify="space-between">
           <Text fontWeight="bold">
@@ -227,7 +234,7 @@ export default function CheckoutPage() {
 
   const { data: addresses, isLoading: isAddressLoading } = useAddress();
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-    null
+    null,
   );
   const [billingAddressId, setBillingAddressId] = useState<number | null>(null);
 
@@ -282,7 +289,7 @@ export default function CheckoutPage() {
       selectedAddressId === null
     ) {
       const defaultAddr = addresses.results.find(
-        (addr: any) => addr.is_default
+        (addr: any) => addr.is_default,
       );
       if (defaultAddr) setSelectedAddressId(defaultAddr.id);
     }
@@ -349,7 +356,7 @@ export default function CheckoutPage() {
             setCpAmount(amount);
             setCpCurrency(currency);
           },
-        }
+        },
       );
     } else {
       // ------------------ GUEST FLOW ------------------
@@ -395,7 +402,7 @@ export default function CheckoutPage() {
             setCpAmount(amount);
             setCpCurrency(currency);
           },
-        }
+        },
       );
     }
   };
