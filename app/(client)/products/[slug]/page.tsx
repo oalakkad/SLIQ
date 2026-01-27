@@ -69,18 +69,18 @@ export default function ProductPage() {
 
   const isInCart = useMemo(
     () => cart?.items?.some((item) => item.product?.id === product?.id),
-    [cart, product]
+    [cart, product],
   );
 
   const isInWishlist = useMemo(
     () => wishlist?.results?.some((item) => item.product?.id === product?.id),
-    [wishlist, product]
+    [wishlist, product],
   );
 
   const wishlistId = useMemo(
     () =>
       wishlist?.results.find((item) => item.product?.id === product?.id)?.id,
-    [wishlist, product]
+    [wishlist, product],
   );
 
   // 🟢 Hover state for animated button
@@ -97,8 +97,8 @@ export default function ProductPage() {
           ? "أضف المزيد"
           : "ADD MORE"
         : isArabic
-        ? "في السلة"
-        : "IN CART";
+          ? "في السلة"
+          : "IN CART";
 
     return isArabic ? "أضف إلى الحقيبة" : "ADD TO BAG";
   }, [isArabic, isInCart, isHoveringButton, product?.stock_quantity]);
@@ -198,8 +198,8 @@ export default function ProductPage() {
               product?.stock_quantity === 0
                 ? "gray.400"
                 : isInCart
-                ? "gray.500"
-                : "gray.700"
+                  ? "gray.500"
+                  : "gray.700"
             }
             color="white"
             _hover={{
@@ -207,8 +207,8 @@ export default function ProductPage() {
                 product?.stock_quantity === 0
                   ? "gray.400"
                   : isInCart
-                  ? "gray.500"
-                  : "gray.800",
+                    ? "gray.500"
+                    : "gray.800",
             }}
             onClick={() => {
               if (product?.stock_quantity === 0) return;
@@ -255,19 +255,26 @@ export default function ProductPage() {
               ? "في قائمة الرغبات"
               : "In Wishlist"
             : isArabic
-            ? "أضف إلى الرغبات"
-            : "Add to Wishlist"}
+              ? "أضف إلى الرغبات"
+              : "Add to Wishlist"}
         </Button>
-
-        {/* 📜 Description */}
-        <Text mt={6} fontSize="sm" color="gray.700">
-          {isArabic
-            ? "امنح شعرك لمسة ساحرة. زيني تسريحاتك أثناء التنقل بأكثر القطع المطلوبة سهولة وجمالاً."
-            : "Give the gift of heavenly hair. Elevate your on-the-go hairstyles with our most effortless and desired pieces."}
-        </Text>
 
         <VStack spacing={1} align="start" mt={4} fontSize="sm">
           <Text fontWeight="bold">{isArabic ? "الوصف" : "Description"}</Text>
+          {/* 📜 Description */}
+          <Text mt={6} fontSize="sm" color="gray.700">
+            {(() => {
+              const desc = isArabic
+                ? product?.description_ar
+                : product?.description;
+
+              return desc?.trim()
+                ? desc
+                : isArabic
+                  ? "امنح شعرك لمسة ساحرة. زيني تسريحاتك أثناء التنقل بأكثر القطع المطلوبة سهولة وجمالاً."
+                  : "Give the gift of heavenly hair. Elevate your on-the-go hairstyles with our most effortless and desired pieces.";
+            })()}
+          </Text>
         </VStack>
       </Box>
 

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { ProductCategory } from './use-menu-categories';
-import { api } from '@/components/utils/api';
+import { useQuery } from "@tanstack/react-query";
+import { ProductCategory } from "./use-menu-categories";
+import { api } from "@/components/utils/api";
 
 export interface Product {
   id: number;
@@ -14,6 +14,8 @@ export interface Product {
   is_best_seller: boolean;
   categories: ProductCategory[];
   stock_quantity: number;
+  description: string;
+  description_ar: string;
 }
 
 export interface Filters {
@@ -37,12 +39,13 @@ export type SortKey = "featured" | "price-lth" | "price-htl" | undefined;
 const buildQueryParams = (filters: Filters, page: number) => {
   const params = new URLSearchParams({ page: page.toString() });
 
-  if (filters.search) params.append('search', filters.search);
-  if (filters.is_new_arrival) params.append('is_new_arrival', 'true');
-  if (filters.is_best_seller) params.append('is_best_seller', 'true');
-  if (filters.ordering) params.append('ordering', filters.ordering);
-  if (filters.category_slug) params.append('category_slug', filters.category_slug);
-  filters.categories?.forEach((id) => params.append('categories', String(id)));
+  if (filters.search) params.append("search", filters.search);
+  if (filters.is_new_arrival) params.append("is_new_arrival", "true");
+  if (filters.is_best_seller) params.append("is_best_seller", "true");
+  if (filters.ordering) params.append("ordering", filters.ordering);
+  if (filters.category_slug)
+    params.append("category_slug", filters.category_slug);
+  filters.categories?.forEach((id) => params.append("categories", String(id)));
 
   return params.toString();
 };
@@ -50,9 +53,9 @@ const buildQueryParams = (filters: Filters, page: number) => {
 export const usePaginatedProducts = (
   page: number,
   filters: Filters = {},
-  sort?: SortKey
+  sort?: SortKey,
 ) =>
-   useQuery<PaginatedResponse>({
+  useQuery<PaginatedResponse>({
     // include `sort` in the cache key so each sort has its own cache entry
     queryKey: ["products", { ...filters, page, sort }],
     queryFn: async () => {
@@ -69,7 +72,7 @@ export const usePaginatedProducts = (
 // ✅ New hook to fetch a single product by ID
 export const useProduct = (slug: string) =>
   useQuery<Product>({
-    queryKey: ['product', slug],
+    queryKey: ["product", slug],
     queryFn: async () => {
       const response = await api.get(`/products/${slug}/`, {
         withCredentials: true,
