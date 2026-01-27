@@ -123,6 +123,39 @@ export default function Page() {
     kidsTitle: isArabic ? "الأطفال" : "KIDS",
   };
 
+  const sections = [
+    {
+      bg: "brand.pink",
+      title: t.hairClipsTitle,
+      desc: t.hairClipsDesc,
+      href: "/category/hair-clips",
+    },
+    {
+      bg: "white",
+      title: t.hairBrushesTitle,
+      desc: t.hairBrushesDesc,
+      href: "/category/hair-brushes",
+    },
+    {
+      bg: "brand.pink",
+      title: t.makeupBagsTitle,
+      desc: t.makeupBagsDesc,
+      href: "/category/makeup-bags",
+    },
+    {
+      bg: "white",
+      title: "",
+      desc: "",
+      href: "/shop",
+    },
+    {
+      bg: "brand.blue",
+      title: "",
+      desc: "",
+      href: "/shop",
+    },
+  ];
+
   useEffect(() => {
     const handlePageLoad = () => setLoading(false);
     if (document.readyState === "complete") handlePageLoad();
@@ -158,55 +191,49 @@ export default function Page() {
 
   return (
     <Box dir={direction}>
-      {imageGroups.slice(0, 5).map((images, i) => (
-        <Box
-          key={i}
-          bg={
-            [
-              "brand.pink",
-              "white",
-              "brand.pink",
-              "white",
-              "brand.blue",
-            ][i]
-          }
-          pt={20}
-          pb={4}
-          px={5}
-        >
-          <ThreeImages images={images} />
-          <Box w={isMobile ? "90%" : "30%"} {...marginX} textAlign={textAlign}>
-            <Heading size="lg" color="gray.500" my={2} fontFamily={headingFont}>
-              {
-                [
-                  t.hairClipsTitle,
-                  t.hairBrushesTitle,
-                  t.makeupBagsTitle,
-                ][i]
-              }
-            </Heading>
-            <Text fontWeight={100} color="black" fontFamily={bodyFont}>
-              {
-                [
-                  t.hairClipsDesc,
-                  t.hairBrushesDesc,
-                  t.makeupBagsDesc,
-                ][i]
-              }
-            </Text>
-            <Link href="/shop">
-              <Button
-                my={4}
-                variant="outline"
-                fontSize="sm"
-                fontFamily={headingFont}
-              >
-                {t.shopNow}
-              </Button>
-            </Link>
+      {imageGroups.slice(0, 5).map((images, i) => {
+        const section = sections[i];
+
+        return (
+          <Box key={i} bg={section.bg} pt={20} pb={4} px={5}>
+            <ThreeImages images={images} />
+
+            <Box
+              w={isMobile ? "90%" : "30%"}
+              {...marginX}
+              textAlign={textAlign}
+            >
+              {section.title && (
+                <Heading
+                  size="lg"
+                  color="gray.500"
+                  my={2}
+                  fontFamily={headingFont}
+                >
+                  {section.title}
+                </Heading>
+              )}
+
+              {section.desc && (
+                <Text fontWeight={100} color="black" fontFamily={bodyFont}>
+                  {section.desc}
+                </Text>
+              )}
+
+              <Link href={section.href}>
+                <Button
+                  my={4}
+                  variant="outline"
+                  fontSize="sm"
+                  fontFamily={headingFont}
+                >
+                  {t.shopNow}
+                </Button>
+              </Link>
+            </Box>
           </Box>
-        </Box>
-      ))}
+        );
+      })}
 
       <Box px={{ base: 4, md: 16 }} py={10}>
         <Heading
