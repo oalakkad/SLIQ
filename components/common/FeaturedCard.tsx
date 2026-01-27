@@ -56,7 +56,7 @@ export default function FeaturedCard({
 
   const isInCart = useMemo(
     () => cart?.items?.some((item) => item.product.id === product.id),
-    [cart, product.id]
+    [cart, product.id],
   );
 
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -66,8 +66,8 @@ export default function FeaturedCard({
   const adjustedHeight = isMobile
     ? `${height}px`
     : isTablet
-    ? `${height * 1.2}px`
-    : `${height * 1.5}px`;
+      ? `${height * 1.2}px`
+      : `${height * 1.5}px`;
 
   const hoverImage =
     product.image === product.images?.[0]?.image
@@ -82,8 +82,8 @@ export default function FeaturedCard({
           ? "جديد"
           : "New Arrival"
         : isArabic
-        ? "أكثر مبيعتاً"
-        : "Best Seller"
+          ? "أكثر مبيعتاً"
+          : "Best Seller"
       : null;
 
   const buttonLabel = useMemo(() => {
@@ -95,8 +95,8 @@ export default function FeaturedCard({
           ? "أضف المزيد"
           : "ADD MORE"
         : isArabic
-        ? "في السلة"
-        : "IN CART";
+          ? "في السلة"
+          : "IN CART";
     return isArabic ? "أضف إلى الحقيبة" : "ADD TO BAG";
   }, [isArabic, isInCart, isHoveringButton, product?.stock_quantity]);
 
@@ -119,7 +119,7 @@ export default function FeaturedCard({
       <Flex
         position="absolute"
         alignItems="center"
-        justifyContent="space-between"
+        justifyContent={badge ? "space-between" : "flex-end"}
         w="100%"
         top={0}
         p={2}
@@ -144,6 +144,7 @@ export default function FeaturedCard({
           icon={isWishlist ? <FaHeart /> : <FiHeart />}
           size="sm"
           variant="ghost"
+          position={"relative"}
           onClick={
             isWishlist
               ? () => removeFromWishlist.mutate(wishlistItemId)
@@ -230,16 +231,16 @@ export default function FeaturedCard({
               product?.stock_quantity === 0
                 ? "gray.300"
                 : isInCart
-                ? "brand.pink"
-                : "transparent"
+                  ? "brand.pink"
+                  : "transparent"
             }
             fontFamily={headingFont}
             color={
               product?.stock_quantity === 0
                 ? "gray.600"
                 : isInCart
-                ? "black"
-                : "gray.600"
+                  ? "black"
+                  : "gray.600"
             }
             onClick={(e) => {
               if (product?.stock_quantity === 0) return;
@@ -250,8 +251,8 @@ export default function FeaturedCard({
               product?.stock_quantity === 0
                 ? { backgroundColor: "gray.300" }
                 : isInCart
-                ? { backgroundColor: "brand.pink" }
-                : { backgroundColor: "gray.500", color: "white" }
+                  ? { backgroundColor: "brand.pink" }
+                  : { backgroundColor: "gray.500", color: "white" }
             }
             cursor={product?.stock_quantity === 0 ? "not-allowed" : "pointer"}
           >
