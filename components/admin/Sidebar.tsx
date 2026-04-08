@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { Box } from "@chakra-ui/react";
 import { useRouter, usePathname } from "next/navigation";
-import { FaHome, FaShoppingCart, FaBox, FaUsers } from "react-icons/fa";
+import { FaHome, FaShoppingCart, FaBox, FaUsers, FaCog } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import { GrTransaction } from "react-icons/gr";
 import { MdDiscount } from "react-icons/md";
@@ -172,6 +172,14 @@ export default function AdminSidebar() {
               onClick={() => router.push("/admin/customers")}
             >
               Customers
+            </MenuItem>
+
+            <MenuItem
+              icon={<FaCog />}
+              active={pathname === "/admin/settings"}
+              onClick={() => router.push("/admin/settings")}
+            >
+              Settings
             </MenuItem>
           </Menu>
         </main>

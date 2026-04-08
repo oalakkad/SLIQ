@@ -27,6 +27,7 @@ import { PiHeartFill } from "react-icons/pi";
 import { CiSearch } from "react-icons/ci";
 import Image from "next/image";
 import saieLogo from "@/public/saie-logo.png";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import SearchBox from "./SearchBox";
@@ -110,6 +111,9 @@ export default function Navbar() {
     );
   }, [categories, isArabic]);
 
+  const { data: siteSettings } = useSiteSettings();
+  const logoSrc = siteSettings?.logo || saieLogo;
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isSearchOpen,
@@ -172,7 +176,7 @@ export default function Navbar() {
       >
         <Box mt={4}></Box>
         <Link href={"/"}>
-          <Image src={saieLogo} alt="SAIE" width={128} height={49} />
+          <Image src={logoSrc} alt="SAIE" width={128} height={49} unoptimized={!!siteSettings?.logo} />
         </Link>
         <Flex flexDirection={"row"} mt={5} justifyContent={"space-evenly"}>
           {!isMobile &&

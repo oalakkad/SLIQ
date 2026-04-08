@@ -23,8 +23,9 @@ import ThreeImages from "@/components/common/ThreeImages";
 import type { ThreeImagesProps } from "@/components/common/ThreeImages";
 import type { CategoryCardProps } from "@/components/common/CategoryCard";
 import { useAppSelector } from "@/redux/hooks";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
-const API_URL = process.env.NEXT_PUBLIC_AWS_URL || "http://localhost:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_AWS_URL || "http://localhost:8000";
 
 const generateImageSet = (start: number): ThreeImagesProps[] =>
   [0, 1, 2].map((i) => ({
@@ -43,6 +44,7 @@ export default function Page() {
   const { data: user } = useRetrieveUserQuery();
   const [loading, setLoading] = useState(true);
   const isArabic = useAppSelector((state) => state.lang.isArabic);
+  const { data: siteSettings } = useSiteSettings();
   const direction = isArabic ? "rtl" : "ltr";
   const textAlign = isArabic ? "right" : "left";
   const marginX = isArabic ? { ml: 0, mr: 6 } : { ml: 6, mr: 0 };
@@ -117,8 +119,8 @@ export default function Page() {
       : "A collection inspired by sunlit days, weekend escapes, and effortless everyday elegance.",
     aboutUs: isArabic ? "من نحن" : "ABOUT US",
     aboutDesc: isArabic
-      ? "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام."
-      : "A brand founded on bold femininity, offering effective and effortless products.",
+      ? (siteSettings?.bio_ar || "علامة تجارية نسائية جريئة تدعمها منتجات عالية الجودة وفعالة وسهلة الاستخدام.")
+      : (siteSettings?.bio_en || "A brand founded on bold femininity, offering effective and effortless products."),
     ourStory: isArabic ? "سجلنا" : "Our LOOKBOOK",
     kidsTitle: isArabic ? "الأطفال" : "KIDS",
   };
